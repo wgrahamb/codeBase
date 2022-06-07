@@ -1,0 +1,2 @@
+breakOutSRAAm: main.cpp
+	g++ -g -o breakOutSRAAM main.cpp src/util.cpp src/flightComputer.cpp src/environment.cpp src/IMU.cpp src/seeker.cpp src/translationalDynamics.cpp src/rotationalDynamics.cpp src/translationalKinematics.cpp src/rotationalKinematics.cpp src/intercept.cpp src/endCheck.cpp src/logData.cpp src/SRAAMEngine/guidance.cpp src/SRAAMEngine/control.cpp src/SRAAMEngine/actuators.cpp src/SRAAMEngine/aerodynamics.cpp src/SRAAMEngine/massAndMotor.cpp src/SRAAMEngine/SRAAMEngine.cpp
