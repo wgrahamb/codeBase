@@ -10,10 +10,14 @@ const double mToKm = 1 / 1000;
 const double pi = 3.14159265358979323846;
 const double grav = 9.81;
 
-double unituni();
 double signum(double x);
 double atan2_0(double y, double x);
-double gauss(double mean, double sig);
+double exponentialDistribution(double density);
+double gaussianDistribution(double mean, double sig);
+double markovDistribution(double sigma,double bcor,double time,double intstep,double &value_saved);
+double rayleighDistribution(double mode);
+double uniformDistribution(double min,double max);
+double unituni();
 double integrate(double dy_new, double dy, double y, double intStep);
 void flightPathAnglesToLocalOrientation (double azimuth, double elevation, double localFrame[3][3]);
 void eulerAnglesToLocalOrientation (double phi, double theta, double psi, double matrix[3][3]);
@@ -32,8 +36,6 @@ void vectorProjection (double uv[3], double vec[3], double out[3]);
 void multiplyVectorTimesScalar(double scalar, double vec[3], double out[3]);
 double linearInterpolationWithBoundedEnds(std::vector<std::vector<double>> table, double tableInput);
 double biLinearInterpolationWithBoundedBorders(std::vector<std::vector<double>> table, double tableRowInput, double tableColumnInput);
-double rk2(double x, double xd, double dt);
-double rk4(double x, double xd, double dt);
 
 struct mslDataPacket
 {
@@ -46,6 +48,7 @@ struct mslDataPacket
 	double mslSpeedOfSound;
 	double mslTotalPressure;
 
+	// ENGINE OUTPUT
 	double mslLocalOrient[3][3];
 	double mslPos[3];
 	double mslRange;
@@ -62,6 +65,7 @@ struct mslDataPacket
 	double mslAlpha;
 	double mslBeta;
 
+	// ENGINE INPUT
 	double mslWayPoint[3];
 	double forwardLeftUpMslToIntercept[3];
 

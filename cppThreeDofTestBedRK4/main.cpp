@@ -81,7 +81,6 @@ void timeOfFlight()
 	{
 		missileTimeOfFlight += CONSTANT_TIME_STEP;
 	}
-	
 
 }
 
@@ -166,6 +165,7 @@ void rk4Integrate()
 		VARIABLE_TIME_STEP = CONSTANT_TIME_STEP / 2.0;
 
 	}
+
 	else if (PASS == 1)
 	{
 
@@ -193,6 +193,7 @@ void rk4Integrate()
 		VARIABLE_TIME_STEP = CONSTANT_TIME_STEP / 2.0;
 
 	}
+
 	else if (PASS == 2)
 	{
 
@@ -220,6 +221,7 @@ void rk4Integrate()
 		VARIABLE_TIME_STEP = CONSTANT_TIME_STEP;
 
 	}
+
 	else if (PASS == 3)
 	{
 
@@ -247,6 +249,7 @@ void rk4Integrate()
 		VARIABLE_TIME_STEP = CONSTANT_TIME_STEP / 6.0;
 
 	}
+
 	else if (PASS == 4)
 	{
 
@@ -316,16 +319,19 @@ void orientation()
 
 void performance()
 {
+
 	magnitude(forwardLeftUpMissileToInterceptPosition, missDistance);
+
 }
 
 void logData()
 {
+
 	if (PASS == 0)
 	{
 		outPut << missileTimeOfFlight << " " << missileLocalPosition[0] << " " << missileLocalPosition[1] << " " << missileLocalPosition[2] << " " << missileLocalVelocity[0] << " " << missileLocalVelocity[1] << " " << missileLocalVelocity[2] << " " << missileLocalAcceleration[0] << " " << missileLocalAcceleration[1] << " " << missileLocalAcceleration[2] << endl;
 	}
-	
+
 }
 
 void endCheck()

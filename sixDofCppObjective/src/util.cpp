@@ -3,19 +3,6 @@
 
 #include "util.h"
 
-///////////////////////////////////////////////////////////////////////////////
-//Generating uniform random distribution between 0-1 based on C function rand()
-//
-//010913 Created by Peter H Zipfel
-///////////////////////////////////////////////////////////////////////////////
-double unituni()
-{
-	double value;
-	value=(double)rand()/RAND_MAX;
-	return value;
-}
-
-//-------------------------------------------------------//
 double signum(double x)
 {
 	double y;
@@ -47,6 +34,33 @@ double atan2_0(double y, double x)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+////////////////////// Stochastic functions ///////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+//Generating an exponential distribution with a given mean density
+//Ref:
+// Tybrin, "CADAC Program documentation", June 2000 and source code CADX3.FOR
+// Numerical Recipies, p 287, 1992 Cambridge University Press
+//Function unituni() is a CADAC++ utility
+//
+//parameter input:
+//			density = # of events per unit of variable (in the mean)
+//return output:
+//			value = units of variable to be traversed until next event occurs
+//
+//The variance is density^2
+//
+//010919 Created by Peter H Zipfel
+///////////////////////////////////////////////////////////////////////////////
+double exponentialDistribution(double density)
+{
+	double value;
+
+	value=-log(unituni());
+	return value/density;
+}
+
+///////////////////////////////////////////////////////////////////////////////
 //Generating a standard distribution with 'mean' and 'sig' std deviation
 //Ref Numerical Recipies, p 289, 1992 Cambridge University Press
 //Function unituni() is a CADAC++ utility
@@ -60,16 +74,14 @@ double atan2_0(double y, double x)
 //010913 Created by Peter H Zipfel
 //010914 Normalized gauss tested with a 2000 sample: mean=0.0054, sigma=0.9759
 ///////////////////////////////////////////////////////////////////////////////
-double gauss(double mean, double sig)
+double gaussianDistribution(double mean,double sig)
 {
 	static int iset=0;
 	static double gset;
 	double fac,rsq,v1,v2,value;
 
-	if(iset==0)
-	{
-		do
-		{
+	if(iset==0){
+		do{
 			v1=2.*unituni()-1.;
 			v2=2.*unituni()-1.;
 			rsq=v1*v1+v2*v2;
@@ -80,12 +92,93 @@ double gauss(double mean, double sig)
 		iset=1;
 		value=v2*fac;
 	}
-	else
-	{
+	else{
 		iset=0;
 		value=gset;
 	}
 	return value*sig+mean;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+//Generating a time-correlated Gaussian variable with zero mean
+//Ref: CADAC Subroutine CNT_GAUSS
+//Function gauss() is CADAC++ utility
+//
+//parameter input:
+//			sigma = standard deviation of Gaussian distribution - unit of variable
+//			bcor = beta time correlation coefficient - 1/s (Hz)
+//			time = simulation time - s
+//			intstep = integration step size - s
+//			value_saved = value of previous integration step
+//return output:
+//			value = value of variable - unit of variable
+//
+//010914 Created by Peter H Zipfel
+//020723 Replaced static variable by '&value_saved', PZi
+///////////////////////////////////////////////////////////////////////////////
+double markovDistribution(double sigma,double bcor,double time,double intstep,double &value_saved)
+{
+	double value=0;
+
+	value=gaussianDistribution(0.,sigma);
+	if(time==0.) value_saved=value;
+	else{
+		if(bcor!=0.)
+		{
+			double dum=exp(-bcor*intstep);
+			double dumsqrd=dum*dum;
+			value=value*sqrt(1.-dumsqrd)+value_saved*dum;
+			value_saved=value;
+		}
+	}
+	return value;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+//Generating a Rayleigh distribution with peak value of pdf = 'mode'
+//Ref: Tybrin, "CADAC Program documentation", June 2000 and source code CADX3.FOR
+//Function unituni() is a CADAC++ utility
+//
+//parameter input:
+//			mode= mode (peak value of pdf) of Rayleigh distribution - unit of variable
+//return output:
+//			value=value of variable - unit of variable
+//
+//The mean of the distribution is: mean = mode * (pi/2)
+//The variance is: variance = mode^2 * (2 - pi/2)
+//
+//010918 Created by Peter H Zipfel
+///////////////////////////////////////////////////////////////////////////////
+double rayleighDistribution(double mode)
+{
+	double value;
+
+	value=sqrt(2.*(-log(unituni())));
+	return value*mode;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+//Generating uniform random distribution between 'min' and 'max' 
+//
+//010913 Created by Peter H Zipfel
+///////////////////////////////////////////////////////////////////////////////
+double uniformDistribution(double min,double max)
+{
+	double value;
+	value=min+(max-min)*unituni();
+	return value;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+//Generating uniform random distribution between 0-1 based on C function rand()
+//
+//010913 Created by Peter H Zipfel
+///////////////////////////////////////////////////////////////////////////////
+double unituni()
+{
+	double value;
+	value=(double)rand()/RAND_MAX;
+	return value;
 }
 
 // GRAHAM BEECH
@@ -357,42 +450,4 @@ double biLinearInterpolationWithBoundedBorders(std::vector<std::vector<double>> 
 		interpolatedValue = (t1 + t2 + t3 + t4) / ((x2 - x1) * (y2 - y1));
 	}
 	return interpolatedValue;
-}
-
-double rk2(double x, double xd, double dt)
-{
-	double x0 = x;
-	double xd0 = xd;
-	double new_x, xd1;
-
-	new_x = x0 + dt / 2.0 * xd0;
-	x0 = new_x;
-
-	xd1 = xd;
-	new_x = x0 + dt * xd1;
-
-	return new_x;
-}
-
-double rk4(double x, double xd, double dt)
-{
-	double x0 = x;
-	double xd0 = xd;
-	double new_x, xd1, xd2, xd3;
-
-	new_x = x0 + dt / 2.0 * xd0;
-	x0 = new_x;
-
-	xd1 = xd;
-	new_x = x0 + dt / 2.0 * xd1;
-	x0 = new_x;
-
-	xd2 = xd1;
-	new_x = x0 + dt * xd2;
-	x0 = new_x;
-
-	xd3 = xd2;
-	new_x = x0 + dt / 6 * (xd0 + 2 * xd1 + 2 * xd2 + xd3);
-
-	return new_x;
 }
