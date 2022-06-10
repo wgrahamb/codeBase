@@ -1,0 +1,64 @@
+## navigation processing CSCI
+
+NavProc
+sdtHz = 1000.0
+burnout_time = 1.068
+
+# LTF origin (surveyed launch site) Lat/Lon in degrees (CTV-3 Eglin Survey)
+orig_Lat = 38.8719 
+orig_Lon = 77.0563 
+orig_Altg = 0.0 
+
+# Target position (Az, Alt from CTV-3 Eglin Survey)
+tgt_Rng = 5000.0 Distance from LTF origin 
+tgt_Az = 0.0 Rotation from NED frame 
+tgt_Hgt = 2000.0 Height of target above LTF plane 
+
+phi0 = 0.0 # expected roll?
+
+# Nav Solution Latency in Seconds (Time Used - Time of Validity)
+#   = 2.18e-3 + # Time of IMU SDLC message tx start after time of validity
+#     184e-6  + # Time of tx for low rate IMU SDLC message (368 bits @ 2Mhz)
+#     N*1/600.0 # Nav solution will not be ready immediately, so will be
+#                 at least N=1 cycle late.  May need to increase N later
+#                 if the navigator processing/transmission takes more than
+#                 one 600 Hz cycle.  HWIL testing shows that the nav processor
+#                 takes around 1 ms (2 ms max) to compute a nav solution.
+#                 This means N=1 nominally, but sometimes N=2.
+nav_sol_latency = 0.004030 # N=1 (typical)
+
+## added 170512
+##  HG1930
+##  count_sf_v is
+##  DELTA_V_SCALE_FACTOR (float)(3.7252903e-9) // ft/sec/LSB *
+##    1.0 / sdt * ft_2_m
+##  count_sf_w is
+##  DELTA_THETA_SCALE_FACTOR  (float)(5.8207661e-11)  // rad/LSB *
+##    1.0 / sdt
+
+#100Hz Counts 
+count_sf_v   = 4.54187393188477e-07  # 100 Hz
+count_sf_w   = 2.3283064365387e-08   # 100 Hz
+count_sf_w_x = 9.31322574615479e-08  # 100 Hz
+
+#600Hz Counts
+count_sf_sf      = 0.02232421875      # m/s^2
+count_sf_omega_X = 0.00457763671875   # rad/s
+count_sf_omega   = 0.0011444091796875 # rad/s
+count_sf_omega   = 0.0011444091796875 # rad/s
+
+#count_sf_v = 1.135413075E-07  # 100 Hz
+#count_sf_w = 5.820766100E-09  # 100 Hz
+
+## mDCM to align IMU triad with autopilot
+mDCM_IMU[0][0] =  1.0
+mDCM_IMU[0][1] =  0.0
+mDCM_IMU[0][2] =  0.0
+
+mDCM_IMU[1][0] =  0.0
+mDCM_IMU[1][1] =  0.0
+mDCM_IMU[1][2] = -1.0
+
+mDCM_IMU[2][0] =  0.0
+mDCM_IMU[2][1] =  1.0
+mDCM_IMU[2][2] =  0.0

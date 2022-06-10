@@ -1,0 +1,6 @@
+AFMomRes
+
+sdtHz = 100.0 
+del_max = 7.0 
+nullCmd_Flag = -1  #-1: allow fin commands to pass; 1: null fin commands
+

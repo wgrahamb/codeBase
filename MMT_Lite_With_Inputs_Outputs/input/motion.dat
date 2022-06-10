@@ -1,0 +1,6 @@
+Motion
+
+xd = 1000.0
+Fdetent = 0.0
+breakwireDelay = 0.0123 # (from flight test TM)
+deg_tol = 1.0   # Tolerance in degrees from 90/180 for pitch/yaw tumble check

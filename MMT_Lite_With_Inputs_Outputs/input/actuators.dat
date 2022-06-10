@@ -1,0 +1,3 @@
+actuators
+
+fidelityFlag = -1 # 1 is high fidelity electroCAS model, -1 is second order actuators 

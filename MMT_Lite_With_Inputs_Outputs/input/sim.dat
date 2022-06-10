@@ -1,0 +1,45 @@
+#Simulation
+pretime = -55    #pretime should be negative
+initTime = -50
+preLnchTime = -45
+readyTime = -15
+fireDelay = 0.125 # (from HWIL/flight test TM)
+
+dtHz  = 1000.0
+tmax  = 100.0 
+iseed = -179424691
+
+HighFidelityCAS = 0 
+
+TraceEvents = 0
+TraceTiming = 0
+TraceTimingStart = 50.5
+TraceTimingDuration = 0.015
+
+#Output
+fname = MMT_Lite          #Base run file name
+pt           = 100.0 #Hz
+hwil_pt      = 600.0 #Hz
+runFile_rec  =  1  #1: generate run files; -1: do not generate run files
+preTime_rec  =  1  #1: run files record pre-time; -1: run files do not record pre-time info
+pt_console   = -5.0
+displayInput = -1
+record       = -1  #1: record V&V files; -1: do not record V&V files
+
+phi0 = 0.0 # roll 
+tht0 = 45.0 # pitch 
+psi0 = -2.0 # yaw 
+
+# Initial LLA now come from navproc
+
+
+#Errors
+errLnch_Flag = -1    #-1: turns off errors; 1: turns on errors
+phiLnch_sig  = 0.0    
+thtLnch_sig  = 0.0  
+psiLnch_sig  = 0.0 
+
+errLoc_Flag  = -1       #-1: turns off errors; 1: turns on errors
+latLoc_sig   = 0.0 #deg (1 m is ~ 9e-6 degrees)
+lonLoc_sig   = 0.0 #deg (1 m is ~ 9e-6 degrees)
+altLoc_sig   = 0.0     #m  (0m Error since we have a surveyed launch point)
