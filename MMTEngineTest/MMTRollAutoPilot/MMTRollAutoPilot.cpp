@@ -19,3 +19,8 @@
 
 // Header.
 #include "MMTRollAutoPilot.h"
+
+MMTRollAutoPilot::MMTRollAutoPilot()
+{
+	cout << "MMT ROLL AUTO PILOT CONSTRUCTED" << endl;
+}

@@ -12,13 +12,19 @@
 // Local utility.
 #include "util.h"
 
+// Third party.
+#include "eigen-3.4.0/eigen-3.4.0/Eigen/Core"
+#include "eigen-3.4.0/eigen-3.4.0/Eigen/Dense"
+
 // Engine components.
 #include "StandardAtmosphere1962/TFAtm62.h"
 #include "MMTMassAndMotorProperties/MMTMassAndMotorProperties.h"
 #include "MMTGuidance/MMTGuidance.h"
+#include "MMTRollAutoPilot/MMTRollAutoPilot.h"
 
 // Namespace.
 using namespace std;
+using namespace Eigen;
 
 // Simulation control.
 auto wallClockStart = chrono::high_resolution_clock::now(); // Seconds.
@@ -37,6 +43,7 @@ string lethality; // Initialized in init.
 TFAtm62 Atmosphere;
 MMTMassAndMotorProperties MassAndMotor;
 MMTGuidance Guidance;
+MMTRollAutoPilot RollControl;
 
 // RK4 integration.
 int PASS = 0;

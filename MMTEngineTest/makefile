@@ -7,4 +7,6 @@ MMTEngineTest: main.cpp
 	\
 	MMTMassAndMotorProperties/MMTMassAndMotorProperties.cpp \
 	\
-	MMTGuidance/MMTGuidance.cpp
+	MMTGuidance/MMTGuidance.cpp \
+	\
+	MMTRollAutoPilot/MMTRollAutoPilot.cpp
