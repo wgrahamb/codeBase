@@ -31,13 +31,20 @@ double P2[3], V2[3], A2[3], E2[3], EDOT2[3], W2[3], WDOT2[3];
 double P3[3], V3[3], A3[3], E3[3], EDOT3[3], W3[3], WDOT3[3];
 double P4[3], V4[3], A4[3], E4[3], EDOT4[3], W4[3], WDOT4[3];
 
+void engine()
+{
+
+}
+
 void rk4Integrate(
+
 	double missileENUAccelerationX,
 	double missileENUAccelerationY,
 	double missileENUAccelerationZ,
 	double missileBodyRateDotX,
 	double missileBodyRateDotY,
 	double missileBodyRateDotZ
+
 )
 {
 
@@ -280,6 +287,7 @@ void rk4Integrate(
 		// Reset variables.
 		PASS = 0;
 		variableTimeStep = CONSTANT_TIME_STEP;
+
 		P1[0] = 0.0;
 		P1[1] = 0.0;
 		P1[2] = 0.0;
@@ -289,7 +297,19 @@ void rk4Integrate(
 		A1[0] = 0.0;
 		A1[1] = 0.0;
 		A1[2] = 0.0;
-		
+		E1[0] = 0.0;
+		E1[1] = 0.0;
+		E1[2] = 0.0;
+		EDOT1[0] = 0.0;
+		EDOT1[1] = 0.0;
+		EDOT1[2] = 0.0;
+		W1[0] = 0.0;
+		W1[1] = 0.0;
+		W1[2] = 0.0;
+		WDOT1[0] = 0.0;
+		WDOT1[1] = 0.0;
+		WDOT1[2] = 0.0;
+
 		P2[0] = 0.0;
 		P2[1] = 0.0;
 		P2[2] = 0.0;
@@ -299,6 +319,19 @@ void rk4Integrate(
 		A2[0] = 0.0;
 		A2[1] = 0.0;
 		A2[2] = 0.0;
+		E2[0] = 0.0;
+		E2[1] = 0.0;
+		E2[2] = 0.0;
+		EDOT2[0] = 0.0;
+		EDOT2[1] = 0.0;
+		EDOT2[2] = 0.0;
+		W2[0] = 0.0;
+		W2[1] = 0.0;
+		W2[2] = 0.0;
+		WDOT2[0] = 0.0;
+		WDOT2[1] = 0.0;
+		WDOT2[2] = 0.0;
+
 		P3[0] = 0.0;
 		P3[1] = 0.0;
 		P3[2] = 0.0;
@@ -308,6 +341,19 @@ void rk4Integrate(
 		A3[0] = 0.0;
 		A3[1] = 0.0;
 		A3[2] = 0.0;
+		E3[0] = 0.0;
+		E3[1] = 0.0;
+		E3[2] = 0.0;
+		EDOT3[0] = 0.0;
+		EDOT3[1] = 0.0;
+		EDOT3[2] = 0.0;
+		W3[0] = 0.0;
+		W3[1] = 0.0;
+		W3[2] = 0.0;
+		WDOT3[0] = 0.0;
+		WDOT3[1] = 0.0;
+		WDOT3[2] = 0.0;
+
 		P4[0] = 0.0;
 		P4[1] = 0.0;
 		P4[2] = 0.0;
@@ -317,6 +363,18 @@ void rk4Integrate(
 		A4[0] = 0.0;
 		A4[1] = 0.0;
 		A4[2] = 0.0;
+		E4[0] = 0.0;
+		E4[1] = 0.0;
+		E4[2] = 0.0;
+		EDOT4[0] = 0.0;
+		EDOT4[1] = 0.0;
+		EDOT4[2] = 0.0;
+		W4[0] = 0.0;
+		W4[1] = 0.0;
+		W4[2] = 0.0;
+		WDOT4[0] = 0.0;
+		WDOT4[1] = 0.0;
+		WDOT4[2] = 0.0;
 
 	}
 
@@ -326,8 +384,6 @@ int main()
 {
 
 	cout << "HOWDY" << endl;
-	cout << navigationState.missileENUEulerAngles[0] << endl;
-
 	return 0;
 
 }
