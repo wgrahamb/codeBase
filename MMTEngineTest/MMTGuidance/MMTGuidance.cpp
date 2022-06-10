@@ -22,10 +22,11 @@
 
 // Namespace.
 using namespace std;
+using namespace Eigen;
 
 MMTGuidance::MMTGuidance()
 {
-	cout << "GUIDANCE CONSTRUCTED" << endl;
+	cout << "MMT GUIDANCE CONSTRUCTED" << endl;
 }
 
 void MMTGuidance::lookUpTablesFormat (string inPutFile)
@@ -182,6 +183,7 @@ void MMTGuidance::lookUpTablesFormat (string inPutFile)
 void MMTGuidance::init()
 {
 
+	lookUpTablesFormat("MMTGuidance/tables.txt");
 	timeStep = 1 / 200.0;
 	flag = 0;
 	timeOfGuidanceStart = 0.6;

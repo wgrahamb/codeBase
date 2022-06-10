@@ -180,7 +180,7 @@ void MMTMassAndMotorProperties::init()
 
 	timer = 0.0;
 
-	lookUpTablesFormat("tables.txt");
+	lookUpTablesFormat("MMTMassAndMotorProperties/tables.txt");
 
 	int tableIndex;
 

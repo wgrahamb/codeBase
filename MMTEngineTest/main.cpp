@@ -255,7 +255,10 @@ void rk4Integrate(
 	double missileENUAccelerationZ,
 	double missileBodyRateDotX,
 	double missileBodyRateDotY,
-	double missileBodyRateDotZ
+	double missileBodyRateDotZ,
+	double missilePhiDot,
+	double missileThetaDot,
+	double missilePsiDot
 
 )
 {
@@ -363,9 +366,9 @@ void rk4Integrate(
 		WDOT1[1] = navState.missileBodyRateDot[1];
 		WDOT1[2] = navState.missileBodyRateDot[2];
 
-		EDOT1[0] = navState.missileBodyRate[0] + (navState.missileBodyRate[1] * sin(navState.missileENUEulerAngles[0]) + navState.missileBodyRate[2] * cos(navState.missileENUEulerAngles[0])) * tan(navState.missileENUEulerAngles[1]);
-		EDOT1[1] = navState.missileBodyRate[1] * cos(navState.missileENUEulerAngles[0]) - navState.missileBodyRate[2] * sin(navState.missileENUEulerAngles[0]);
-		EDOT1[2] = -1 * (navState.missileBodyRate[1] * sin(navState.missileENUEulerAngles[0]) + navState.missileBodyRate[2] * cos(navState.missileENUEulerAngles[0])) / cos(navState.missileENUEulerAngles[1]);
+		EDOT1[0] = missilePhiDot;
+		EDOT1[1] = missileThetaDot;
+		EDOT1[2] = missilePsiDot;
 
 		P2[0] = P1[0] + V1[0] * variableTimeStep;
 		P2[1] = P1[1] + V1[1] * variableTimeStep;
@@ -415,9 +418,9 @@ void rk4Integrate(
 		WDOT2[1] = navState.missileBodyRateDot[1];
 		WDOT2[2] = navState.missileBodyRateDot[2];
 
-		EDOT2[0] = navState.missileBodyRate[0] + (navState.missileBodyRate[1] * sin(navState.missileENUEulerAngles[0]) + navState.missileBodyRate[2] * cos(navState.missileENUEulerAngles[0])) * tan(navState.missileENUEulerAngles[1]);
-		EDOT2[1] = navState.missileBodyRate[1] * cos(navState.missileENUEulerAngles[0]) - navState.missileBodyRate[2] * sin(navState.missileENUEulerAngles[0]);
-		EDOT2[2] = -1 * (navState.missileBodyRate[1] * sin(navState.missileENUEulerAngles[0]) + navState.missileBodyRate[2] * cos(navState.missileENUEulerAngles[0])) / cos(navState.missileENUEulerAngles[1]);
+		EDOT2[0] = missilePhiDot;
+		EDOT2[1] = missileThetaDot;
+		EDOT2[2] = missilePsiDot;
 
 		P3[0] = P1[0] + V2[0] * variableTimeStep;
 		P3[1] = P1[1] + V2[1] * variableTimeStep;
@@ -468,9 +471,9 @@ void rk4Integrate(
 		WDOT3[1] = navState.missileBodyRateDot[1];
 		WDOT3[2] = navState.missileBodyRateDot[2];
 
-		EDOT3[0] = navState.missileBodyRate[0] + (navState.missileBodyRate[1] * sin(navState.missileENUEulerAngles[0]) + navState.missileBodyRate[2] * cos(navState.missileENUEulerAngles[0])) * tan(navState.missileENUEulerAngles[1]);
-		EDOT3[1] = navState.missileBodyRate[1] * cos(navState.missileENUEulerAngles[0]) - navState.missileBodyRate[2] * sin(navState.missileENUEulerAngles[0]);
-		EDOT3[2] = -1 * (navState.missileBodyRate[1] * sin(navState.missileENUEulerAngles[0]) + navState.missileBodyRate[2] * cos(navState.missileENUEulerAngles[0])) / cos(navState.missileENUEulerAngles[1]);
+		EDOT3[0] = missilePhiDot;
+		EDOT3[1] = missileThetaDot;
+		EDOT3[2] = missilePsiDot;
 
 		P4[0] = P1[0] + V3[0] * variableTimeStep;
 		P4[1] = P1[1] + V3[1] * variableTimeStep;
@@ -520,9 +523,9 @@ void rk4Integrate(
 		WDOT4[1] = navState.missileBodyRateDot[1];
 		WDOT4[2] = navState.missileBodyRateDot[2];
 
-		EDOT4[0] = navState.missileBodyRate[0] + (navState.missileBodyRate[1] * sin(navState.missileENUEulerAngles[0]) + navState.missileBodyRate[2] * cos(navState.missileENUEulerAngles[0])) * tan(navState.missileENUEulerAngles[1]);
-		EDOT4[1] = navState.missileBodyRate[1] * cos(navState.missileENUEulerAngles[0]) - navState.missileBodyRate[2] * sin(navState.missileENUEulerAngles[0]);
-		EDOT4[2] = -1 * (navState.missileBodyRate[1] * sin(navState.missileENUEulerAngles[0]) + navState.missileBodyRate[2] * cos(navState.missileENUEulerAngles[0])) / cos(navState.missileENUEulerAngles[1]);
+		EDOT4[0] = missilePhiDot;
+		EDOT4[1] = missileThetaDot;
+		EDOT4[2] = missilePsiDot;
 
 		navState.missileENUPosition[0] = P1[0] + (V1[0] + 2 * V2[0] + 2 * V3[0] + V4[0]) * variableTimeStep;
 		navState.missileENUPosition[1] = P1[1] + (V1[1] + 2 * V2[1] + 2 * V3[1] + V4[1]) * variableTimeStep;

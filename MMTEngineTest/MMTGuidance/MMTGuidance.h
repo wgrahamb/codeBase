@@ -15,6 +15,7 @@
 
 // Third party.
 #include "eigen-3.4.0/eigen-3.4.0/Eigen/Core"
+#include "eigen-3.4.0/eigen-3.4.0/Eigen/Dense"
 
 // Namespace.
 using namespace std;
