@@ -12,6 +12,7 @@
 
 // Local utility.
 #include "../util.h"
+#include "../constants.h"
 
 // Header.
 #include "MMTMassAndMotorProperties.h"

@@ -4,12 +4,6 @@
 #ifndef UTILITY_H
 #define UTILITY_H
 
-const double degToRad = 0.0174532925199432;
-const double radToDeg = 57.2957795130823;
-const double mToKm = 1 / 1000;
-const double pi = 3.14159265358979323846;
-const double grav = 9.81;
-
 double signum(double x);
 double atan2_0(double y, double x);
 double exponentialDistribution(double density);

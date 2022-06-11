@@ -12,10 +12,11 @@
 
 // Local utility.
 #include "../util.h"
+#include "../constants.h"
 
 // Third party.
-#include "eigen-3.4.0/eigen-3.4.0/Eigen/Core"
-#include "eigen-3.4.0/eigen-3.4.0/Eigen/Dense"
+#include "eigen-3.4.0/Eigen/Core"
+#include "eigen-3.4.0/Eigen/Dense"
 
 // Header.
 #include "MMTGuidance.h"

@@ -13,8 +13,8 @@
 #include "util.h"
 
 // Third party.
-#include "eigen-3.4.0/eigen-3.4.0/Eigen/Core"
-#include "eigen-3.4.0/eigen-3.4.0/Eigen/Dense"
+#include "eigen-3.4.0/Eigen/Core"
+#include "eigen-3.4.0/Eigen/Dense"
 
 // Engine components.
 #include "StandardAtmosphere1962/TFAtm62.h"
@@ -99,6 +99,8 @@ void init()
 	Atmosphere.init();
 	MassAndMotor.init();
 	Guidance.init();
+	RollControl.init();
+
 
 	// RK4 integration.
 	PASS = 0;
@@ -197,7 +199,7 @@ void init()
 void engine(NAV_STATE &navState)
 {
 
-	// Set immutable navigation state.
+	// Set immutable navigation state. ( Gotta find a way );
 	double missileTimeOfFlight = navState.missileTimeOfFlight;
 	double missileENUWayPoint[3] = {navState.missileENUWayPoint[0], navState.missileENUWayPoint[1], navState.missileENUWayPoint[2]};
 	double missileENUPosition[3] = {navState.missileENUPosition[0], navState.missileENUPosition[1], navState.missileENUPosition[2]};
@@ -248,9 +250,22 @@ void engine(NAV_STATE &navState)
 	);
 
 	// Roll control. Time dependent.
+	double mach = Atmosphere.mach;
+	double dynamicPressure = Atmosphere.q;
+	double phi = missileENUEulerAngles[0];
+	double nonRolledBodyRate[3];
+	threeByThreeTimesThreeByOne(rolledToNonRolledMatrix, missileBodyRate, nonRolledBodyRate);
+	RollControl.update(
+		missileTimeOfFlight,
+		nonRolledBodyRate,
+		mach,
+		dynamicPressure,
+		phi
+	);
+
 	// Pitch/yaw control. Time dependent.
 	// Aerodynamics. Nav dependent.
-	// Calculate local acceleration and body rate dot.
+	// Calculate local acceleration and body rate dot and euler dot.
 
 }
 

@@ -11,6 +11,7 @@
 
 // Local utility.
 #include "../util.h"
+#include "../constants.h"
 
 // Namespace.
 using namespace std;

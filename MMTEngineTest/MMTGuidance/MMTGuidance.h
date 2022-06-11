@@ -12,10 +12,11 @@
 
 // Local utility.
 #include "../util.h"
+#include "../constants.h"
 
 // Third party.
-#include "eigen-3.4.0/eigen-3.4.0/Eigen/Core"
-#include "eigen-3.4.0/eigen-3.4.0/Eigen/Dense"
+#include "eigen-3.4.0/Eigen/Core"
+#include "eigen-3.4.0/Eigen/Dense"
 
 // Namespace.
 using namespace std;
@@ -48,7 +49,6 @@ class MMTGuidance
 		double timeStep;
 		int flag;
 		double timeOfFinLockOff;
-		const double rollCommand = 0.0;
 		double timeOfGuidanceStart;
 		double timeOfKalmanFilterInit;
 		int XKNGainFlag;
