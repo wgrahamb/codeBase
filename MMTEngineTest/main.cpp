@@ -21,6 +21,7 @@
 #include "MMTMassAndMotorProperties/MMTMassAndMotorProperties.h"
 #include "MMTGuidance/MMTGuidance.h"
 #include "MMTRollAutoPilot/MMTRollAutoPilot.h"
+#include "MMTPitchAndYawAutoPilot/MMTPitchAndYawAutoPilot.h"
 
 // Namespace.
 using namespace std;
@@ -44,6 +45,7 @@ TFAtm62 Atmosphere;
 MMTMassAndMotorProperties MassAndMotor;
 MMTGuidance Guidance;
 MMTRollAutoPilot RollControl;
+MMTPitchAndYawAutoPilot PitchAndYawControl;
 
 // RK4 integration.
 int PASS = 0;
@@ -100,7 +102,7 @@ void init()
 	MassAndMotor.init();
 	Guidance.init();
 	RollControl.init();
-
+	PitchAndYawControl.init();
 
 	// RK4 integration.
 	PASS = 0;
@@ -264,6 +266,8 @@ void engine(NAV_STATE &navState)
 	);
 
 	// Pitch/yaw control. Time dependent.
+	PitchAndYawControl.update();
+
 	// Aerodynamics. Nav dependent.
 	// Calculate local acceleration and body rate dot and euler dot.
 
@@ -666,7 +670,6 @@ int main()
 
 	// Set up sim.
 	init();
-
 	return 0;
 
 }

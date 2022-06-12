@@ -9,4 +9,6 @@ MMTEngineTest: main.cpp
 	\
 	MMTGuidance/MMTGuidance.cpp \
 	\
-	MMTRollAutoPilot/MMTRollAutoPilot.cpp
+	MMTRollAutoPilot/MMTRollAutoPilot.cpp \
+	\
+	MMTPitchAndYawAutoPilot/MMTPitchAndYawAutoPilot.cpp
