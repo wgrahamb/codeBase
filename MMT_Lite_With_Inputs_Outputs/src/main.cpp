@@ -145,6 +145,20 @@ int main()
 			// START ENGINE
 
 			////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+			/*
+
+			To do:
+			1) Set a constant nav state, capable of being referenced but not changed.
+			2) Add a method to each module called "handleInputs" which receives a reference
+			to the nav state and any other outputs from other modules.
+			3) After done, remove bloat (navproc, flightproc).
+			4) Try and hack the integrator. Since euler integration works, should be easy.
+			5) Once the integrator is hacked, I am the captain now.
+			
+			*/
+			////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+			////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 			// Navigation state.
 			NAV_STATE navigationState;
 			navigationState.missileTimeOfFlight = sys->t_flight;

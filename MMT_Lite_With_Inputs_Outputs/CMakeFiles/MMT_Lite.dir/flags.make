@@ -6,5 +6,5 @@ CXX_FLAGS = -g
 
 CXX_DEFINES = 
 
-CXX_INCLUDES = -I/home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/include 
+CXX_INCLUDES = -I/home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/include 
 

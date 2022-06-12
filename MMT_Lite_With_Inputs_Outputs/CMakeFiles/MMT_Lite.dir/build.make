@@ -43,10 +43,10 @@ RM = /usr/bin/cmake -E remove -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs
+CMAKE_SOURCE_DIR = /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs
+CMAKE_BINARY_DIR = /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs
 
 # Include any dependencies generated for this target.
 include CMakeFiles/MMT_Lite.dir/depend.make
@@ -59,588 +59,588 @@ include CMakeFiles/MMT_Lite.dir/flags.make
 
 CMakeFiles/MMT_Lite.dir/src/Aero.cpp.o: CMakeFiles/MMT_Lite.dir/flags.make
 CMakeFiles/MMT_Lite.dir/src/Aero.cpp.o: src/Aero.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/MMT_Lite.dir/src/Aero.cpp.o"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/MMT_Lite.dir/src/Aero.cpp.o -c /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/Aero.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/MMT_Lite.dir/src/Aero.cpp.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/MMT_Lite.dir/src/Aero.cpp.o -c /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/Aero.cpp
 
 CMakeFiles/MMT_Lite.dir/src/Aero.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/MMT_Lite.dir/src/Aero.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/Aero.cpp > CMakeFiles/MMT_Lite.dir/src/Aero.cpp.i
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/Aero.cpp > CMakeFiles/MMT_Lite.dir/src/Aero.cpp.i
 
 CMakeFiles/MMT_Lite.dir/src/Aero.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/MMT_Lite.dir/src/Aero.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/Aero.cpp -o CMakeFiles/MMT_Lite.dir/src/Aero.cpp.s
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/Aero.cpp -o CMakeFiles/MMT_Lite.dir/src/Aero.cpp.s
 
 CMakeFiles/MMT_Lite.dir/src/Airframe.cpp.o: CMakeFiles/MMT_Lite.dir/flags.make
 CMakeFiles/MMT_Lite.dir/src/Airframe.cpp.o: src/Airframe.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/MMT_Lite.dir/src/Airframe.cpp.o"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/MMT_Lite.dir/src/Airframe.cpp.o -c /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/Airframe.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/MMT_Lite.dir/src/Airframe.cpp.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/MMT_Lite.dir/src/Airframe.cpp.o -c /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/Airframe.cpp
 
 CMakeFiles/MMT_Lite.dir/src/Airframe.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/MMT_Lite.dir/src/Airframe.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/Airframe.cpp > CMakeFiles/MMT_Lite.dir/src/Airframe.cpp.i
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/Airframe.cpp > CMakeFiles/MMT_Lite.dir/src/Airframe.cpp.i
 
 CMakeFiles/MMT_Lite.dir/src/Airframe.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/MMT_Lite.dir/src/Airframe.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/Airframe.cpp -o CMakeFiles/MMT_Lite.dir/src/Airframe.cpp.s
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/Airframe.cpp -o CMakeFiles/MMT_Lite.dir/src/Airframe.cpp.s
 
 CMakeFiles/MMT_Lite.dir/src/Atmos.cpp.o: CMakeFiles/MMT_Lite.dir/flags.make
 CMakeFiles/MMT_Lite.dir/src/Atmos.cpp.o: src/Atmos.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/MMT_Lite.dir/src/Atmos.cpp.o"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/MMT_Lite.dir/src/Atmos.cpp.o -c /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/Atmos.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/MMT_Lite.dir/src/Atmos.cpp.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/MMT_Lite.dir/src/Atmos.cpp.o -c /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/Atmos.cpp
 
 CMakeFiles/MMT_Lite.dir/src/Atmos.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/MMT_Lite.dir/src/Atmos.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/Atmos.cpp > CMakeFiles/MMT_Lite.dir/src/Atmos.cpp.i
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/Atmos.cpp > CMakeFiles/MMT_Lite.dir/src/Atmos.cpp.i
 
 CMakeFiles/MMT_Lite.dir/src/Atmos.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/MMT_Lite.dir/src/Atmos.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/Atmos.cpp -o CMakeFiles/MMT_Lite.dir/src/Atmos.cpp.s
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/Atmos.cpp -o CMakeFiles/MMT_Lite.dir/src/Atmos.cpp.s
 
 CMakeFiles/MMT_Lite.dir/src/Filer.cpp.o: CMakeFiles/MMT_Lite.dir/flags.make
 CMakeFiles/MMT_Lite.dir/src/Filer.cpp.o: src/Filer.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object CMakeFiles/MMT_Lite.dir/src/Filer.cpp.o"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/MMT_Lite.dir/src/Filer.cpp.o -c /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/Filer.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object CMakeFiles/MMT_Lite.dir/src/Filer.cpp.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/MMT_Lite.dir/src/Filer.cpp.o -c /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/Filer.cpp
 
 CMakeFiles/MMT_Lite.dir/src/Filer.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/MMT_Lite.dir/src/Filer.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/Filer.cpp > CMakeFiles/MMT_Lite.dir/src/Filer.cpp.i
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/Filer.cpp > CMakeFiles/MMT_Lite.dir/src/Filer.cpp.i
 
 CMakeFiles/MMT_Lite.dir/src/Filer.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/MMT_Lite.dir/src/Filer.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/Filer.cpp -o CMakeFiles/MMT_Lite.dir/src/Filer.cpp.s
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/Filer.cpp -o CMakeFiles/MMT_Lite.dir/src/Filer.cpp.s
 
 CMakeFiles/MMT_Lite.dir/src/FlightProc.cpp.o: CMakeFiles/MMT_Lite.dir/flags.make
 CMakeFiles/MMT_Lite.dir/src/FlightProc.cpp.o: src/FlightProc.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building CXX object CMakeFiles/MMT_Lite.dir/src/FlightProc.cpp.o"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/MMT_Lite.dir/src/FlightProc.cpp.o -c /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/FlightProc.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building CXX object CMakeFiles/MMT_Lite.dir/src/FlightProc.cpp.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/MMT_Lite.dir/src/FlightProc.cpp.o -c /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/FlightProc.cpp
 
 CMakeFiles/MMT_Lite.dir/src/FlightProc.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/MMT_Lite.dir/src/FlightProc.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/FlightProc.cpp > CMakeFiles/MMT_Lite.dir/src/FlightProc.cpp.i
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/FlightProc.cpp > CMakeFiles/MMT_Lite.dir/src/FlightProc.cpp.i
 
 CMakeFiles/MMT_Lite.dir/src/FlightProc.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/MMT_Lite.dir/src/FlightProc.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/FlightProc.cpp -o CMakeFiles/MMT_Lite.dir/src/FlightProc.cpp.s
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/FlightProc.cpp -o CMakeFiles/MMT_Lite.dir/src/FlightProc.cpp.s
 
 CMakeFiles/MMT_Lite.dir/src/GuideLaw.cpp.o: CMakeFiles/MMT_Lite.dir/flags.make
 CMakeFiles/MMT_Lite.dir/src/GuideLaw.cpp.o: src/GuideLaw.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building CXX object CMakeFiles/MMT_Lite.dir/src/GuideLaw.cpp.o"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/MMT_Lite.dir/src/GuideLaw.cpp.o -c /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/GuideLaw.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building CXX object CMakeFiles/MMT_Lite.dir/src/GuideLaw.cpp.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/MMT_Lite.dir/src/GuideLaw.cpp.o -c /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/GuideLaw.cpp
 
 CMakeFiles/MMT_Lite.dir/src/GuideLaw.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/MMT_Lite.dir/src/GuideLaw.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/GuideLaw.cpp > CMakeFiles/MMT_Lite.dir/src/GuideLaw.cpp.i
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/GuideLaw.cpp > CMakeFiles/MMT_Lite.dir/src/GuideLaw.cpp.i
 
 CMakeFiles/MMT_Lite.dir/src/GuideLaw.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/MMT_Lite.dir/src/GuideLaw.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/GuideLaw.cpp -o CMakeFiles/MMT_Lite.dir/src/GuideLaw.cpp.s
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/GuideLaw.cpp -o CMakeFiles/MMT_Lite.dir/src/GuideLaw.cpp.s
 
 CMakeFiles/MMT_Lite.dir/src/MassProp.cpp.o: CMakeFiles/MMT_Lite.dir/flags.make
 CMakeFiles/MMT_Lite.dir/src/MassProp.cpp.o: src/MassProp.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Building CXX object CMakeFiles/MMT_Lite.dir/src/MassProp.cpp.o"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/MMT_Lite.dir/src/MassProp.cpp.o -c /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/MassProp.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Building CXX object CMakeFiles/MMT_Lite.dir/src/MassProp.cpp.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/MMT_Lite.dir/src/MassProp.cpp.o -c /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/MassProp.cpp
 
 CMakeFiles/MMT_Lite.dir/src/MassProp.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/MMT_Lite.dir/src/MassProp.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/MassProp.cpp > CMakeFiles/MMT_Lite.dir/src/MassProp.cpp.i
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/MassProp.cpp > CMakeFiles/MMT_Lite.dir/src/MassProp.cpp.i
 
 CMakeFiles/MMT_Lite.dir/src/MassProp.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/MMT_Lite.dir/src/MassProp.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/MassProp.cpp -o CMakeFiles/MMT_Lite.dir/src/MassProp.cpp.s
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/MassProp.cpp -o CMakeFiles/MMT_Lite.dir/src/MassProp.cpp.s
 
 CMakeFiles/MMT_Lite.dir/src/MomContAuto.cpp.o: CMakeFiles/MMT_Lite.dir/flags.make
 CMakeFiles/MMT_Lite.dir/src/MomContAuto.cpp.o: src/MomContAuto.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Building CXX object CMakeFiles/MMT_Lite.dir/src/MomContAuto.cpp.o"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/MMT_Lite.dir/src/MomContAuto.cpp.o -c /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/MomContAuto.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Building CXX object CMakeFiles/MMT_Lite.dir/src/MomContAuto.cpp.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/MMT_Lite.dir/src/MomContAuto.cpp.o -c /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/MomContAuto.cpp
 
 CMakeFiles/MMT_Lite.dir/src/MomContAuto.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/MMT_Lite.dir/src/MomContAuto.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/MomContAuto.cpp > CMakeFiles/MMT_Lite.dir/src/MomContAuto.cpp.i
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/MomContAuto.cpp > CMakeFiles/MMT_Lite.dir/src/MomContAuto.cpp.i
 
 CMakeFiles/MMT_Lite.dir/src/MomContAuto.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/MMT_Lite.dir/src/MomContAuto.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/MomContAuto.cpp -o CMakeFiles/MMT_Lite.dir/src/MomContAuto.cpp.s
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/MomContAuto.cpp -o CMakeFiles/MMT_Lite.dir/src/MomContAuto.cpp.s
 
 CMakeFiles/MMT_Lite.dir/src/Motion.cpp.o: CMakeFiles/MMT_Lite.dir/flags.make
 CMakeFiles/MMT_Lite.dir/src/Motion.cpp.o: src/Motion.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_9) "Building CXX object CMakeFiles/MMT_Lite.dir/src/Motion.cpp.o"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/MMT_Lite.dir/src/Motion.cpp.o -c /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/Motion.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_9) "Building CXX object CMakeFiles/MMT_Lite.dir/src/Motion.cpp.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/MMT_Lite.dir/src/Motion.cpp.o -c /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/Motion.cpp
 
 CMakeFiles/MMT_Lite.dir/src/Motion.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/MMT_Lite.dir/src/Motion.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/Motion.cpp > CMakeFiles/MMT_Lite.dir/src/Motion.cpp.i
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/Motion.cpp > CMakeFiles/MMT_Lite.dir/src/Motion.cpp.i
 
 CMakeFiles/MMT_Lite.dir/src/Motion.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/MMT_Lite.dir/src/Motion.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/Motion.cpp -o CMakeFiles/MMT_Lite.dir/src/Motion.cpp.s
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/Motion.cpp -o CMakeFiles/MMT_Lite.dir/src/Motion.cpp.s
 
 CMakeFiles/MMT_Lite.dir/src/Motor.cpp.o: CMakeFiles/MMT_Lite.dir/flags.make
 CMakeFiles/MMT_Lite.dir/src/Motor.cpp.o: src/Motor.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_10) "Building CXX object CMakeFiles/MMT_Lite.dir/src/Motor.cpp.o"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/MMT_Lite.dir/src/Motor.cpp.o -c /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/Motor.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_10) "Building CXX object CMakeFiles/MMT_Lite.dir/src/Motor.cpp.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/MMT_Lite.dir/src/Motor.cpp.o -c /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/Motor.cpp
 
 CMakeFiles/MMT_Lite.dir/src/Motor.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/MMT_Lite.dir/src/Motor.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/Motor.cpp > CMakeFiles/MMT_Lite.dir/src/Motor.cpp.i
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/Motor.cpp > CMakeFiles/MMT_Lite.dir/src/Motor.cpp.i
 
 CMakeFiles/MMT_Lite.dir/src/Motor.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/MMT_Lite.dir/src/Motor.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/Motor.cpp -o CMakeFiles/MMT_Lite.dir/src/Motor.cpp.s
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/Motor.cpp -o CMakeFiles/MMT_Lite.dir/src/Motor.cpp.s
 
 CMakeFiles/MMT_Lite.dir/src/NavProc.cpp.o: CMakeFiles/MMT_Lite.dir/flags.make
 CMakeFiles/MMT_Lite.dir/src/NavProc.cpp.o: src/NavProc.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_11) "Building CXX object CMakeFiles/MMT_Lite.dir/src/NavProc.cpp.o"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/MMT_Lite.dir/src/NavProc.cpp.o -c /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/NavProc.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_11) "Building CXX object CMakeFiles/MMT_Lite.dir/src/NavProc.cpp.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/MMT_Lite.dir/src/NavProc.cpp.o -c /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/NavProc.cpp
 
 CMakeFiles/MMT_Lite.dir/src/NavProc.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/MMT_Lite.dir/src/NavProc.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/NavProc.cpp > CMakeFiles/MMT_Lite.dir/src/NavProc.cpp.i
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/NavProc.cpp > CMakeFiles/MMT_Lite.dir/src/NavProc.cpp.i
 
 CMakeFiles/MMT_Lite.dir/src/NavProc.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/MMT_Lite.dir/src/NavProc.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/NavProc.cpp -o CMakeFiles/MMT_Lite.dir/src/NavProc.cpp.s
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/NavProc.cpp -o CMakeFiles/MMT_Lite.dir/src/NavProc.cpp.s
 
 CMakeFiles/MMT_Lite.dir/src/Output.cpp.o: CMakeFiles/MMT_Lite.dir/flags.make
 CMakeFiles/MMT_Lite.dir/src/Output.cpp.o: src/Output.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_12) "Building CXX object CMakeFiles/MMT_Lite.dir/src/Output.cpp.o"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/MMT_Lite.dir/src/Output.cpp.o -c /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/Output.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_12) "Building CXX object CMakeFiles/MMT_Lite.dir/src/Output.cpp.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/MMT_Lite.dir/src/Output.cpp.o -c /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/Output.cpp
 
 CMakeFiles/MMT_Lite.dir/src/Output.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/MMT_Lite.dir/src/Output.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/Output.cpp > CMakeFiles/MMT_Lite.dir/src/Output.cpp.i
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/Output.cpp > CMakeFiles/MMT_Lite.dir/src/Output.cpp.i
 
 CMakeFiles/MMT_Lite.dir/src/Output.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/MMT_Lite.dir/src/Output.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/Output.cpp -o CMakeFiles/MMT_Lite.dir/src/Output.cpp.s
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/Output.cpp -o CMakeFiles/MMT_Lite.dir/src/Output.cpp.s
 
 CMakeFiles/MMT_Lite.dir/src/PreFlight.cpp.o: CMakeFiles/MMT_Lite.dir/flags.make
 CMakeFiles/MMT_Lite.dir/src/PreFlight.cpp.o: src/PreFlight.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_13) "Building CXX object CMakeFiles/MMT_Lite.dir/src/PreFlight.cpp.o"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/MMT_Lite.dir/src/PreFlight.cpp.o -c /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/PreFlight.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_13) "Building CXX object CMakeFiles/MMT_Lite.dir/src/PreFlight.cpp.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/MMT_Lite.dir/src/PreFlight.cpp.o -c /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/PreFlight.cpp
 
 CMakeFiles/MMT_Lite.dir/src/PreFlight.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/MMT_Lite.dir/src/PreFlight.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/PreFlight.cpp > CMakeFiles/MMT_Lite.dir/src/PreFlight.cpp.i
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/PreFlight.cpp > CMakeFiles/MMT_Lite.dir/src/PreFlight.cpp.i
 
 CMakeFiles/MMT_Lite.dir/src/PreFlight.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/MMT_Lite.dir/src/PreFlight.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/PreFlight.cpp -o CMakeFiles/MMT_Lite.dir/src/PreFlight.cpp.s
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/PreFlight.cpp -o CMakeFiles/MMT_Lite.dir/src/PreFlight.cpp.s
 
 CMakeFiles/MMT_Lite.dir/src/RollAuto.cpp.o: CMakeFiles/MMT_Lite.dir/flags.make
 CMakeFiles/MMT_Lite.dir/src/RollAuto.cpp.o: src/RollAuto.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_14) "Building CXX object CMakeFiles/MMT_Lite.dir/src/RollAuto.cpp.o"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/MMT_Lite.dir/src/RollAuto.cpp.o -c /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/RollAuto.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_14) "Building CXX object CMakeFiles/MMT_Lite.dir/src/RollAuto.cpp.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/MMT_Lite.dir/src/RollAuto.cpp.o -c /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/RollAuto.cpp
 
 CMakeFiles/MMT_Lite.dir/src/RollAuto.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/MMT_Lite.dir/src/RollAuto.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/RollAuto.cpp > CMakeFiles/MMT_Lite.dir/src/RollAuto.cpp.i
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/RollAuto.cpp > CMakeFiles/MMT_Lite.dir/src/RollAuto.cpp.i
 
 CMakeFiles/MMT_Lite.dir/src/RollAuto.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/MMT_Lite.dir/src/RollAuto.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/RollAuto.cpp -o CMakeFiles/MMT_Lite.dir/src/RollAuto.cpp.s
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/RollAuto.cpp -o CMakeFiles/MMT_Lite.dir/src/RollAuto.cpp.s
 
 CMakeFiles/MMT_Lite.dir/src/System.cpp.o: CMakeFiles/MMT_Lite.dir/flags.make
 CMakeFiles/MMT_Lite.dir/src/System.cpp.o: src/System.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_15) "Building CXX object CMakeFiles/MMT_Lite.dir/src/System.cpp.o"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/MMT_Lite.dir/src/System.cpp.o -c /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/System.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_15) "Building CXX object CMakeFiles/MMT_Lite.dir/src/System.cpp.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/MMT_Lite.dir/src/System.cpp.o -c /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/System.cpp
 
 CMakeFiles/MMT_Lite.dir/src/System.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/MMT_Lite.dir/src/System.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/System.cpp > CMakeFiles/MMT_Lite.dir/src/System.cpp.i
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/System.cpp > CMakeFiles/MMT_Lite.dir/src/System.cpp.i
 
 CMakeFiles/MMT_Lite.dir/src/System.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/MMT_Lite.dir/src/System.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/System.cpp -o CMakeFiles/MMT_Lite.dir/src/System.cpp.s
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/System.cpp -o CMakeFiles/MMT_Lite.dir/src/System.cpp.s
 
 CMakeFiles/MMT_Lite.dir/src/TFAtm62.cpp.o: CMakeFiles/MMT_Lite.dir/flags.make
 CMakeFiles/MMT_Lite.dir/src/TFAtm62.cpp.o: src/TFAtm62.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_16) "Building CXX object CMakeFiles/MMT_Lite.dir/src/TFAtm62.cpp.o"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/MMT_Lite.dir/src/TFAtm62.cpp.o -c /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/TFAtm62.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_16) "Building CXX object CMakeFiles/MMT_Lite.dir/src/TFAtm62.cpp.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/MMT_Lite.dir/src/TFAtm62.cpp.o -c /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/TFAtm62.cpp
 
 CMakeFiles/MMT_Lite.dir/src/TFAtm62.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/MMT_Lite.dir/src/TFAtm62.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/TFAtm62.cpp > CMakeFiles/MMT_Lite.dir/src/TFAtm62.cpp.i
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/TFAtm62.cpp > CMakeFiles/MMT_Lite.dir/src/TFAtm62.cpp.i
 
 CMakeFiles/MMT_Lite.dir/src/TFAtm62.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/MMT_Lite.dir/src/TFAtm62.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/TFAtm62.cpp -o CMakeFiles/MMT_Lite.dir/src/TFAtm62.cpp.s
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/TFAtm62.cpp -o CMakeFiles/MMT_Lite.dir/src/TFAtm62.cpp.s
 
 CMakeFiles/MMT_Lite.dir/src/Util.cpp.o: CMakeFiles/MMT_Lite.dir/flags.make
 CMakeFiles/MMT_Lite.dir/src/Util.cpp.o: src/Util.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_17) "Building CXX object CMakeFiles/MMT_Lite.dir/src/Util.cpp.o"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/MMT_Lite.dir/src/Util.cpp.o -c /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/Util.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_17) "Building CXX object CMakeFiles/MMT_Lite.dir/src/Util.cpp.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/MMT_Lite.dir/src/Util.cpp.o -c /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/Util.cpp
 
 CMakeFiles/MMT_Lite.dir/src/Util.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/MMT_Lite.dir/src/Util.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/Util.cpp > CMakeFiles/MMT_Lite.dir/src/Util.cpp.i
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/Util.cpp > CMakeFiles/MMT_Lite.dir/src/Util.cpp.i
 
 CMakeFiles/MMT_Lite.dir/src/Util.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/MMT_Lite.dir/src/Util.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/Util.cpp -o CMakeFiles/MMT_Lite.dir/src/Util.cpp.s
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/Util.cpp -o CMakeFiles/MMT_Lite.dir/src/Util.cpp.s
 
 CMakeFiles/MMT_Lite.dir/src/actuators.cpp.o: CMakeFiles/MMT_Lite.dir/flags.make
 CMakeFiles/MMT_Lite.dir/src/actuators.cpp.o: src/actuators.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_18) "Building CXX object CMakeFiles/MMT_Lite.dir/src/actuators.cpp.o"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/MMT_Lite.dir/src/actuators.cpp.o -c /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/actuators.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_18) "Building CXX object CMakeFiles/MMT_Lite.dir/src/actuators.cpp.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/MMT_Lite.dir/src/actuators.cpp.o -c /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/actuators.cpp
 
 CMakeFiles/MMT_Lite.dir/src/actuators.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/MMT_Lite.dir/src/actuators.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/actuators.cpp > CMakeFiles/MMT_Lite.dir/src/actuators.cpp.i
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/actuators.cpp > CMakeFiles/MMT_Lite.dir/src/actuators.cpp.i
 
 CMakeFiles/MMT_Lite.dir/src/actuators.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/MMT_Lite.dir/src/actuators.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/actuators.cpp -o CMakeFiles/MMT_Lite.dir/src/actuators.cpp.s
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/actuators.cpp -o CMakeFiles/MMT_Lite.dir/src/actuators.cpp.s
 
 CMakeFiles/MMT_Lite.dir/src/block.cpp.o: CMakeFiles/MMT_Lite.dir/flags.make
 CMakeFiles/MMT_Lite.dir/src/block.cpp.o: src/block.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_19) "Building CXX object CMakeFiles/MMT_Lite.dir/src/block.cpp.o"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/MMT_Lite.dir/src/block.cpp.o -c /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/block.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_19) "Building CXX object CMakeFiles/MMT_Lite.dir/src/block.cpp.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/MMT_Lite.dir/src/block.cpp.o -c /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/block.cpp
 
 CMakeFiles/MMT_Lite.dir/src/block.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/MMT_Lite.dir/src/block.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/block.cpp > CMakeFiles/MMT_Lite.dir/src/block.cpp.i
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/block.cpp > CMakeFiles/MMT_Lite.dir/src/block.cpp.i
 
 CMakeFiles/MMT_Lite.dir/src/block.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/MMT_Lite.dir/src/block.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/block.cpp -o CMakeFiles/MMT_Lite.dir/src/block.cpp.s
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/block.cpp -o CMakeFiles/MMT_Lite.dir/src/block.cpp.s
 
 CMakeFiles/MMT_Lite.dir/src/endCheck.cpp.o: CMakeFiles/MMT_Lite.dir/flags.make
 CMakeFiles/MMT_Lite.dir/src/endCheck.cpp.o: src/endCheck.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_20) "Building CXX object CMakeFiles/MMT_Lite.dir/src/endCheck.cpp.o"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/MMT_Lite.dir/src/endCheck.cpp.o -c /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/endCheck.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_20) "Building CXX object CMakeFiles/MMT_Lite.dir/src/endCheck.cpp.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/MMT_Lite.dir/src/endCheck.cpp.o -c /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/endCheck.cpp
 
 CMakeFiles/MMT_Lite.dir/src/endCheck.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/MMT_Lite.dir/src/endCheck.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/endCheck.cpp > CMakeFiles/MMT_Lite.dir/src/endCheck.cpp.i
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/endCheck.cpp > CMakeFiles/MMT_Lite.dir/src/endCheck.cpp.i
 
 CMakeFiles/MMT_Lite.dir/src/endCheck.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/MMT_Lite.dir/src/endCheck.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/endCheck.cpp -o CMakeFiles/MMT_Lite.dir/src/endCheck.cpp.s
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/endCheck.cpp -o CMakeFiles/MMT_Lite.dir/src/endCheck.cpp.s
 
 CMakeFiles/MMT_Lite.dir/src/main.cpp.o: CMakeFiles/MMT_Lite.dir/flags.make
 CMakeFiles/MMT_Lite.dir/src/main.cpp.o: src/main.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_21) "Building CXX object CMakeFiles/MMT_Lite.dir/src/main.cpp.o"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/MMT_Lite.dir/src/main.cpp.o -c /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/main.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_21) "Building CXX object CMakeFiles/MMT_Lite.dir/src/main.cpp.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/MMT_Lite.dir/src/main.cpp.o -c /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/main.cpp
 
 CMakeFiles/MMT_Lite.dir/src/main.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/MMT_Lite.dir/src/main.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/main.cpp > CMakeFiles/MMT_Lite.dir/src/main.cpp.i
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/main.cpp > CMakeFiles/MMT_Lite.dir/src/main.cpp.i
 
 CMakeFiles/MMT_Lite.dir/src/main.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/MMT_Lite.dir/src/main.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/main.cpp -o CMakeFiles/MMT_Lite.dir/src/main.cpp.s
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/main.cpp -o CMakeFiles/MMT_Lite.dir/src/main.cpp.s
 
 CMakeFiles/MMT_Lite.dir/src/mat.cpp.o: CMakeFiles/MMT_Lite.dir/flags.make
 CMakeFiles/MMT_Lite.dir/src/mat.cpp.o: src/mat.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_22) "Building CXX object CMakeFiles/MMT_Lite.dir/src/mat.cpp.o"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/MMT_Lite.dir/src/mat.cpp.o -c /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/mat.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_22) "Building CXX object CMakeFiles/MMT_Lite.dir/src/mat.cpp.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/MMT_Lite.dir/src/mat.cpp.o -c /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/mat.cpp
 
 CMakeFiles/MMT_Lite.dir/src/mat.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/MMT_Lite.dir/src/mat.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/mat.cpp > CMakeFiles/MMT_Lite.dir/src/mat.cpp.i
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/mat.cpp > CMakeFiles/MMT_Lite.dir/src/mat.cpp.i
 
 CMakeFiles/MMT_Lite.dir/src/mat.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/MMT_Lite.dir/src/mat.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/mat.cpp -o CMakeFiles/MMT_Lite.dir/src/mat.cpp.s
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/mat.cpp -o CMakeFiles/MMT_Lite.dir/src/mat.cpp.s
 
 CMakeFiles/MMT_Lite.dir/src/matff.cpp.o: CMakeFiles/MMT_Lite.dir/flags.make
 CMakeFiles/MMT_Lite.dir/src/matff.cpp.o: src/matff.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_23) "Building CXX object CMakeFiles/MMT_Lite.dir/src/matff.cpp.o"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/MMT_Lite.dir/src/matff.cpp.o -c /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/matff.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_23) "Building CXX object CMakeFiles/MMT_Lite.dir/src/matff.cpp.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/MMT_Lite.dir/src/matff.cpp.o -c /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/matff.cpp
 
 CMakeFiles/MMT_Lite.dir/src/matff.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/MMT_Lite.dir/src/matff.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/matff.cpp > CMakeFiles/MMT_Lite.dir/src/matff.cpp.i
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/matff.cpp > CMakeFiles/MMT_Lite.dir/src/matff.cpp.i
 
 CMakeFiles/MMT_Lite.dir/src/matff.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/MMT_Lite.dir/src/matff.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/matff.cpp -o CMakeFiles/MMT_Lite.dir/src/matff.cpp.s
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/matff.cpp -o CMakeFiles/MMT_Lite.dir/src/matff.cpp.s
 
 CMakeFiles/MMT_Lite.dir/src/navigatorPerfect.cpp.o: CMakeFiles/MMT_Lite.dir/flags.make
 CMakeFiles/MMT_Lite.dir/src/navigatorPerfect.cpp.o: src/navigatorPerfect.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_24) "Building CXX object CMakeFiles/MMT_Lite.dir/src/navigatorPerfect.cpp.o"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/MMT_Lite.dir/src/navigatorPerfect.cpp.o -c /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/navigatorPerfect.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_24) "Building CXX object CMakeFiles/MMT_Lite.dir/src/navigatorPerfect.cpp.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/MMT_Lite.dir/src/navigatorPerfect.cpp.o -c /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/navigatorPerfect.cpp
 
 CMakeFiles/MMT_Lite.dir/src/navigatorPerfect.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/MMT_Lite.dir/src/navigatorPerfect.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/navigatorPerfect.cpp > CMakeFiles/MMT_Lite.dir/src/navigatorPerfect.cpp.i
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/navigatorPerfect.cpp > CMakeFiles/MMT_Lite.dir/src/navigatorPerfect.cpp.i
 
 CMakeFiles/MMT_Lite.dir/src/navigatorPerfect.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/MMT_Lite.dir/src/navigatorPerfect.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/navigatorPerfect.cpp -o CMakeFiles/MMT_Lite.dir/src/navigatorPerfect.cpp.s
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/navigatorPerfect.cpp -o CMakeFiles/MMT_Lite.dir/src/navigatorPerfect.cpp.s
 
 CMakeFiles/MMT_Lite.dir/src/quat.cpp.o: CMakeFiles/MMT_Lite.dir/flags.make
 CMakeFiles/MMT_Lite.dir/src/quat.cpp.o: src/quat.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_25) "Building CXX object CMakeFiles/MMT_Lite.dir/src/quat.cpp.o"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/MMT_Lite.dir/src/quat.cpp.o -c /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/quat.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_25) "Building CXX object CMakeFiles/MMT_Lite.dir/src/quat.cpp.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/MMT_Lite.dir/src/quat.cpp.o -c /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/quat.cpp
 
 CMakeFiles/MMT_Lite.dir/src/quat.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/MMT_Lite.dir/src/quat.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/quat.cpp > CMakeFiles/MMT_Lite.dir/src/quat.cpp.i
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/quat.cpp > CMakeFiles/MMT_Lite.dir/src/quat.cpp.i
 
 CMakeFiles/MMT_Lite.dir/src/quat.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/MMT_Lite.dir/src/quat.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/quat.cpp -o CMakeFiles/MMT_Lite.dir/src/quat.cpp.s
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/quat.cpp -o CMakeFiles/MMT_Lite.dir/src/quat.cpp.s
 
 CMakeFiles/MMT_Lite.dir/src/quatff.cpp.o: CMakeFiles/MMT_Lite.dir/flags.make
 CMakeFiles/MMT_Lite.dir/src/quatff.cpp.o: src/quatff.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_26) "Building CXX object CMakeFiles/MMT_Lite.dir/src/quatff.cpp.o"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/MMT_Lite.dir/src/quatff.cpp.o -c /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/quatff.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_26) "Building CXX object CMakeFiles/MMT_Lite.dir/src/quatff.cpp.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/MMT_Lite.dir/src/quatff.cpp.o -c /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/quatff.cpp
 
 CMakeFiles/MMT_Lite.dir/src/quatff.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/MMT_Lite.dir/src/quatff.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/quatff.cpp > CMakeFiles/MMT_Lite.dir/src/quatff.cpp.i
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/quatff.cpp > CMakeFiles/MMT_Lite.dir/src/quatff.cpp.i
 
 CMakeFiles/MMT_Lite.dir/src/quatff.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/MMT_Lite.dir/src/quatff.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/quatff.cpp -o CMakeFiles/MMT_Lite.dir/src/quatff.cpp.s
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/quatff.cpp -o CMakeFiles/MMT_Lite.dir/src/quatff.cpp.s
 
 CMakeFiles/MMT_Lite.dir/src/reFactoredGeometry.cpp.o: CMakeFiles/MMT_Lite.dir/flags.make
 CMakeFiles/MMT_Lite.dir/src/reFactoredGeometry.cpp.o: src/reFactoredGeometry.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_27) "Building CXX object CMakeFiles/MMT_Lite.dir/src/reFactoredGeometry.cpp.o"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/MMT_Lite.dir/src/reFactoredGeometry.cpp.o -c /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/reFactoredGeometry.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_27) "Building CXX object CMakeFiles/MMT_Lite.dir/src/reFactoredGeometry.cpp.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/MMT_Lite.dir/src/reFactoredGeometry.cpp.o -c /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/reFactoredGeometry.cpp
 
 CMakeFiles/MMT_Lite.dir/src/reFactoredGeometry.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/MMT_Lite.dir/src/reFactoredGeometry.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/reFactoredGeometry.cpp > CMakeFiles/MMT_Lite.dir/src/reFactoredGeometry.cpp.i
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/reFactoredGeometry.cpp > CMakeFiles/MMT_Lite.dir/src/reFactoredGeometry.cpp.i
 
 CMakeFiles/MMT_Lite.dir/src/reFactoredGeometry.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/MMT_Lite.dir/src/reFactoredGeometry.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/reFactoredGeometry.cpp -o CMakeFiles/MMT_Lite.dir/src/reFactoredGeometry.cpp.s
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/reFactoredGeometry.cpp -o CMakeFiles/MMT_Lite.dir/src/reFactoredGeometry.cpp.s
 
 CMakeFiles/MMT_Lite.dir/src/sim.cpp.o: CMakeFiles/MMT_Lite.dir/flags.make
 CMakeFiles/MMT_Lite.dir/src/sim.cpp.o: src/sim.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_28) "Building CXX object CMakeFiles/MMT_Lite.dir/src/sim.cpp.o"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/MMT_Lite.dir/src/sim.cpp.o -c /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/sim.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_28) "Building CXX object CMakeFiles/MMT_Lite.dir/src/sim.cpp.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/MMT_Lite.dir/src/sim.cpp.o -c /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/sim.cpp
 
 CMakeFiles/MMT_Lite.dir/src/sim.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/MMT_Lite.dir/src/sim.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/sim.cpp > CMakeFiles/MMT_Lite.dir/src/sim.cpp.i
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/sim.cpp > CMakeFiles/MMT_Lite.dir/src/sim.cpp.i
 
 CMakeFiles/MMT_Lite.dir/src/sim.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/MMT_Lite.dir/src/sim.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/sim.cpp -o CMakeFiles/MMT_Lite.dir/src/sim.cpp.s
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/sim.cpp -o CMakeFiles/MMT_Lite.dir/src/sim.cpp.s
 
 CMakeFiles/MMT_Lite.dir/src/state.cpp.o: CMakeFiles/MMT_Lite.dir/flags.make
 CMakeFiles/MMT_Lite.dir/src/state.cpp.o: src/state.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_29) "Building CXX object CMakeFiles/MMT_Lite.dir/src/state.cpp.o"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/MMT_Lite.dir/src/state.cpp.o -c /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/state.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_29) "Building CXX object CMakeFiles/MMT_Lite.dir/src/state.cpp.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/MMT_Lite.dir/src/state.cpp.o -c /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/state.cpp
 
 CMakeFiles/MMT_Lite.dir/src/state.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/MMT_Lite.dir/src/state.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/state.cpp > CMakeFiles/MMT_Lite.dir/src/state.cpp.i
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/state.cpp > CMakeFiles/MMT_Lite.dir/src/state.cpp.i
 
 CMakeFiles/MMT_Lite.dir/src/state.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/MMT_Lite.dir/src/state.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/state.cpp -o CMakeFiles/MMT_Lite.dir/src/state.cpp.s
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/state.cpp -o CMakeFiles/MMT_Lite.dir/src/state.cpp.s
 
 CMakeFiles/MMT_Lite.dir/src/state_euler.cpp.o: CMakeFiles/MMT_Lite.dir/flags.make
 CMakeFiles/MMT_Lite.dir/src/state_euler.cpp.o: src/state_euler.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_30) "Building CXX object CMakeFiles/MMT_Lite.dir/src/state_euler.cpp.o"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/MMT_Lite.dir/src/state_euler.cpp.o -c /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/state_euler.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_30) "Building CXX object CMakeFiles/MMT_Lite.dir/src/state_euler.cpp.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/MMT_Lite.dir/src/state_euler.cpp.o -c /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/state_euler.cpp
 
 CMakeFiles/MMT_Lite.dir/src/state_euler.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/MMT_Lite.dir/src/state_euler.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/state_euler.cpp > CMakeFiles/MMT_Lite.dir/src/state_euler.cpp.i
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/state_euler.cpp > CMakeFiles/MMT_Lite.dir/src/state_euler.cpp.i
 
 CMakeFiles/MMT_Lite.dir/src/state_euler.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/MMT_Lite.dir/src/state_euler.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/state_euler.cpp -o CMakeFiles/MMT_Lite.dir/src/state_euler.cpp.s
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/state_euler.cpp -o CMakeFiles/MMT_Lite.dir/src/state_euler.cpp.s
 
 CMakeFiles/MMT_Lite.dir/src/state_mm.cpp.o: CMakeFiles/MMT_Lite.dir/flags.make
 CMakeFiles/MMT_Lite.dir/src/state_mm.cpp.o: src/state_mm.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_31) "Building CXX object CMakeFiles/MMT_Lite.dir/src/state_mm.cpp.o"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/MMT_Lite.dir/src/state_mm.cpp.o -c /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/state_mm.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_31) "Building CXX object CMakeFiles/MMT_Lite.dir/src/state_mm.cpp.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/MMT_Lite.dir/src/state_mm.cpp.o -c /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/state_mm.cpp
 
 CMakeFiles/MMT_Lite.dir/src/state_mm.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/MMT_Lite.dir/src/state_mm.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/state_mm.cpp > CMakeFiles/MMT_Lite.dir/src/state_mm.cpp.i
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/state_mm.cpp > CMakeFiles/MMT_Lite.dir/src/state_mm.cpp.i
 
 CMakeFiles/MMT_Lite.dir/src/state_mm.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/MMT_Lite.dir/src/state_mm.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/state_mm.cpp -o CMakeFiles/MMT_Lite.dir/src/state_mm.cpp.s
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/state_mm.cpp -o CMakeFiles/MMT_Lite.dir/src/state_mm.cpp.s
 
 CMakeFiles/MMT_Lite.dir/src/state_rk2.cpp.o: CMakeFiles/MMT_Lite.dir/flags.make
 CMakeFiles/MMT_Lite.dir/src/state_rk2.cpp.o: src/state_rk2.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_32) "Building CXX object CMakeFiles/MMT_Lite.dir/src/state_rk2.cpp.o"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/MMT_Lite.dir/src/state_rk2.cpp.o -c /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/state_rk2.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_32) "Building CXX object CMakeFiles/MMT_Lite.dir/src/state_rk2.cpp.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/MMT_Lite.dir/src/state_rk2.cpp.o -c /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/state_rk2.cpp
 
 CMakeFiles/MMT_Lite.dir/src/state_rk2.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/MMT_Lite.dir/src/state_rk2.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/state_rk2.cpp > CMakeFiles/MMT_Lite.dir/src/state_rk2.cpp.i
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/state_rk2.cpp > CMakeFiles/MMT_Lite.dir/src/state_rk2.cpp.i
 
 CMakeFiles/MMT_Lite.dir/src/state_rk2.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/MMT_Lite.dir/src/state_rk2.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/state_rk2.cpp -o CMakeFiles/MMT_Lite.dir/src/state_rk2.cpp.s
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/state_rk2.cpp -o CMakeFiles/MMT_Lite.dir/src/state_rk2.cpp.s
 
 CMakeFiles/MMT_Lite.dir/src/strtok.cpp.o: CMakeFiles/MMT_Lite.dir/flags.make
 CMakeFiles/MMT_Lite.dir/src/strtok.cpp.o: src/strtok.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_33) "Building CXX object CMakeFiles/MMT_Lite.dir/src/strtok.cpp.o"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/MMT_Lite.dir/src/strtok.cpp.o -c /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/strtok.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_33) "Building CXX object CMakeFiles/MMT_Lite.dir/src/strtok.cpp.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/MMT_Lite.dir/src/strtok.cpp.o -c /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/strtok.cpp
 
 CMakeFiles/MMT_Lite.dir/src/strtok.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/MMT_Lite.dir/src/strtok.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/strtok.cpp > CMakeFiles/MMT_Lite.dir/src/strtok.cpp.i
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/strtok.cpp > CMakeFiles/MMT_Lite.dir/src/strtok.cpp.i
 
 CMakeFiles/MMT_Lite.dir/src/strtok.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/MMT_Lite.dir/src/strtok.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/strtok.cpp -o CMakeFiles/MMT_Lite.dir/src/strtok.cpp.s
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/strtok.cpp -o CMakeFiles/MMT_Lite.dir/src/strtok.cpp.s
 
 CMakeFiles/MMT_Lite.dir/src/strtokff.cpp.o: CMakeFiles/MMT_Lite.dir/flags.make
 CMakeFiles/MMT_Lite.dir/src/strtokff.cpp.o: src/strtokff.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_34) "Building CXX object CMakeFiles/MMT_Lite.dir/src/strtokff.cpp.o"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/MMT_Lite.dir/src/strtokff.cpp.o -c /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/strtokff.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_34) "Building CXX object CMakeFiles/MMT_Lite.dir/src/strtokff.cpp.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/MMT_Lite.dir/src/strtokff.cpp.o -c /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/strtokff.cpp
 
 CMakeFiles/MMT_Lite.dir/src/strtokff.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/MMT_Lite.dir/src/strtokff.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/strtokff.cpp > CMakeFiles/MMT_Lite.dir/src/strtokff.cpp.i
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/strtokff.cpp > CMakeFiles/MMT_Lite.dir/src/strtokff.cpp.i
 
 CMakeFiles/MMT_Lite.dir/src/strtokff.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/MMT_Lite.dir/src/strtokff.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/strtokff.cpp -o CMakeFiles/MMT_Lite.dir/src/strtokff.cpp.s
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/strtokff.cpp -o CMakeFiles/MMT_Lite.dir/src/strtokff.cpp.s
 
 CMakeFiles/MMT_Lite.dir/src/table.cpp.o: CMakeFiles/MMT_Lite.dir/flags.make
 CMakeFiles/MMT_Lite.dir/src/table.cpp.o: src/table.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_35) "Building CXX object CMakeFiles/MMT_Lite.dir/src/table.cpp.o"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/MMT_Lite.dir/src/table.cpp.o -c /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/table.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_35) "Building CXX object CMakeFiles/MMT_Lite.dir/src/table.cpp.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/MMT_Lite.dir/src/table.cpp.o -c /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/table.cpp
 
 CMakeFiles/MMT_Lite.dir/src/table.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/MMT_Lite.dir/src/table.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/table.cpp > CMakeFiles/MMT_Lite.dir/src/table.cpp.i
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/table.cpp > CMakeFiles/MMT_Lite.dir/src/table.cpp.i
 
 CMakeFiles/MMT_Lite.dir/src/table.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/MMT_Lite.dir/src/table.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/table.cpp -o CMakeFiles/MMT_Lite.dir/src/table.cpp.s
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/table.cpp -o CMakeFiles/MMT_Lite.dir/src/table.cpp.s
 
 CMakeFiles/MMT_Lite.dir/src/table1.cpp.o: CMakeFiles/MMT_Lite.dir/flags.make
 CMakeFiles/MMT_Lite.dir/src/table1.cpp.o: src/table1.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_36) "Building CXX object CMakeFiles/MMT_Lite.dir/src/table1.cpp.o"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/MMT_Lite.dir/src/table1.cpp.o -c /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/table1.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_36) "Building CXX object CMakeFiles/MMT_Lite.dir/src/table1.cpp.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/MMT_Lite.dir/src/table1.cpp.o -c /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/table1.cpp
 
 CMakeFiles/MMT_Lite.dir/src/table1.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/MMT_Lite.dir/src/table1.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/table1.cpp > CMakeFiles/MMT_Lite.dir/src/table1.cpp.i
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/table1.cpp > CMakeFiles/MMT_Lite.dir/src/table1.cpp.i
 
 CMakeFiles/MMT_Lite.dir/src/table1.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/MMT_Lite.dir/src/table1.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/table1.cpp -o CMakeFiles/MMT_Lite.dir/src/table1.cpp.s
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/table1.cpp -o CMakeFiles/MMT_Lite.dir/src/table1.cpp.s
 
 CMakeFiles/MMT_Lite.dir/src/table1ff.cpp.o: CMakeFiles/MMT_Lite.dir/flags.make
 CMakeFiles/MMT_Lite.dir/src/table1ff.cpp.o: src/table1ff.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_37) "Building CXX object CMakeFiles/MMT_Lite.dir/src/table1ff.cpp.o"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/MMT_Lite.dir/src/table1ff.cpp.o -c /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/table1ff.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_37) "Building CXX object CMakeFiles/MMT_Lite.dir/src/table1ff.cpp.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/MMT_Lite.dir/src/table1ff.cpp.o -c /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/table1ff.cpp
 
 CMakeFiles/MMT_Lite.dir/src/table1ff.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/MMT_Lite.dir/src/table1ff.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/table1ff.cpp > CMakeFiles/MMT_Lite.dir/src/table1ff.cpp.i
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/table1ff.cpp > CMakeFiles/MMT_Lite.dir/src/table1ff.cpp.i
 
 CMakeFiles/MMT_Lite.dir/src/table1ff.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/MMT_Lite.dir/src/table1ff.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/table1ff.cpp -o CMakeFiles/MMT_Lite.dir/src/table1ff.cpp.s
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/table1ff.cpp -o CMakeFiles/MMT_Lite.dir/src/table1ff.cpp.s
 
 CMakeFiles/MMT_Lite.dir/src/table2.cpp.o: CMakeFiles/MMT_Lite.dir/flags.make
 CMakeFiles/MMT_Lite.dir/src/table2.cpp.o: src/table2.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_38) "Building CXX object CMakeFiles/MMT_Lite.dir/src/table2.cpp.o"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/MMT_Lite.dir/src/table2.cpp.o -c /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/table2.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_38) "Building CXX object CMakeFiles/MMT_Lite.dir/src/table2.cpp.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/MMT_Lite.dir/src/table2.cpp.o -c /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/table2.cpp
 
 CMakeFiles/MMT_Lite.dir/src/table2.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/MMT_Lite.dir/src/table2.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/table2.cpp > CMakeFiles/MMT_Lite.dir/src/table2.cpp.i
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/table2.cpp > CMakeFiles/MMT_Lite.dir/src/table2.cpp.i
 
 CMakeFiles/MMT_Lite.dir/src/table2.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/MMT_Lite.dir/src/table2.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/table2.cpp -o CMakeFiles/MMT_Lite.dir/src/table2.cpp.s
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/table2.cpp -o CMakeFiles/MMT_Lite.dir/src/table2.cpp.s
 
 CMakeFiles/MMT_Lite.dir/src/table2ff.cpp.o: CMakeFiles/MMT_Lite.dir/flags.make
 CMakeFiles/MMT_Lite.dir/src/table2ff.cpp.o: src/table2ff.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_39) "Building CXX object CMakeFiles/MMT_Lite.dir/src/table2ff.cpp.o"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/MMT_Lite.dir/src/table2ff.cpp.o -c /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/table2ff.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_39) "Building CXX object CMakeFiles/MMT_Lite.dir/src/table2ff.cpp.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/MMT_Lite.dir/src/table2ff.cpp.o -c /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/table2ff.cpp
 
 CMakeFiles/MMT_Lite.dir/src/table2ff.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/MMT_Lite.dir/src/table2ff.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/table2ff.cpp > CMakeFiles/MMT_Lite.dir/src/table2ff.cpp.i
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/table2ff.cpp > CMakeFiles/MMT_Lite.dir/src/table2ff.cpp.i
 
 CMakeFiles/MMT_Lite.dir/src/table2ff.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/MMT_Lite.dir/src/table2ff.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/table2ff.cpp -o CMakeFiles/MMT_Lite.dir/src/table2ff.cpp.s
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/table2ff.cpp -o CMakeFiles/MMT_Lite.dir/src/table2ff.cpp.s
 
 CMakeFiles/MMT_Lite.dir/src/table3.cpp.o: CMakeFiles/MMT_Lite.dir/flags.make
 CMakeFiles/MMT_Lite.dir/src/table3.cpp.o: src/table3.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_40) "Building CXX object CMakeFiles/MMT_Lite.dir/src/table3.cpp.o"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/MMT_Lite.dir/src/table3.cpp.o -c /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/table3.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_40) "Building CXX object CMakeFiles/MMT_Lite.dir/src/table3.cpp.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/MMT_Lite.dir/src/table3.cpp.o -c /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/table3.cpp
 
 CMakeFiles/MMT_Lite.dir/src/table3.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/MMT_Lite.dir/src/table3.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/table3.cpp > CMakeFiles/MMT_Lite.dir/src/table3.cpp.i
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/table3.cpp > CMakeFiles/MMT_Lite.dir/src/table3.cpp.i
 
 CMakeFiles/MMT_Lite.dir/src/table3.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/MMT_Lite.dir/src/table3.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/table3.cpp -o CMakeFiles/MMT_Lite.dir/src/table3.cpp.s
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/table3.cpp -o CMakeFiles/MMT_Lite.dir/src/table3.cpp.s
 
 CMakeFiles/MMT_Lite.dir/src/table4.cpp.o: CMakeFiles/MMT_Lite.dir/flags.make
 CMakeFiles/MMT_Lite.dir/src/table4.cpp.o: src/table4.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_41) "Building CXX object CMakeFiles/MMT_Lite.dir/src/table4.cpp.o"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/MMT_Lite.dir/src/table4.cpp.o -c /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/table4.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_41) "Building CXX object CMakeFiles/MMT_Lite.dir/src/table4.cpp.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/MMT_Lite.dir/src/table4.cpp.o -c /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/table4.cpp
 
 CMakeFiles/MMT_Lite.dir/src/table4.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/MMT_Lite.dir/src/table4.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/table4.cpp > CMakeFiles/MMT_Lite.dir/src/table4.cpp.i
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/table4.cpp > CMakeFiles/MMT_Lite.dir/src/table4.cpp.i
 
 CMakeFiles/MMT_Lite.dir/src/table4.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/MMT_Lite.dir/src/table4.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/table4.cpp -o CMakeFiles/MMT_Lite.dir/src/table4.cpp.s
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/table4.cpp -o CMakeFiles/MMT_Lite.dir/src/table4.cpp.s
 
 CMakeFiles/MMT_Lite.dir/src/table5.cpp.o: CMakeFiles/MMT_Lite.dir/flags.make
 CMakeFiles/MMT_Lite.dir/src/table5.cpp.o: src/table5.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_42) "Building CXX object CMakeFiles/MMT_Lite.dir/src/table5.cpp.o"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/MMT_Lite.dir/src/table5.cpp.o -c /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/table5.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_42) "Building CXX object CMakeFiles/MMT_Lite.dir/src/table5.cpp.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/MMT_Lite.dir/src/table5.cpp.o -c /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/table5.cpp
 
 CMakeFiles/MMT_Lite.dir/src/table5.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/MMT_Lite.dir/src/table5.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/table5.cpp > CMakeFiles/MMT_Lite.dir/src/table5.cpp.i
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/table5.cpp > CMakeFiles/MMT_Lite.dir/src/table5.cpp.i
 
 CMakeFiles/MMT_Lite.dir/src/table5.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/MMT_Lite.dir/src/table5.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/table5.cpp -o CMakeFiles/MMT_Lite.dir/src/table5.cpp.s
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/table5.cpp -o CMakeFiles/MMT_Lite.dir/src/table5.cpp.s
 
 CMakeFiles/MMT_Lite.dir/src/tableff.cpp.o: CMakeFiles/MMT_Lite.dir/flags.make
 CMakeFiles/MMT_Lite.dir/src/tableff.cpp.o: src/tableff.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_43) "Building CXX object CMakeFiles/MMT_Lite.dir/src/tableff.cpp.o"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/MMT_Lite.dir/src/tableff.cpp.o -c /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/tableff.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_43) "Building CXX object CMakeFiles/MMT_Lite.dir/src/tableff.cpp.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/MMT_Lite.dir/src/tableff.cpp.o -c /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/tableff.cpp
 
 CMakeFiles/MMT_Lite.dir/src/tableff.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/MMT_Lite.dir/src/tableff.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/tableff.cpp > CMakeFiles/MMT_Lite.dir/src/tableff.cpp.i
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/tableff.cpp > CMakeFiles/MMT_Lite.dir/src/tableff.cpp.i
 
 CMakeFiles/MMT_Lite.dir/src/tableff.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/MMT_Lite.dir/src/tableff.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/tableff.cpp -o CMakeFiles/MMT_Lite.dir/src/tableff.cpp.s
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/tableff.cpp -o CMakeFiles/MMT_Lite.dir/src/tableff.cpp.s
 
 CMakeFiles/MMT_Lite.dir/src/vec.cpp.o: CMakeFiles/MMT_Lite.dir/flags.make
 CMakeFiles/MMT_Lite.dir/src/vec.cpp.o: src/vec.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_44) "Building CXX object CMakeFiles/MMT_Lite.dir/src/vec.cpp.o"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/MMT_Lite.dir/src/vec.cpp.o -c /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/vec.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_44) "Building CXX object CMakeFiles/MMT_Lite.dir/src/vec.cpp.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/MMT_Lite.dir/src/vec.cpp.o -c /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/vec.cpp
 
 CMakeFiles/MMT_Lite.dir/src/vec.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/MMT_Lite.dir/src/vec.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/vec.cpp > CMakeFiles/MMT_Lite.dir/src/vec.cpp.i
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/vec.cpp > CMakeFiles/MMT_Lite.dir/src/vec.cpp.i
 
 CMakeFiles/MMT_Lite.dir/src/vec.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/MMT_Lite.dir/src/vec.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/vec.cpp -o CMakeFiles/MMT_Lite.dir/src/vec.cpp.s
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/vec.cpp -o CMakeFiles/MMT_Lite.dir/src/vec.cpp.s
 
 CMakeFiles/MMT_Lite.dir/src/vecff.cpp.o: CMakeFiles/MMT_Lite.dir/flags.make
 CMakeFiles/MMT_Lite.dir/src/vecff.cpp.o: src/vecff.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_45) "Building CXX object CMakeFiles/MMT_Lite.dir/src/vecff.cpp.o"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/MMT_Lite.dir/src/vecff.cpp.o -c /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/vecff.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_45) "Building CXX object CMakeFiles/MMT_Lite.dir/src/vecff.cpp.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/MMT_Lite.dir/src/vecff.cpp.o -c /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/vecff.cpp
 
 CMakeFiles/MMT_Lite.dir/src/vecff.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/MMT_Lite.dir/src/vecff.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/vecff.cpp > CMakeFiles/MMT_Lite.dir/src/vecff.cpp.i
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/vecff.cpp > CMakeFiles/MMT_Lite.dir/src/vecff.cpp.i
 
 CMakeFiles/MMT_Lite.dir/src/vecff.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/MMT_Lite.dir/src/vecff.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/src/vecff.cpp -o CMakeFiles/MMT_Lite.dir/src/vecff.cpp.s
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/src/vecff.cpp -o CMakeFiles/MMT_Lite.dir/src/vecff.cpp.s
 
 # Object files for target MMT_Lite
 MMT_Lite_OBJECTS = \
@@ -740,7 +740,7 @@ MMT_Lite: CMakeFiles/MMT_Lite.dir/src/vec.cpp.o
 MMT_Lite: CMakeFiles/MMT_Lite.dir/src/vecff.cpp.o
 MMT_Lite: CMakeFiles/MMT_Lite.dir/build.make
 MMT_Lite: CMakeFiles/MMT_Lite.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_46) "Linking CXX executable MMT_Lite"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_46) "Linking CXX executable MMT_Lite"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/MMT_Lite.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.
@@ -753,6 +753,6 @@ CMakeFiles/MMT_Lite.dir/clean:
 .PHONY : CMakeFiles/MMT_Lite.dir/clean
 
 CMakeFiles/MMT_Lite.dir/depend:
-	cd /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs /home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/CMakeFiles/MMT_Lite.dir/DependInfo.cmake --color=$(COLOR)
+	cd /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/CMakeFiles/MMT_Lite.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : CMakeFiles/MMT_Lite.dir/depend
 
