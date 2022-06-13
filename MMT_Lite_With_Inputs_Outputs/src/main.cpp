@@ -154,80 +154,49 @@ int main()
 			3) After done, remove bloat (navproc, flightproc).
 			4) Try and hack the integrator. Since euler integration works, should be easy.
 			5) Once the integrator is hacked, I am the captain now.
-			
+
 			*/
 			////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 			////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 			// Navigation state.
-			NAV_STATE navigationState;
-			navigationState.missileTimeOfFlight = sys->t_flight;
-			navigationState.LTFPosition = mot->ltf_pos;
-			navigationState.LTFVelocity = mot->ltf_vel;
-			navigationState.specificForce = mot->sf_b;
-			navigationState.LTFEulerAngles = mot->eulerLTF;
-			navigationState.bodyRate = mot->omegaB;
-			navigationState.bodyRateDot = mot->omegaB_d;
-			////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+			double missileTimeOfFlight = sys->t_flight;
+			Eigen::Vector3d missileLTFPosition = {mot->ltf_pos.x, mot->ltf_pos.y, mot->ltf_pos.z};
+			Eigen::Vector3d missileLTFVelocity = {mot->ltf_vel.x, mot->ltf_vel.y, mot->ltf_vel.z};
+			Eigen::Vector3d missileBodyAcceleration = {mot->sf_b.x, mot->sf_b.y, mot->sf_b.z};
+			Eigen::Vector3d missileLTFEulerAngles = {mot->eulerLTF.x, mot->eulerLTF.y, mot->eulerLTF.z};
+			Eigen::Vector3d missileBodyRate = {mot->omegaB.x, mot->omegaB.y, mot->omegaB.z};
+			Eigen::Vector3d missileBodyRateDot = {mot->omegaB_d.x, mot->omegaB_d.y, mot->omegaB_d.z};
 
-
-
-
-
-			////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-			// Navigator Inputs.
-			Vec navigatorInputLTFPosition = mot->ltf_pos;
-			Vec navigatorInputLTFVelocity = mot->ltf_vel;
-			Vec navigatorInputLTFEulerAngles = mot->eulerLTF;
-			Vec navigatorInputBodyAccel = mot->sf_b;
-			Vec navigatorInputBodyRate = mot->omegaB;
-			double navigatorInputTimeOfFlight = sys->t_flight;
-
-			// Navigator Update.
-			navigator->update(
-				navigatorInputLTFPosition,
-				navigatorInputLTFVelocity,
-				navigatorInputLTFEulerAngles,
-				navigatorInputBodyAccel,
-				navigatorInputBodyRate,
-				navigatorInputTimeOfFlight
+			NavigationState navigationState(
+				missileTimeOfFlight,
+				missileLTFPosition,
+				missileLTFVelocity,
+				missileBodyAcceleration,
+				missileLTFEulerAngles,
+				missileBodyRate,
+				missileBodyRateDot
 			);
+
+			////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+			////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+			// Navigator handle inputs.
+			navigator->handleInput(navigationState);
+
+			// Navigator Update. (Does not actually do anything but I am leaving it for now.)
+			navigator->update();
 
 			// Navigator Outputs.
-			Vec navigatorOutputLTFPosition = navigator->pm;
 			double navigatorOutputLTFAltitude = -1 * navigator->pm.z;
-			Vec navigatorOutputLTFVelocity = navigator->vm;
-			Vec navigatorOutputLTFEulerAngles = navigator->euler;
-			Vec navigatorOutputBodyAccel = navigator->sf_b;
-			Vec navigatorOutputBodyRate = navigator->omegaB;
-			double navigatorOutputTime = navigator->tnav;
-			bool navigatorOutputSolutionAvailable = navigator->nav_solution_available;
 			////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-
-
-
 			////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-			// Navproc Inputs.
-			Vec navprocInputLTFPosition = navigatorOutputLTFPosition;
-			Vec navprocInputLTFVelocity = navigatorOutputLTFVelocity;
-			Vec navprocInputLTFEulerAngles = navigatorOutputLTFEulerAngles;
-			Vec navprocInputBodyAccel = navigatorOutputBodyAccel;
-			Vec navprocInputBodyRate = navigatorOutputBodyRate;
-			double navprocInputTime = navigatorOutputTime;
-			bool navprocInputSolutionAvailable = navigatorOutputSolutionAvailable;
+			// Navproc handle inputs.
+			navproc->handleInput(navigationState);
 
 			// Navproc Update.
-			navproc->update(
-				navprocInputLTFPosition,
-				navprocInputLTFVelocity,
-				navprocInputLTFEulerAngles,
-				navprocInputBodyAccel,
-				navprocInputBodyRate,
-				navprocInputTime,
-				navprocInputSolutionAvailable
-			);
+			navproc->update();
 
 			// Navproc Outputs.
 			bool navprocOutputProcessExecuting = navproc->executing;
@@ -252,25 +221,11 @@ int main()
 
 
 			////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-			// Flightproc Inputs.
-			bool flightprocInputProcessExecuting = navprocOutputProcessExecuting;
-			double flightprocInputAltitude = navprocOutputAltitude;
-			Vecff flightprocInputBodyVelocity = navprocOutputBodyVelocity;
-			Vec flightprocInputBodyRate = navprocOutputBodyRate;
-			Vecff flightprocInputGravityBodyEstimate = navprocOutputGravityBodyEstimate;
-			Vecff flightprocInputBodyAcceleration = navprocOutputBodyAcceleration;
-			double flightprocInputRollAngle = navprocOutputRollAngle;
+			// Flightproc handle inputs.
+			flightproc->handleInput(navigationState);
 
 			// Flightproc Update.
-			flightproc->update(
-				flightprocInputProcessExecuting,
-				flightprocInputAltitude,
-				flightprocInputBodyVelocity,
-				flightprocInputBodyRate,
-				flightprocInputGravityBodyEstimate,
-				flightprocInputBodyAcceleration,
-				flightprocInputRollAngle
-			);
+			flightproc->update();
 
 			// Flightproc Outputs.
 			Matff flightprocOutputRolledToNonRolledDCM = flightproc->BodyRollToNR_DCM;
@@ -304,34 +259,14 @@ int main()
 			// Guide Law Inputs.
 			bool guideLawInputProcessExecuting = true;
 			Vecff guideLawInputLTFWaypoint = navprocOutputWaypoint;
-			Vecff guideLawInputLTFPos;
-			guideLawInputLTFPos.x = navigationState.LTFPosition.x;
-			guideLawInputLTFPos.y = navigationState.LTFPosition.y;
-			guideLawInputLTFPos.z = navigationState.LTFPosition.z;
-			Vecff guideLawInputLTFVel;
-			guideLawInputLTFVel.x = navigationState.LTFVelocity.x;
-			guideLawInputLTFVel.y = navigationState.LTFVelocity.y;
-			guideLawInputLTFVel.z = navigationState.LTFVelocity.z;
+			Vecff guideLawInputLTFPos = navprocOutputLTFPosNav;
+			Vecff guideLawInputLTFVel = navprocOutputLTFVelNav;
 			bool guideLawInputNav200Valid = true;
-			double guideLawInputRollAngle = navigationState.LTFEulerAngles.x;
+			double guideLawInputRollAngle = navprocOutputRollAngle;
 			Matff guideLawInputDCMNav = navprocOutputDCMNav;
-			guideLawInputDCMNav[0].x = navigationState.LTFEulerAngles.getDCM()[0].x;
-			guideLawInputDCMNav[0].y = navigationState.LTFEulerAngles.getDCM()[0].y;
-			guideLawInputDCMNav[0].z = navigationState.LTFEulerAngles.getDCM()[0].z;
-			guideLawInputDCMNav[1].x = navigationState.LTFEulerAngles.getDCM()[1].x;
-			guideLawInputDCMNav[1].y = navigationState.LTFEulerAngles.getDCM()[1].y;
-			guideLawInputDCMNav[1].z = navigationState.LTFEulerAngles.getDCM()[1].z;
-			guideLawInputDCMNav[2].x = navigationState.LTFEulerAngles.getDCM()[2].x;
-			guideLawInputDCMNav[2].y = navigationState.LTFEulerAngles.getDCM()[2].y;
-			guideLawInputDCMNav[2].z = navigationState.LTFEulerAngles.getDCM()[2].z;
-			Vecff oppositeRollAngle;
-			oppositeRollAngle.x = -1 * navigationState.LTFEulerAngles.x;
-			oppositeRollAngle.y = 0.0;
-			oppositeRollAngle.z = 0.0;
-			Matff guideLawInputRolledToNonRolledBodyDCM = oppositeRollAngle.getDCM();
-			Vec bodyVel = navigationState.LTFEulerAngles.getDCM() * navigationState.LTFVelocity;
-			double guideLawInputAlpha = -1 * atan2(bodyVel.z, bodyVel.x) * rtd;
-			double guideLawInputBeta = atan2(bodyVel.y, bodyVel.x) * rtd;
+			Matff guideLawInputRolledToNonRolledBodyDCM = flightprocOutputRolledToNonRolledDCM;
+			double guideLawInputAlpha = flightprocOutputAlpha;
+			double guideLawInputBeta = flightprocOutputBeta;
 
 			// Guide Law Update.
 			guidelaw->update(

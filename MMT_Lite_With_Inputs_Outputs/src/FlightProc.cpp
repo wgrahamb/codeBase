@@ -121,15 +121,46 @@ void FlightProc::init() {
 
 }
 
-void FlightProc::update(
-    bool flightprocInputProcessExecuting,
-    double flightprocInputAltitude,
-    Vecff flightprocInputBodyVelocity,
-    Vec flightprocInputBodyRate,
-    Vecff flightprocInputGravityBodyEstimate,
-    Vecff flightprocInputBodyAcceleration,
-    double flightprocInputRollAngle
-)
+void FlightProc::handleInput(NavigationState const &navigationState)
+{
+
+	navSolutionAvailable = true;
+	currentAltitude = navigationState.missileLTFPosition_[2];
+
+	Vecff missileLocalVelocity;
+	missileLocalVelocity.x = navigationState.missileLTFVelocity_[0];
+	missileLocalVelocity.y = navigationState.missileLTFVelocity_[1];
+	missileLocalVelocity.z = navigationState.missileLTFVelocity_[2];
+
+	Vecff eulerAngles;
+	eulerAngles.x = navigationState.missileLTFEulerAngles_[0];
+	eulerAngles.y = navigationState.missileLTFEulerAngles_[1];
+	eulerAngles.z = navigationState.missileLTFEulerAngles_[2];
+
+	Matff dcm = eulerAngles.getDCM();
+
+	missileBodyVelocity = dcm * missileLocalVelocity;
+
+	missileBodyRate.x = navigationState.missileBodyRate_[0];
+	missileBodyRate.y = navigationState.missileBodyRate_[1];
+	missileBodyRate.z = navigationState.missileBodyRate_[2];
+
+	Vecff localGravityEstimate;
+	localGravityEstimate.x = 0.0;
+	localGravityEstimate.y = 0.0;
+	localGravityEstimate.z = 9.81;
+
+	missileBodyGravityEstimate = dcm * localGravityEstimate;
+
+	missileBodyAcceleration.x = navigationState.missileBodyAcceleration_[0];
+	missileBodyAcceleration.y = navigationState.missileBodyAcceleration_[1];
+	missileBodyAcceleration.z = navigationState.missileBodyAcceleration_[2];
+
+	missileRollAngle = navigationState.missileLTFEulerAngles_[0];
+
+}
+
+void FlightProc::update()
 {
 	#ifdef SIXDOF
 	if (flightprocInputProcessExecuting)

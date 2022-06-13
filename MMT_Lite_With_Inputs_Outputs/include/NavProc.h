@@ -42,15 +42,18 @@ struct Integrator
 			NavProc();
 		#endif
 		void init();
-		void update(
-			Vec navprocInputLTFPosition,
-			Vec navprocInputLTFVelocity,
-			Vec navprocInputLTFEulerAngles,
-			Vec navprocInputBodyAccel,
-			Vec navprocInputBodyRate,
-			double navprocInputTime,
-			bool navprocInputSolutionAvailable
-		);
+
+		// Inputs.
+		bool navSolutionAvailable;
+		double missileTimeOfFlight;
+		Vec missileLTFPosition;
+		Vec missileLTFVelocity;
+		Vec missileLTFEulerAngles;
+		Vec missileBodyAcceleration;
+		Vec missileBodyRate;
+
+		void handleInput(NavigationState const &navigationState);
+		void update();
 		#ifdef SIXDOF 
 		void rpt();
 		#endif

@@ -1,4 +1,4 @@
-# Install script for directory: /home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs
+# Install script for directory: /home/graham/codeBase/MMT_Lite_With_Inputs_Outputs
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -45,5 +45,5 @@ endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
-file(WRITE "/home/graham/docs/codeBase/MMT_Lite_With_Inputs_Outputs/${CMAKE_INSTALL_MANIFEST}"
+file(WRITE "/home/graham/codeBase/MMT_Lite_With_Inputs_Outputs/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")

@@ -189,18 +189,31 @@ void NavProc::init() {
 
 //----------------------------------------------------//
 
-void NavProc::update(
-		Vec navprocInputLTFPosition,
-		Vec navprocInputLTFVelocity,
-		Vec navprocInputLTFEulerAngles,
-		Vec navprocInputBodyAccel,
-		Vec navprocInputBodyRate,
-		double navprocInputTime,
-		bool navprocInputSolutionAvailable
-	)
+void NavProc::handleInput(NavigationState const &navigationState)
+{
+	navSolutionAvailable = true;
+	missileTimeOfFlight = navigationState.missileTimeOfFlight_;
+	missileLTFPosition.x = navigationState.missileLTFPosition_[0];
+	missileLTFPosition.y = navigationState.missileLTFPosition_[1];
+	missileLTFPosition.z = navigationState.missileLTFPosition_[2];
+	missileLTFVelocity.x = navigationState.missileLTFVelocity_[0];
+	missileLTFVelocity.y = navigationState.missileLTFVelocity_[1];
+	missileLTFVelocity.z = navigationState.missileLTFVelocity_[2];
+	missileLTFEulerAngles.x = navigationState.missileLTFEulerAngles_[0];
+	missileLTFEulerAngles.y = navigationState.missileLTFEulerAngles_[1];
+	missileLTFEulerAngles.z = navigationState.missileLTFEulerAngles_[2];
+	missileBodyAcceleration.x = navigationState.missileBodyAcceleration_[0];
+	missileBodyAcceleration.y = navigationState.missileBodyAcceleration_[1];
+	missileBodyAcceleration.z = navigationState.missileBodyAcceleration_[2];
+	missileBodyRate.x = navigationState.missileBodyRate_[0];
+	missileBodyRate.y = navigationState.missileBodyRate_[1];
+	missileBodyRate.z = navigationState.missileBodyRate_[2];
+}
+
+void NavProc::update()
 {
 	#ifdef SIXDOF
-	if (navprocInputSolutionAvailable)
+	if (navSolutionAvailable)
 	{
 		nav_solution_available = true;
 
@@ -210,7 +223,7 @@ void NavProc::update(
 
 	}
 	//executing = imu01->nav_msg_valid;
-	executing = navprocInputSolutionAvailable;
+	executing = navSolutionAvailable;
 	if (State::t == 0.0) executing = true;
 	if (executing) {
 	#else
@@ -226,12 +239,12 @@ void NavProc::update(
 		// nav600();
 
 		// TRUTH
-		accb_nav.x = navprocInputBodyAccel.x;
-		accb_nav.y = navprocInputBodyAccel.y;
-		accb_nav.z = navprocInputBodyAccel.z;
-		wx_nav = navprocInputBodyRate.x;
-		wy_nav = navprocInputBodyRate.y;
-		wz_nav = navprocInputBodyRate.z;
+		accb_nav.x = missileBodyAcceleration.x;
+		accb_nav.y = missileBodyAcceleration.y;
+		accb_nav.z = missileBodyAcceleration.z;
+		wx_nav = missileBodyRate.x;
+		wy_nav = missileBodyRate.y;
+		wz_nav = missileBodyRate.z;
 
 		if (nav_solution_available) {
 			sys->traceTiming("NavProc: Received Nav Solution <<<<<<<<");
@@ -241,7 +254,7 @@ void NavProc::update(
 			count_600Hz += 1;
 		}
 		delt = nav_sol_latency + count_600Hz*(1/600.0); // flight sw calculation
-		float delt_actual = State::t - navprocInputTime; // true value not available in flight SW
+		float delt_actual = State::t - missileTimeOfFlight; // true value not available in flight SW
 		delt_error = delt - delt_actual;
 
 		//Nav Valid Flag (600Hz flag)
@@ -296,24 +309,24 @@ void NavProc::update(
 		if(nav10_valid) {
 
 			//Update Position
-			pm_nav.x = navprocInputLTFPosition.x;
-			pm_nav.y = navprocInputLTFPosition.y;
-			pm_nav.z = navprocInputLTFPosition.z;
+			pm_nav.x = missileLTFPosition.x;
+			pm_nav.y = missileLTFPosition.y;
+			pm_nav.z = missileLTFPosition.z;
 
 			//Update Velocity
-			vm_nav_p.x = navprocInputLTFVelocity.x;
-			vm_nav_p.y = navprocInputLTFVelocity.y;
-			vm_nav_p.z = navprocInputLTFVelocity.z;
+			vm_nav_p.x = missileLTFVelocity.x;
+			vm_nav_p.y = missileLTFVelocity.y;
+			vm_nav_p.z = missileLTFVelocity.z;
 			//
-			vm_nav.x = navprocInputLTFVelocity.x;
-			vm_nav.y = navprocInputLTFVelocity.y;
-			vm_nav.z = navprocInputLTFVelocity.z;
+			vm_nav.x = missileLTFVelocity.x;
+			vm_nav.y = missileLTFVelocity.y;
+			vm_nav.z = missileLTFVelocity.z;
 
 			//Update Quaternion
 			quat_nav = Vecff(
-				navprocInputLTFEulerAngles.x,
-				navprocInputLTFEulerAngles.y,
-				navprocInputLTFEulerAngles.z
+				missileLTFEulerAngles.x,
+				missileLTFEulerAngles.y,
+				missileLTFEulerAngles.z
 			).getQuatff();
 
 			//Reset 10Hz Nav Valid Flag

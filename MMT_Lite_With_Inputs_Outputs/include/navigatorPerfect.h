@@ -19,7 +19,8 @@ class navigatorPerfect : public Block
 
 	// FUNCTIONS
 	void init();
-	void update(Vec pm_in, Vec vm_in, Vec euler_in, Vec bodySpecificForce_in, Vec omega_in, double tof);
+	void handleInput(NavigationState const &navigationState);
+	void update();
 
 	// POINTERS
 	Output *out;
