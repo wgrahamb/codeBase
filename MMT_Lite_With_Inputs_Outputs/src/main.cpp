@@ -161,12 +161,15 @@ int main()
 			////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 			// Navigation state.
 			double missileTimeOfFlight = sys->t_flight;
+			// Translational state
 			Eigen::Vector3d missileLTFPosition = {mot->ltf_pos.x, mot->ltf_pos.y, mot->ltf_pos.z};
 			Eigen::Vector3d missileLTFVelocity = {mot->ltf_vel.x, mot->ltf_vel.y, mot->ltf_vel.z};
 			Eigen::Vector3d missileBodyAcceleration = {mot->sf_b.x, mot->sf_b.y, mot->sf_b.z};
+			// Rotational state
 			Eigen::Vector3d missileLTFEulerAngles = {mot->eulerLTF.x, mot->eulerLTF.y, mot->eulerLTF.z};
 			Eigen::Vector3d missileBodyRate = {mot->omegaB.x, mot->omegaB.y, mot->omegaB.z};
 			Eigen::Vector3d missileBodyRateDot = {mot->omegaB_d.x, mot->omegaB_d.y, mot->omegaB_d.z};
+			// Target
 			Eigen::Vector3d missileWayPoint = {5000.0, 0.0, 2000.0};
 
 			NavigationState navigationState(
@@ -505,13 +508,10 @@ int main()
 
 
 			// END ENGINE
-
 			out->update();
 			ec->update();
 
 		}
-
-		// cout << sys->t_sys << " " << sys->mode << endl;
 
 		if (sys->t_flight > 0.0)
 		{
