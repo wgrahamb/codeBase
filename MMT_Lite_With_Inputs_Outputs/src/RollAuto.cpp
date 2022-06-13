@@ -43,6 +43,12 @@ RollAuto::RollAuto(string infile, Output *outp, System *sysp) {
 	xzeta_table = new Table1ff( rollFile.c_str());
 	xzeta_table->read( "xzeta_table", true);
 
+	ajx_table = new Table1ff(rollFile.c_str());
+	ajx_table->read("ajx_table", true);
+
+	cld_table = new Table1ff(rollFile.c_str());
+	cld_table->read("cld_table", true);
+
 #else
 RollAuto::RollAuto() {
 // embedded SW loads parameters here
@@ -83,37 +89,52 @@ void RollAuto::init()
 
 } 
 
-void RollAuto::update(
-	bool navprocExecuting,
-	double axialMomentOfInertia_in,
-	Vecff nonRolledBodyRate_in,
-	double mach_in,
-	double cld_in,
-	double q_in,
-	double sref_in,
-	double dia_in,
-	double phi_in
-)
+void RollAuto::handleInput(NavigationState const &navigationState, double mach, double q)
+{
+
+	navSolutionAvailable = true;
+	missileTimeOfFlight = navigationState.missileTimeOfFlight_;
+
+	Vecff bodyRate;
+	bodyRate.x = navigationState.missileBodyRate_[0];
+	bodyRate.y = navigationState.missileBodyRate_[1];
+	bodyRate.z = navigationState.missileBodyRate_[2];
+
+	Vecff rollOnlyEuler;
+	rollOnlyEuler.x = -1 * navigationState.missileLTFEulerAngles_[0];
+	rollOnlyEuler.y = 0.0;
+	rollOnlyEuler.z = 0.0;
+
+	Matff missileRolledToNonRolledDCM = rollOnlyEuler.getDCM();
+
+	missileNonRolledBodyRate = missileRolledToNonRolledDCM * bodyRate;
+
+	machSpeed = mach;
+	dynamicPressure = q;
+
+}
+
+void RollAuto::update()
 {
 	#ifdef SIXDOF
-	if (navprocExecuting)
+	if (navSolutionAvailable)
 	{
 		tick = (double)kt++;
 	#else
 	{
 	#endif
 		//Inputs
-		ajx   = axialMomentOfInertia_in;
-		w_nr  = nonRolledBodyRate_in;
-		amach = mach_in;
-		cld   = cld_in * rtd;
-		q     = q_in;
-		sref  = sref_in;
-		dia   = dia_in;
+		ajx   = ajx_table->interp(missileTimeOfFlight);
+		w_nr  = missileNonRolledBodyRate;
+		amach = machSpeed;
+		cld   = cld_table->interp(machSpeed) * rtd;
+		q     = dynamicPressure;
+		sref  = referenceArea;
+		dia   = referenceDiameter;
 		qsd   = q * sref * dia;
 
 		//Get integral p*dt
-		phi_hat     = phi_in;
+		phi_hat     = rollAngle;
 		phi_hat_deg = phi_hat * rtd;
 
 		//Execute Roll Autopilot

@@ -106,6 +106,7 @@ class MomContAuto : public Block {
 	Table1ff *gamdramp_vs_t;
 
 	Table1ff *xA_table, *xwn_table, *xzeta_table;
+	Table1ff *cna_table, *cnd_table, *cmd0_table, *ajy_table;
 
 	double yawFinCommandDegrees, pitchFinCommandDegrees;
 
@@ -116,6 +117,24 @@ class MomContAuto : public Block {
 	#endif
 	void init();
 
+	// Inputs.
+	bool navSolutionAvailable; // hard code
+	double pitchGuidanceCommand; // seperate from state
+	double yawGuidanceCommand; // seperate from state
+	double gammaDotLimit; // seperate from state
+	double machSpeed; // seperate from state
+	double dynamicPressure; // seperate from state
+	double mass; // seperate from state
+	double centerOfGravity; // seperate from state
+	double missileSpeed;
+	Vecff nonRolledBodyRate;
+	Vecff missileBodyGravityEstimate;
+	Vecff missileBodyAcceleration;
+	double alpha;
+	double beta;
+	double angleOfAttack;
+
+	void handleInput(NavigationState const &navigationState);
 	void update(
 		double normGuidanceCommand,
 		double sideGuidanceCommand,

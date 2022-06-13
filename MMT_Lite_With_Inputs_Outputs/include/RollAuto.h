@@ -33,17 +33,19 @@ class RollAuto : public Block {
 	RollAuto();
 	#endif
 	void init();
-	void update(
-		bool navprocExecuting,
-		double axialMomentOfInertia_in,
-		Vecff nonRolledBodyRate_in,
-		double mach_in,
-		double cld_in,
-		double q_in,
-		double sref_in,
-		double dia_in,
-		double phi_in
-	);
+
+	// Inputs.
+
+	bool navSolutionAvailable;
+	double missileTimeOfFlight;
+	Vecff missileNonRolledBodyRate;
+	double machSpeed;
+	double dynamicPressure;
+	double rollAngle;
+
+	void handleInput(NavigationState const &navigationState, double mach, double q);
+
+	void update();
 	#ifdef SIXDOF 
 	void rpt();
 	#endif
@@ -78,7 +80,7 @@ class RollAuto : public Block {
 
 	Vecff vzb;
 
-	Table1ff *xA_table, *xwn_table, *xzeta_table;
+	Table1ff *xA_table, *xwn_table, *xzeta_table, *ajx_table, *cld_table;
 
 	Integrator wx_integ;
 

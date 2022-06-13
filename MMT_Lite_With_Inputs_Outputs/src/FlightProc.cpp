@@ -163,7 +163,7 @@ void FlightProc::handleInput(NavigationState const &navigationState)
 void FlightProc::update()
 {
 	#ifdef SIXDOF
-	if (flightprocInputProcessExecuting)
+	if (navSolutionAvailable)
 	{
 	#else
 	{
@@ -172,7 +172,7 @@ void FlightProc::update()
 	//Autopilot does not run until launch
 	if(sys->brk_Flag != 1) { return; }
 
-	hm_est = -1 * flightprocInputAltitude;
+	hm_est = -1 * currentAltitude;
 	rho    =  rho_vs_hm->interp( hm_est);
 	vs     =  vs_vs_hm->interp( hm_est);
 
@@ -185,9 +185,9 @@ void FlightProc::update()
 	zcg_est   = zcg_table->interp( sys->t_flight);
 
 	//body-velocity estimates
-	vb_est.x = flightprocInputBodyVelocity.x;
-	vb_est.y = flightprocInputBodyVelocity.y;
-	vb_est.z = flightprocInputBodyVelocity.z;
+	vb_est.x = missileBodyVelocity.x;
+	vb_est.y = missileBodyVelocity.y;
+	vb_est.z = missileBodyVelocity.z;
 	v_est    = vb_est.mag();
 	q_est    = rho * v_est * v_est / 2.0;
 
@@ -201,22 +201,22 @@ void FlightProc::update()
 	cmd0_est = cmd0_table->interp( amach);
 
 	//body-rate esimtates
-	w_est.x = flightprocInputBodyRate.x;
-	w_est.y = flightprocInputBodyRate.y;
-	w_est.z = flightprocInputBodyRate.z;
+	w_est.x = missileBodyRate.x;
+	w_est.y = missileBodyRate.y;
+	w_est.z = missileBodyRate.z;
 
 	//Gravity estimates
-	gb_est.x = flightprocInputGravityBodyEstimate.x;
-	gb_est.y =flightprocInputGravityBodyEstimate.y;
-	gb_est.z =flightprocInputGravityBodyEstimate.z;
+	gb_est.x = missileBodyGravityEstimate.x;
+	gb_est.y =missileBodyGravityEstimate.y;
+	gb_est.z =missileBodyGravityEstimate.z;
 
 	//body-acceleration estimates
-	ab_est.x = flightprocInputBodyAcceleration.x;
-	ab_est.y = flightprocInputBodyAcceleration.y;
-	ab_est.z = flightprocInputBodyAcceleration.z;
+	ab_est.x = missileBodyAcceleration.x;
+	ab_est.y = missileBodyAcceleration.y;
+	ab_est.z = missileBodyAcceleration.z;
 
 	//Compute in Non-Rolling Frame
-	n_phi_hat_nr = -1 * flightprocInputRollAngle;
+	n_phi_hat_nr = -1 * missileRollAngle;
 
 	//Rolling to Non-Rolling Frame DCM
 	BodyRollToNR_DCM = Vecff(n_phi_hat_nr, 0.0, 0.0).getDCM(); // I think this may be a part of what I am missing

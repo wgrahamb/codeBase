@@ -46,6 +46,7 @@ struct NavigationState
 		const Eigen::Vector3d missileLTFEulerAngles_;
 		const Eigen::Vector3d missileBodyRate_;
 		const Eigen::Vector3d missileBodyRateDot_;
+		const Eigen::Vector3d missileWayPoint_;
 
 		NavigationState(
 			double missileTimeOfFlight,
@@ -54,7 +55,8 @@ struct NavigationState
 			Eigen::Vector3d missileBodyAcceleration,
 			Eigen::Vector3d missileLTFEulerAngles,
 			Eigen::Vector3d missileBodyRate,
-			Eigen::Vector3d missileBodyRateDot
+			Eigen::Vector3d missileBodyRateDot,
+			Eigen::Vector3d missileWayPoint
 		) : 
 		missileTimeOfFlight_(missileTimeOfFlight),
 		missileLTFPosition_(missileLTFPosition),
@@ -62,7 +64,8 @@ struct NavigationState
 		missileBodyAcceleration_(missileBodyAcceleration),
 		missileLTFEulerAngles_(missileLTFEulerAngles),
 		missileBodyRate_(missileBodyRate),
-		missileBodyRateDot_(missileBodyRateDot) {}
+		missileBodyRateDot_(missileBodyRateDot),
+		missileWayPoint_(missileWayPoint) {}
 
 };
 

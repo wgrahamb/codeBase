@@ -20,7 +20,8 @@ class Output;
 class System;
 class TFAtm62;
 
-class Atmos : public Block {
+class Atmos : public Block
+{
 
 	public:
 		int kt;
@@ -34,7 +35,7 @@ class Atmos : public Block {
 		double rho_sig, vs_sig, p_sig;
 		double wndSpd_sig, wndDir_sig;
 		double gustSpd_sig, gustDir_sig;
-		//
+
 		int    errWind_Flag;
 		int    gcnt;
 
@@ -48,7 +49,13 @@ class Atmos : public Block {
 		TFAtm62 *atm62;
 
 		void init();
-		void update(double altitude, double speed);
+
+		// Inputs.
+		double altitude;
+		double speed;
+
+		void handleInput(NavigationState const &navigationState);
+		void update();
 		void rpt();
 
 		double uniformDistribution(double min,double max);
@@ -59,10 +66,6 @@ class Atmos : public Block {
 		Output   *out;
 		System   *sys;
 
-	protected:
-
-
-	
 };
 
 #endif

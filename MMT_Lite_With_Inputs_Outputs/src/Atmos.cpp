@@ -96,7 +96,13 @@ void Atmos::init()
 
 }
 
-void Atmos::update(double altitude, double speed)
+void Atmos::handleInput(NavigationState const &navigationState)
+{
+	altitude = navigationState.missileLTFPosition_[2] * -1;
+	speed = navigationState.missileLTFVelocity_.norm();
+}
+
+void Atmos::update()
 {
 
 	if( State::sample())

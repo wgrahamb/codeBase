@@ -118,21 +118,69 @@ void GuideLaw::init()
 
 }
 
-void GuideLaw::update(
-		bool guideLawInputProcessExecuting,
-		Vecff guideLawInputLTFWaypoint,
-		Vecff guideLawInputLTFPos,
-		Vecff guideLawInputLTFVel,
-		bool guideLawInputNav200Valid,
-		double guideLawInputRollAngle,
-		Matff guideLawInputDCMNav,
-		Matff guideLawInputRolledToNonRolledBodyDCM,
-		double guideLawInputAlpha,
-		double guideLawInputBeta
-	)
+void GuideLaw::handleInput(NavigationState const &navigationState)
+{
+
+	navSolutionAvailable = true;
+	wayPoint.x = navigationState.missileWayPoint_[0];
+	wayPoint.y = navigationState.missileWayPoint_[1];
+	wayPoint.z = -1 * navigationState.missileWayPoint_[2];
+	missileLTFPosition.x = navigationState.missileLTFPosition_[0];
+	missileLTFPosition.y = navigationState.missileLTFPosition_[1];
+	missileLTFPosition.z = navigationState.missileLTFPosition_[2];
+	missileLTFVelocity.x = navigationState.missileLTFVelocity_[0];
+	missileLTFVelocity.y = navigationState.missileLTFVelocity_[1];
+	missileLTFVelocity.z = navigationState.missileLTFVelocity_[2];
+	navSolution200HZAvailable = true;
+	rollAngle = navigationState.missileLTFEulerAngles_[0];
+	
+	Vecff euler;
+	euler.x = rollAngle;
+	euler.y = navigationState.missileLTFEulerAngles_[1];
+	euler.z = navigationState.missileLTFEulerAngles_[2];
+
+	missileNavigationDCM = euler.getDCM();
+
+	Vecff rollOnlyEuler;
+	euler.x = -1 * rollAngle;
+	euler.y = 0.0;
+	euler.z = 0.0;
+
+	missileRolledToNonRolledDCM = rollOnlyEuler.getDCM();
+
+	Vecff missileLocalVelocity;
+	missileLocalVelocity.x = navigationState.missileLTFVelocity_[0];
+	missileLocalVelocity.y = navigationState.missileLTFVelocity_[1];
+	missileLocalVelocity.z = navigationState.missileLTFVelocity_[2];
+
+	Matff dcm = euler.getDCM();
+
+	Vecff missileBodyVelocity = dcm * missileLocalVelocity;
+
+	if (missileBodyVelocity.z == 0.0 && missileBodyVelocity.x == 0.0)
+	{
+		alpha = 0.0;
+	}
+	else
+	{
+		alpha = atan2(missileBodyVelocity.z, missileBodyVelocity.x) * rtd;
+	}
+
+	if(missileBodyVelocity.mag() == 0.0)
+	{
+		beta = 0.0;
+	}
+	else
+	{
+		beta = asin(missileBodyVelocity.y / missileBodyVelocity.mag()) * rtd;
+	}
+
+}
+
+void GuideLaw::update()
 {
 	#ifdef SIXDOF
-	if (guideLawInputProcessExecuting) {
+	if (navSolutionAvailable) {
 	#else
 	{
 	#endif
@@ -140,9 +188,9 @@ void GuideLaw::update(
 		//Autopilot does not run until launch
 		if(sys->brk_Flag != 1) { return; }
 
-		wp1.x = guideLawInputLTFWaypoint.x;
-		wp1.y = guideLawInputLTFWaypoint.y;
-		wp1.z = guideLawInputLTFWaypoint.z;
+		wp1.x = wayPoint.x;
+		wp1.y = wayPoint.y;
+		wp1.z = wayPoint.z;
 		alt = wp1.z * -1;
 
 		//Roll Command
@@ -155,12 +203,12 @@ void GuideLaw::update(
 		//Missile Position/Velocity from Navigation
 		prev_pm_n = pm_n;
 		//
-		pm_n   = guideLawInputLTFPos;
-		vm_n   = guideLawInputLTFVel;
+		pm_n   = missileLTFPosition;
+		vm_n   = missileLTFVelocity;
 		vm_mag = vm_n.mag();
 
 		//Rolling to Non-rolling DCM
-		BodyRollToNR_DCM = guideLawInputRolledToNonRolledBodyDCM;
+		BodyRollToNR_DCM = missileRolledToNonRolledDCM;
 		
 		rngToGo     = wp1 - pm_n; // OG METHOD
 		rngToGo_u   = rngToGo.unit();
@@ -170,7 +218,7 @@ void GuideLaw::update(
 		if((sys->t_flight >= tguide) && (sys->t_flight >= t_fin_lock_off) && (sys->mode < MODE_TERMGUIDE_ACTIVE))
 		{
 			//Guidance at 200Hz
-			if(guideLawInputNav200Valid)
+			if(navSolution200HZAvailable)
 			{
 				//Guidance Mode 1
 				if(guide_Flag == -1)
@@ -183,12 +231,12 @@ void GuideLaw::update(
 
 				//Note: phi=0 means Rolling Frame (phi != 0 means Non-Rolling Frame.
 				// Terminal guidance is best with Non-Rolling Frame.
-				phi = guideLawInputRollAngle; //0.0
+				phi = rollAngle; //0.0
 				
 				//--------------------------------------------//
 				//Angle of Attack in Non-Rolling Frame
-				alpha_NR = guideLawInputAlpha * dtr;
-				beta_NR  = guideLawInputBeta  * dtr;
+				alpha_NR = alpha * dtr;
+				beta_NR  = beta  * dtr;
 
 				//
 				Vecff  aoa_NR    = Vecff(0.0, alpha_NR, beta_NR);
@@ -202,7 +250,7 @@ void GuideLaw::update(
 				sbeta_i_u = velTan_i_u.cross(rngToGo_u); 
 
 				//Sine of Beta unit vector in Body frame (rolling)
-				sbeta_b_u = guideLawInputDCMNav * sbeta_i_u;
+				sbeta_b_u = missileNavigationDCM * sbeta_i_u;
 
 				//Sine of Beta unit vector in Body frame (non-rolling)
 				sbeta_b_nr = BodyRollToNR_DCM * sbeta_b_u;
@@ -214,7 +262,7 @@ void GuideLaw::update(
 				vXvd_i_u = velTan_i_u.cross(velTan_d);
 
 				//Missile relative velocity Cross desired velocity in Body frame (rolling)
-				vXvd_b_u = guideLawInputDCMNav * vXvd_i_u;
+				vXvd_b_u =missileNavigationDCM * vXvd_i_u;
 
 				//Missile relative velocity Cross desired velocity in Body frame (non-rolling)
 				vXvd_b_nr = BodyRollToNR_DCM * vXvd_b_u;

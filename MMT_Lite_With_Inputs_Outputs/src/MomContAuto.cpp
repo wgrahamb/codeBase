@@ -59,6 +59,18 @@ MomContAuto::MomContAuto(string infile, Output *outp, System *sysp) {
 	cma_b2_table = new Table1ff( momFile.c_str());
 	cma_b2_table->read( "cma_b2_table", true);
 
+	cna_table = new Table1ff( momFile.c_str());
+	cna_table->read( "cna_table", true);
+
+	cnd_table = new Table1ff( momFile.c_str());
+	cnd_table->read( "cnd_table", true);
+
+	cmd0_table = new Table1ff( momFile.c_str());
+	cmd0_table->read( "cmd0_table", true);
+
+	ajy_table = new Table1ff( momFile.c_str());
+	ajy_table->read( "ajy_table", true);
+
 #else
 MomContAuto::MomContAuto() {
 // embedded SW loads parameters here

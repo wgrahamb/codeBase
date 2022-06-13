@@ -6,13 +6,15 @@
 
 #IncludeRegexTransform: 
 
-/home/graham/codeBase/MMT_Lite_With_Inputs_Outputs/src/FlightProc.cpp
-FlightProc.h
-/home/graham/codeBase/MMT_Lite_With_Inputs_Outputs/src/FlightProc.h
+/home/graham/codeBase/MMT_Lite_With_Inputs_Outputs/src/MomContAuto.cpp
+MomContAuto.h
+/home/graham/codeBase/MMT_Lite_With_Inputs_Outputs/src/MomContAuto.h
 System.h
 /home/graham/codeBase/MMT_Lite_With_Inputs_Outputs/src/System.h
 Output.h
 /home/graham/codeBase/MMT_Lite_With_Inputs_Outputs/src/Output.h
+SimConstants.h
+/home/graham/codeBase/MMT_Lite_With_Inputs_Outputs/src/SimConstants.h
 
 /home/graham/codeBase/MMT_Lite_With_Inputs_Outputs/src/main.cpp
 main.h

@@ -167,6 +167,7 @@ int main()
 			Eigen::Vector3d missileLTFEulerAngles = {mot->eulerLTF.x, mot->eulerLTF.y, mot->eulerLTF.z};
 			Eigen::Vector3d missileBodyRate = {mot->omegaB.x, mot->omegaB.y, mot->omegaB.z};
 			Eigen::Vector3d missileBodyRateDot = {mot->omegaB_d.x, mot->omegaB_d.y, mot->omegaB_d.z};
+			Eigen::Vector3d missileWayPoint = {5000.0, 0.0, 2000.0};
 
 			NavigationState navigationState(
 				missileTimeOfFlight,
@@ -175,7 +176,8 @@ int main()
 				missileBodyAcceleration,
 				missileLTFEulerAngles,
 				missileBodyRate,
-				missileBodyRateDot
+				missileBodyRateDot,
+				missileWayPoint
 			);
 
 			////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -186,9 +188,6 @@ int main()
 
 			// Navigator Update. (Does not actually do anything but I am leaving it for now.)
 			navigator->update();
-
-			// Navigator Outputs.
-			double navigatorOutputLTFAltitude = -1 * navigator->pm.z;
 			////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 			////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -200,25 +199,8 @@ int main()
 
 			// Navproc Outputs.
 			bool navprocOutputProcessExecuting = navproc->executing;
-			double navprocOutputAltitude = navproc->pm_nav.z;
-			Vecff navprocOutputBodyVelocity = navproc->vb_nav;
-			Vec navprocOutputBodyRate;
-			navprocOutputBodyRate.x = navproc->wx_nav;
-			navprocOutputBodyRate.y = navproc->wy_nav;
-			navprocOutputBodyRate.z = navproc->wz_nav;
-			Vecff navprocOutputGravityBodyEstimate = navproc->gravb_nav;
-			Vecff navprocOutputBodyAcceleration = navproc->accb_nav;
 			double navprocOutputRollAngle = navproc->phi_hat;
-			Vecff navprocOutputWaypoint = navproc->pt;
-			Vecff navprocOutputLTFPosNav = navproc->pm_nav;
-			Vecff navprocOutputLTFVelNav = navproc->vm_nav;
-			bool navprocOutputNav200Valid = navproc->nav200_valid;
-			Matff navprocOutputDCMNav = navproc->mDCM_nav;
 			////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-
-
 
 			////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 			// Flightproc handle inputs.
@@ -228,7 +210,6 @@ int main()
 			flightproc->update();
 
 			// Flightproc Outputs.
-			Matff flightprocOutputRolledToNonRolledDCM = flightproc->BodyRollToNR_DCM;
 			double flightprocOutputAlpha = flightproc->alpha_est_nr;
 			double flightprocOutputBeta = flightproc->beta_est_nr;
 			double flightprocOutputAxialMomentOfInertia = flightproc->ajx_est;
@@ -251,36 +232,12 @@ int main()
 			double flightprocOutputAngleOfAttack = flightproc->alphaTot_est_nr;
 			////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-
-
-
 			////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 			// Guide Law Inputs.
-			bool guideLawInputProcessExecuting = true;
-			Vecff guideLawInputLTFWaypoint = navprocOutputWaypoint;
-			Vecff guideLawInputLTFPos = navprocOutputLTFPosNav;
-			Vecff guideLawInputLTFVel = navprocOutputLTFVelNav;
-			bool guideLawInputNav200Valid = true;
-			double guideLawInputRollAngle = navprocOutputRollAngle;
-			Matff guideLawInputDCMNav = navprocOutputDCMNav;
-			Matff guideLawInputRolledToNonRolledBodyDCM = flightprocOutputRolledToNonRolledDCM;
-			double guideLawInputAlpha = flightprocOutputAlpha;
-			double guideLawInputBeta = flightprocOutputBeta;
+			guidelaw->handleInput(navigationState);
 
 			// Guide Law Update.
-			guidelaw->update(
-				guideLawInputProcessExecuting,
-				guideLawInputLTFWaypoint,
-				guideLawInputLTFPos,
-				guideLawInputLTFVel,
-				guideLawInputNav200Valid,
-				guideLawInputRollAngle,
-				guideLawInputDCMNav,
-				guideLawInputRolledToNonRolledBodyDCM,
-				guideLawInputAlpha,
-				guideLawInputBeta
-			);
+			guidelaw->update();
 			
 			// Guide Law Outputs.
 			double guidelawOutputNormalGuidanceCommand = guidelaw->gamd_q;
@@ -288,34 +245,68 @@ int main()
 			double guidelawOutputGamDotLimit = guidelaw->gamdot_Lim;
 			////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+			////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+			// Atmosphere handle inputs.
+			atm->handleInput(navigationState);
 
+			// Atmosphere Update.
+			atm->update();
 
-
+			// Atmoshpere Outputs.
+			double atmosOutputPressure = atm->p;
+			double atmosOutputDynamicPressure = atm->q;
+			double atmosOutputMach = atm->amach;
+			double atmosOutputAirTemp = atm->airTemp;
+			double atmosOutputAirTempNominal = atm->airTemp_nom;
+			Vec atmosOutputLTFWindVelocity = atm->vwind;
+			////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 			////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-			// Roll Auto Inputs.
-			bool rollautoInputProcessExecuting = true;
-			double rollautoInputAxialMomentOfInertia = flightprocOutputAxialMomentOfInertia;
-			Vecff rollautoInputNonRolledBodyRateEstimate = flightprocOutputNonRolledBodyRateEstimate;
-			double rollautoInputMach = flightprocOutputMach;
-			double rollautoInputCld = flightprocOutputCld;
-			double rollautoInputDynamicPressure = flightprocOutputDynamicPressure;
-			double rollautoInputReferenceArea = flightprocOutputReferenceArea;
-			double rollautoInputReferenceDiameter = flightprocOutputReferenceDiameter;
-			double rollautoInputRollAngle = navprocOutputRollAngle;
+			// Mass properties inputs.
+			double mpropInputMassEstimate = flightprocOutputMass;
+
+			// Mass properties update.
+			mprop->update(mpropInputMassEstimate);
+
+			// Mass properties output.
+			double mpropOutputXcg = mprop->xcg;
+			double mpropOutputYcg = mprop->ycg;
+			double mpropOutputZcg = mprop->zcg;
+			double mpropOutputMass = mprop->mass;
+			Mat mpropOutputInertiaTensor = mprop->iten;
+			////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+			////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+			// Motor inputs.
+			double motorInputXCenterOfGravity = mpropOutputXcg;
+			double motorInputYCenterOfGravity = mpropOutputYcg;
+			double motorInputZCenterOfGravity = mpropOutputZcg;
+			double motorInputAirTemp = atmosOutputAirTemp;
+			double motorInputAirTempNominal = atmosOutputAirTempNominal;
+			double motorInputPressure = atmosOutputPressure;
+
+			// Motor update.
+			motor->update(
+				motorInputXCenterOfGravity,
+				motorInputYCenterOfGravity,
+				motorInputZCenterOfGravity,
+				motorInputAirTemp,
+				motorInputAirTempNominal,
+				motorInputPressure
+			);
+
+			// Motor outputs.
+			double motorOutputThrust = motor->thrust;
+			Vec motorOutputForce = motor->force;
+			Vec motorOutputMoment = motor->moment;
+			////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+			////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+			// Roll Auto handle input.
+			rollauto->handleInput(navigationState, atmosOutputMach, atmosOutputDynamicPressure);
 
 			// Roll Auto Update.
-			rollauto->update(
-				rollautoInputProcessExecuting,
-				rollautoInputAxialMomentOfInertia,
-				rollautoInputNonRolledBodyRateEstimate,
-				rollautoInputMach,
-				rollautoInputCld,
-				rollautoInputDynamicPressure,
-				rollautoInputReferenceArea,
-				rollautoInputReferenceDiameter,
-				rollautoInputRollAngle
-			);
+			rollauto->update();
 
 			// Roll Auto Outputs.
 			double rollautoOutputRollFinCommandDegrees = rollauto->rollFinCommandDegrees;
@@ -381,78 +372,6 @@ int main()
 			// Momcontauto outputs.
 			double momcontautoOutputYawFinCommandDegrees = momcontauto->yawFinCommandDegrees;
 			double momcontautoOutputPitchFinCommandDegrees = momcontauto->pitchFinCommandDegrees;
-			////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-
-
-
-			////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-			// Mass properties inputs.
-			double mpropInputMassEstimate = flightprocOutputMass;
-
-			// Mass properties update.
-			mprop->update(mpropInputMassEstimate);
-
-			// Mass properties output.
-			double mpropOutputXcg = mprop->xcg;
-			double mpropOutputYcg = mprop->ycg;
-			double mpropOutputZcg = mprop->zcg;
-			double mpropOutputMass = mprop->mass;
-			Mat mpropOutputInertiaTensor = mprop->iten;
-			////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-
-
-
-			////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-			// Atmosphere Inputs.
-			double atmosInputLTFAltitude = navigatorOutputLTFAltitude;
-			double atmosInputSpeed = flightprocOutputSpeed;
-
-			// Atmosphere Update.
-			atm->update(
-				atmosInputLTFAltitude,
-				atmosInputSpeed
-			);
-
-			// Atmoshpere Outputs.
-			double atmosOutputPressure = atm->p;
-			double atmosOutputDynamicPressure = atm->q;
-			double atmosOutputMach = atm->amach;
-			double atmosOutputAirTemp = atm->airTemp;
-			double atmosOutputAirTempNominal = atm->airTemp_nom;
-			Vec atmosOutputLTFWindVelocity = atm->vwind;
-			////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-
-
-
-			////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-			// Motor inputs.
-			double motorInputXCenterOfGravity = mpropOutputXcg;
-			double motorInputYCenterOfGravity = mpropOutputYcg;
-			double motorInputZCenterOfGravity = mpropOutputZcg;
-			double motorInputAirTemp = atmosOutputAirTemp;
-			double motorInputAirTempNominal = atmosOutputAirTempNominal;
-			double motorInputPressure = atmosOutputPressure;
-
-			// Motor update.
-			motor->update(
-				motorInputXCenterOfGravity,
-				motorInputYCenterOfGravity,
-				motorInputZCenterOfGravity,
-				motorInputAirTemp,
-				motorInputAirTempNominal,
-				motorInputPressure
-			);
-
-			// Motor outputs.
-			double motorOutputThrust = motor->thrust;
-			Vec motorOutputForce = motor->force;
-			Vec motorOutputMoment = motor->moment;
 			////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
