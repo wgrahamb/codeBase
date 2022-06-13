@@ -68,43 +68,39 @@ void MassProp::init()
 	tick = 0.0;
 	kt = 0;
 
-	//Errors
-	//Determine Errors (if any)
-	bool disable = true;
-	if(errMassProp_Flag == 1)
-	{
-		disable = false;
-	}
+	// //Errors
+	// //Determine Errors (if any)
+	// bool disable = true;
+	// if(errMassProp_Flag == 1)
+	// {
+	// 	disable = false;
+	// }
 
-	mass_unc = gaussianDistribution(0.0, m_sig);
-	//
-	xcg_unc = gaussianDistribution(0.0, xcg_sig);
-	ycg_unc = gaussianDistribution(0.0, ycg_sig);
-	zcg_unc = gaussianDistribution(0.0, zcg_sig);
-	//
-	ajx_unc = gaussianDistribution(0.0, ajx_sig);
-	ajy_unc = gaussianDistribution(0.0, ajy_sig);
-	ajz_unc = gaussianDistribution(0.0, ajz_sig);
-	//
-	ajxy_unc = gaussianDistribution(0.0, ajxy_sig);
-	ajxz_unc = gaussianDistribution(0.0, ajxz_sig);
-	ajyz_unc = gaussianDistribution(0.0, ajyz_sig);
+	// mass_unc = gaussianDistribution(0.0, m_sig);
+	// //
+	// xcg_unc = gaussianDistribution(0.0, xcg_sig);
+	// ycg_unc = gaussianDistribution(0.0, ycg_sig);
+	// zcg_unc = gaussianDistribution(0.0, zcg_sig);
+	// //
+	// ajx_unc = gaussianDistribution(0.0, ajx_sig);
+	// ajy_unc = gaussianDistribution(0.0, ajy_sig);
+	// ajz_unc = gaussianDistribution(0.0, ajz_sig);
+	// //
+	// ajxy_unc = gaussianDistribution(0.0, ajxy_sig);
+	// ajxz_unc = gaussianDistribution(0.0, ajxz_sig);
+	// ajyz_unc = gaussianDistribution(0.0, ajyz_sig);
 
 	//Determine Mass Properties
-	pct = 1.0;
 	mass = m0;
-	//
-	xcg  = (xcg0 - (xcg0 - xcg1)*pct)    * (1.0+xcg_unc);
-	ycg  = (ycg0 - (ycg0 - ycg1)*pct)    * (1.0+ycg_unc);
-	zcg  = (zcg0 - (zcg0 - zcg1)*pct)    * (1.0+zcg_unc);
-	//
-	ajx  = (ajx0 - (ajx0 - ajx1)*pct)    * (1.0+ajx_unc);
-	ajy  = (ajy0 - (ajy0 - ajy1)*pct)    * (1.0+ajy_unc);
-	ajz  = (ajz0 - (ajz0 - ajz1)*pct)    * (1.0+ajz_unc);
-	//
-	ajxy = (ajxy0 - (ajxy0 - ajxy1)*pct) * (1.0+ajxy_unc);
-	ajxz = (ajxz0 - (ajxz0 - ajxz1)*pct) * (1.0+ajxz_unc);
-	ajyz = (ajyz0 - (ajyz0 - ajyz1)*pct) * (1.0+ajyz_unc);
+	xcg = xcg0;
+	ycg = ycg0;
+	zcg = zcg0;
+	ajx  = ajx0;
+	ajy  = ajy0;
+	ajz  = ajz0;
+	ajxy = ajxy0;
+	ajxz = ajxz0;
+	ajyz = ajyz0;
 
 	//Load Inertia Tensor
 	iten[0][0] = ajx0;
@@ -118,7 +114,12 @@ void MassProp::init()
 	iten[2][2] = ajz0;
 }
 
-void MassProp::update(double currentMassEstimate)
+void MassProp::handleInput(NavigationState const &navigationState)
+{
+	missileTimeOfFlight = navigationState.missileTimeOfFlight_;
+}
+
+void MassProp::update()
 {
 
 	if( State::sample())
@@ -128,25 +129,35 @@ void MassProp::update(double currentMassEstimate)
 	//
 	if( State::sample( State::EVENT, 0.0)) {}
 
-	//Percent Propellant Expended 
-	pct = 1.0 - ((currentMassEstimate - mf) / (m0 - mf)); //WARNING: MassProp::update() occurs before Motor()::update()
-	if(pct > 1.0) { pct = 1.0; }
-	if(pct < 0.0) { pct = 0.0; }
-
 	//Determine Mass Properties
-	mass = (m0 - (m0 - mf) * pct)        * (1.0+mass_unc);
-	//
-	xcg  = (xcg0 - (xcg0 - xcg1)*pct)    * (1.0+xcg_unc);
-	ycg  = (ycg0 - (ycg0 - ycg1)*pct)    * (1.0+ycg_unc);
-	zcg  = (zcg0 - (zcg0 - zcg1)*pct)    * (1.0+zcg_unc);
-	//
-	ajx  = (ajx0 - (ajx0 - ajx1)*pct)    * (1.0+ajx_unc);
-	ajy  = (ajy0 - (ajy0 - ajy1)*pct)    * (1.0+ajy_unc);
-	ajz  = (ajz0 - (ajz0 - ajz1)*pct)    * (1.0+ajz_unc);
-	//
-	ajxy = (ajxy0 - (ajxy0 - ajxy1)*pct) * (1.0+ajxy_unc);
-	ajxz = (ajxz0 - (ajxz0 - ajxz1)*pct) * (1.0+ajxz_unc);
-	ajyz = (ajyz0 - (ajyz0 - ajyz1)*pct) * (1.0+ajyz_unc);
+	
+	if (missileTimeOfFlight < rocketBurnOut)
+	{
+		mass = linearInterpolation(missileTimeOfFlight, 0.0, rocketBurnOut, mf, m0);
+		xcg = linearInterpolation(missileTimeOfFlight, 0.0, rocketBurnOut, xcg0, xcg1);
+		ycg = linearInterpolation(missileTimeOfFlight, 0.0, rocketBurnOut, ycg0, ycg1);
+		zcg = linearInterpolation(missileTimeOfFlight, 0.0, rocketBurnOut, zcg0, zcg1);
+		ajx  = linearInterpolation(missileTimeOfFlight, 0.0, rocketBurnOut, ajx0, ajx1);
+		ajy  = linearInterpolation(missileTimeOfFlight, 0.0, rocketBurnOut, ajy0, ajy1);
+		ajz  = linearInterpolation(missileTimeOfFlight, 0.0, rocketBurnOut, ajz0, ajz1);
+		ajxy  = linearInterpolation(missileTimeOfFlight, 0.0, rocketBurnOut, ajxy0, ajxy1);
+		ajxz  = linearInterpolation(missileTimeOfFlight, 0.0, rocketBurnOut, ajxz0, ajxz1);
+		ajyz  = linearInterpolation(missileTimeOfFlight, 0.0, rocketBurnOut, ajyz0, ajyz1);
+	}
+	else
+	{
+		mass = mf;
+		xcg = xcg1;
+		ycg = ycg1;
+		zcg = zcg1;
+		ajx  = ajx1;
+		ajy  = ajy1;
+		ajz  = ajz1;
+		ajxy  = ajxy1;
+		ajxz  = ajxz1;
+		ajyz  = ajyz1;
+	}
+
 
 	//Load Inertia Tensor
 	iten[0][0] = ajx;
@@ -202,4 +213,9 @@ double MassProp::gaussianDistribution(double mean,double sig)
 		value=gset;
 	}
 	return value*sig+mean;
+}
+
+double MassProp::linearInterpolation(double x, double x1, double x2, double y1, double y2)
+{
+	return y1 + ((x - x1) * (y2 - y1) / (x2 - x1));
 }

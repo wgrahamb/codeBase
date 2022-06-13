@@ -53,10 +53,17 @@ class MassProp : public Block {
 		Mat iten;
 
 		void init();
-		void update(double currentMassEstimate);
+
+		// Inputs.
+		double missileTimeOfFlight;
+
+		void handleInput(NavigationState const &navigationState);
+
+		void update();
 		void rpt();
 		double unituni();
 		double gaussianDistribution(double mean, double sig);
+		double linearInterpolation(double x, double x1, double x2, double y1, double y2);
 
 	protected:
 

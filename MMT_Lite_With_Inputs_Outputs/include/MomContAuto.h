@@ -126,13 +126,24 @@ class MomContAuto : public Block {
 	double dynamicPressure; // seperate from state
 	double mass; // seperate from state
 	double centerOfGravity; // seperate from state
-	double missileSpeed;
-	Vecff nonRolledBodyRate;
-	Vecff missileBodyGravityEstimate;
-	Vecff missileBodyAcceleration;
-	double alpha;
-	double beta;
-	double angleOfAttack;
+	double missileSpeed; // from state
+	Vecff nonRolledBodyRate; // from state
+	Vecff missileBodyGravityEstimate; // from state
+	Vecff missileBodyAcceleration; // from state
+	double alpha; // from state
+	double beta; // from state
+	double angleOfAttack; // from state
+
+	// constant or look up
+	/*
+	cna,
+	cnd,
+	cmd0,
+	ajy,
+	ximu,
+	diam,
+	area,
+	*/
 
 	void handleInput(NavigationState const &navigationState);
 	void update(

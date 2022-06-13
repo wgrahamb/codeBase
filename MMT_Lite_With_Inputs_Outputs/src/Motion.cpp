@@ -85,7 +85,7 @@ void Motion::init()
 	re_factored_geo->init(
 		sys->phi0,
 		sys->tht0,
-		sys->phi0,
+		sys->psi0,
 		sys->latg0,
 		sys->lon0,
 		sys->altg0,

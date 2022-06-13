@@ -35,11 +35,12 @@ const double LB_2_KG = 0.4536;
 const double KT0 = 4e-21;
 
 // Missile Constants.
-const double nozzleExitArea = 0.000426642;
-const double referenceArea = 0.003916121;
-const double referenceDiameter = 0.070612;
-const double imuOffSet = 0.235585;
-const double railLength = 1.42233;
+const double nozzleExitArea = 0.000426642; // m^2
+const double referenceArea = 0.003916121; // m^2
+const double referenceDiameter = 0.070612; // m
+const double imuOffSet = 0.235585; // m
+const double railLength = 1.42233; // m
+const double rocketBurnOut = 1.063; // seconds
 
 //Earth Constants
 const double b_over_a = 0.9966471893;     //Flatness Factor
