@@ -19,15 +19,26 @@ class actuators : public Block
 
 		// FUNCTIONS
 		void init();
-		void update(
+
+		// Inputs.
+		double rollFinCommandInDegrees; // Not from state
+		double pitchFinCommandInDegrees; // Not from state
+		double yawFinCommandInDegrees; // Not from state
+		double angleOfAttack; // From nav state
+		double machSpeed; // Not from state
+		double dynamicPressure; // Not from state
+		double rollAngle; // From nav state
+
+		void handleInput(
+			NavigationState const &navigationState,
 			double rollFinCommandDegrees,
 			double pitchFinCommandDegrees,
 			double yawFinCommandDegrees,
-			double angleOfAttack,
 			double mach,
-			double dynamicPressure,
-			double phi
+			double q
 		);
+
+		void update();
 		double integrate(double dy_new, double dy, double y, double intStep);
 		double signum(double x);
 		double uniform();

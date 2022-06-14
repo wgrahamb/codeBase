@@ -108,9 +108,6 @@ class Motion : public Block
 			Vec aeroMoment,
 			Vec motorForce,
 			Vec motorMoment,
-			int spinFlag,
-			double railLength,
-			double pScale,
 			double mass,
 			Mat inertiaTensor
 		);

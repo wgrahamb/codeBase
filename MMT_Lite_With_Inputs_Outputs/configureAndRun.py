@@ -9,7 +9,7 @@ inPutValues = {
 	### EULER ANGLES RELEVANT TO LINE OF SIGHT TO TARGET I.E. IF PSI == 0 THEN THE MISSILE IS POINTED STRAIGHT AT THE TARGET, AT LEAST ON THE HORIZONTAL PLANE ###
 	"PHI": "0.0", # EULER ANGLE >>> ROLL >>> DEGREES
 	"THETA": "45.0", # EULER ANGLE >>> ELEVATION >>> DEGREES
-	"PSI": "-35.0", # EULER ANGLE >>> AZIMUTH >>> DEGREES
+	"PSI": "15.0", # EULER ANGLE >>> AZIMUTH >>> DEGREES
 
 	### GEODETIC ORIGIN COORDINATES AND LAUNCH POSITION ###
 	"LAT_ORIGIN": "38.8719", # DEGREES
@@ -23,7 +23,7 @@ inPutValues = {
 
 	### LINE OF ATTACK ###
 	"GAMMAY": "10.0", # SIDEWAYS TRAJECTORY SHAPING >>> DEGREES >>> MEASURED FROM LINE OF SIGHT >>> POSITIVE MEANS INCOMING FROM THE RIGHT
-	"GAMMAP": "-15.0", # LOFT TRAJECTORY SHAPING >>> DEGREES >>> MEASURED FROM HORIZON >>> NEGATIVE MEANS THE HIGH GROUND
+	"GAMMAP": "-10.0", # LOFT TRAJECTORY SHAPING >>> DEGREES >>> MEASURED FROM HORIZON >>> NEGATIVE MEANS THE HIGH GROUND
 
 	### AERODYNAMICS ###
 	"AERO_TYPE": "-1", # DETERMINES THE USE OF BASIC OR COMPLEX AERODYNAMIC DATA, 1 == COMPLEX, -1 == BASIC
@@ -192,4 +192,4 @@ process.wait()
 
 # SPECIFIC TO GRAHAM'S COMPUTER >>> YOU NEED TO INSERT YOUR OWN PATHS.
 os.remove("/mnt/c/Users/graha/Documents/pythonRepo/pythonRepo/sixDofVisual/MMT_Lite.txt")
-shutil.copy("/home/graham/mmt-service-box/MMT_Lite_With_Inputs_Outputs/output/MMT_Lite.dat", "/mnt/c/Users/graha/Documents/pythonRepo/pythonRepo/sixDofVisual/MMT_Lite.txt")
+shutil.copy("/home/graham/codeBase/MMT_Lite_With_Inputs_Outputs/output/MMT_Lite.dat", "/mnt/c/Users/graha/Documents/pythonRepo/pythonRepo/sixDofVisual/MMT_Lite.txt")

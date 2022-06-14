@@ -126,8 +126,11 @@ class MomContAuto : public Block {
 	double dynamicPressure; // seperate from state
 	double mass; // seperate from state
 	double centerOfGravity; // seperate from state
+
+	double missileTimeOfFlight; // from state
+	double rollAngle; // from state
 	double missileSpeed; // from state
-	Vecff nonRolledBodyRate; // from state
+	Vecff missileNonRolledBodyRate; // from state
 	Vecff missileBodyGravityEstimate; // from state
 	Vecff missileBodyAcceleration; // from state
 	double alpha; // from state
@@ -145,32 +148,17 @@ class MomContAuto : public Block {
 	area,
 	*/
 
-	void handleInput(NavigationState const &navigationState);
-	void update(
-		double normGuidanceCommand,
+	void handleInput(
+		NavigationState const &navigationState,
+		double normalGuidanceCommand,
 		double sideGuidanceCommand,
-		double gamDotLimit,
-		bool processExecuting,
-		double rollAngle,
+		double gamDotLim,
 		double mach,
-		double dynamicPressure,
-		double referenceArea,
-		double CNA_in,
-		double CND_in,
-		double CMD0_in,
-		double AJY_in,
-		double mass,
-		double centerOfGrav,
-		double XIMU_in,
-		double referenceDiameter,
-		double speed,
-		Vecff nonRolledBodyRate,
-		Vecff bodyGravEst,
-		Vecff bodyAccelEst,
-		double alpha,
-		double beta,
-		double aoa
+		double q,
+		double inPutMass,
+		double xcg
 	);
+	void update();
 
 	#ifdef SIXDOF 
 	void rpt();

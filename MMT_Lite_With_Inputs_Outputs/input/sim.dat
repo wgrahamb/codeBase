@@ -28,7 +28,7 @@ record       = -1  #1: record V&V files; -1: do not record V&V files
 
 phi0 = 0.0 # roll 
 tht0 = 45.0 # pitch 
-psi0 = -35.0 # yaw 
+psi0 = 15.0 # yaw 
 
 # Initial LLA now come from navproc
 

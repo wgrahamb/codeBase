@@ -143,33 +143,117 @@ void MomContAuto::init()
 
 }
 
-void MomContAuto::update(
-	double normGuidanceCommand,
+void MomContAuto::handleInput(
+	NavigationState const &navigationState,
+	double normalGuidanceCommand,
 	double sideGuidanceCommand,
-	double gamDotLimit,
-	bool processExecuting,
-	double rollAngle,
+	double gamDotLim,
 	double mach,
-	double dynamicPressure,
-	double referenceArea,
-	double CNA_in,
-	double CND_in,
-	double CMD0_in,
-	double AJY_in,
-	double mass,
-	double centerOfGrav,
-	double XIMU_in,
-	double referenceDiameter,
-	double speed,
-	Vecff nonRolledBodyRate,
-	Vecff bodyGravEst,
-	Vecff bodyAccelEst,
-	double alpha,
-	double beta,
-	double aoa
-) {
+	double q,
+	double inPutMass,
+	double xcg
+)
+{
+
+	// Not from nav state.
+	navSolutionAvailable = true;
+	pitchGuidanceCommand = normalGuidanceCommand;
+	yawGuidanceCommand = sideGuidanceCommand;
+	gammaDotLimit = gamDotLim;
+	machSpeed = mach;
+	dynamicPressure = q;
+	mass = inPutMass;
+	centerOfGravity = xcg;
+
+	// From nav state.
+	missileTimeOfFlight = navigationState.missileTimeOfFlight_;
+
+	rollAngle = navigationState.missileLTFEulerAngles_[0];
+
+	missileSpeed = navigationState.missileLTFVelocity_.norm();
+
+	Vecff bodyRate;
+	bodyRate.x = navigationState.missileBodyRate_[0];
+	bodyRate.y = navigationState.missileBodyRate_[1];
+	bodyRate.z = navigationState.missileBodyRate_[2];
+
+	Vecff rollOnlyEuler;
+	rollOnlyEuler.x = -1 * rollAngle;
+	rollOnlyEuler.y = 0.0;
+	rollOnlyEuler.z = 0.0;
+
+	Matff missileRolledToNonRolledDCM = rollOnlyEuler.getDCM();
+
+	missileNonRolledBodyRate = missileRolledToNonRolledDCM * bodyRate;
+
+	Vecff euler;
+	euler.x = navigationState.missileLTFEulerAngles_[0];
+	euler.y = navigationState.missileLTFEulerAngles_[1];
+	euler.z = navigationState.missileLTFEulerAngles_[2];
+	
+	Matff dcm = euler.getDCM();
+	
+	Vecff localGravityEstimate;
+	localGravityEstimate.x = 0.0;
+	localGravityEstimate.y = 0.0;
+	localGravityEstimate.z = 9.81;
+
+	missileBodyGravityEstimate = dcm * localGravityEstimate;
+
+	missileBodyAcceleration.x = navigationState.missileBodyAcceleration_[0];
+	missileBodyAcceleration.y = navigationState.missileBodyAcceleration_[1];
+	missileBodyAcceleration.z = navigationState.missileBodyAcceleration_[2];
+
+	Vecff missileLocalVelocity;
+	missileLocalVelocity.x = navigationState.missileLTFVelocity_[0];
+	missileLocalVelocity.y = navigationState.missileLTFVelocity_[1];
+	missileLocalVelocity.z = navigationState.missileLTFVelocity_[2];
+
+	Vecff missileBodyVelocity = dcm * missileLocalVelocity;
+
+	if (missileBodyVelocity.z == 0.0 && missileBodyVelocity.x == 0.0)
+	{
+		alpha = 0.0;
+	}
+	else
+	{
+		alpha = atan2(missileBodyVelocity.z, missileBodyVelocity.x) * rtd;
+	}
+
+	if(missileBodyVelocity.mag() == 0.0)
+	{
+		beta = 0.0;
+	}
+	else
+	{
+		beta = asin(missileBodyVelocity.y / missileBodyVelocity.mag()) * rtd;
+	}
+
+	double temp = sqrt(missileBodyVelocity.y * missileBodyVelocity.y + missileBodyVelocity.z * missileBodyVelocity.z);
+	if (missileBodyVelocity.x == 0.0)
+	{
+		angleOfAttack = 0.0;
+	}
+	else
+	{
+		angleOfAttack = atan2(temp, missileBodyVelocity.x) * rtd;
+	}
+
+	// Look ups.
+	cna = cna_table->interp(machSpeed);
+	cnd = cnd_table->interp(machSpeed);
+	cmd0 = cmd0_table->interp(machSpeed);
+	ajy = ajy_table->interp(missileTimeOfFlight);
+	ximu = imuOffSet;
+	dia = referenceDiameter;
+	sref = referenceArea;
+
+}
+
+void MomContAuto::update()
+{
 	#ifdef SIXDOF
-	if (processExecuting)
+	if (navSolutionAvailable)
 	{
 		tick = (double)kt++;
 	#else
@@ -188,31 +272,24 @@ void MomContAuto::update(
 			}
 
 			//Inputs from other objects
-			amach = mach;     // mach number
+			amach = machSpeed;     // mach number
 			q_est = dynamicPressure;     // dyn. press.
-			sref  = referenceArea;  // aero ref. area
-			cna   = CNA_in;   // lin. nor. force coef.
-			cnd   = CND_in;   // lin. nor. force coef per fin delta.
-			cmd0  = CMD0_in;  // lin. pitch moment coef per fin delta.
-			ajy   = AJY_in;   // Iyy
 			amass = mass; // mass
-			xcg   = centerOfGrav;
-			ximu  = XIMU_in;
-			dia   = referenceDiameter;
-			vm    = speed;
+			xcg   = centerOfGravity;
+			vm    = missileSpeed;
 			qsd   = q_est * sref * dia;
 			qs    = q_est * sref;
 
 			xms_cg  =  xcg - ximu;
 
 			//Non-roll frames
-			w_nr   = nonRolledBodyRate;
-			gb_nr  = bodyGravEst;
-			abg_nr = bodyAccelEst;
+			w_nr   = missileNonRolledBodyRate;
+			gb_nr  = missileBodyGravityEstimate;
+			abg_nr = missileBodyAcceleration;
 
 			alpha_hat_nr    = alpha    * dtr;
 			beta_hat_nr     = beta     * dtr;
-			alphaTot_hat_nr = aoa * dtr;
+			alphaTot_hat_nr = angleOfAttack * dtr;
 
 			//Aero Curve-Fit
 			//Get aero curve-fit coefficients
@@ -289,11 +366,11 @@ void MomContAuto::update(
 				 
 			double phi_hat_nr = rollAngle;
 
-			gamd_q = normGuidanceCommand;
-			gamd_r = sideGuidanceCommand;
+			gamd_q = pitchGuidanceCommand;
+			gamd_r = yawGuidanceCommand;
 
 			//Limit GammaDot Command ------------------------//
-			gamdot_Lim = gamDotLimit * G / vm;  //gammadot limit
+			gamdot_Lim = gammaDotLimit * G / vm;  //gammadot limit
 
 			gamdot_Mag = sqrt(gamd_q*gamd_q + gamd_r*gamd_r);
 			

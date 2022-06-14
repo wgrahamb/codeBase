@@ -4,9 +4,9 @@
 This OPEN SOURCE CODE is part of the Object-Oriented Simulation Kernel (OSK)
 created by
 
-                Ray Sells, DESE Research, Inc., 2003.
+								Ray Sells, DESE Research, Inc., 2003.
 
-                        All Rights Reserved.
+												All Rights Reserved.
 
 The OSK consists of state.h, state.cpp, block.h, block.cpp, sim.h, and sim.cpp.
 
@@ -35,23 +35,26 @@ Block::Block() {
 }
 
 void Block::addIntegrator( double &x, double &xd) {
-  string integrator_id = typeid( *Block::integrator).name();
-  State *s = Block::integrator->factory( x, xd);
-  string created_integrator_id = typeid( *s).name();
-  if( integrator_id != created_integrator_id) {
-    cout << integrator_id << "," << created_integrator_id << endl;
-    cout << "error:\n";
-    cout << "  Need to add \"STATE( ";
-    cout << integrator_id << ");\" to header file for ";
-    cout << integrator_id << "." << endl;
-    exit( 1);
-  }
-  vState.push_back( s);
+	string integrator_id = typeid( *Block::integrator).name();
+	State *s = Block::integrator->factory( x, xd);
+	string created_integrator_id = typeid( *s).name();
+	if( integrator_id != created_integrator_id)
+	{
+		cout << integrator_id << "," << created_integrator_id << endl;
+		cout << "error:\n";
+		cout << "  Need to add \"STATE( ";
+		cout << integrator_id << ");\" to header file for ";
+		cout << integrator_id << "." << endl;
+		exit( 1);
+	}
+	vState.push_back(s);
 }
 
-void Block::propagateStates() {
-  vector<State*>::iterator pState;
-  for( pState = vState.begin(); pState != vState.end(); pState++) {
-    (*pState)->propagate();
-  }
+void Block::propagateStates()
+{
+	vector<State*>::iterator pState;
+	for( pState = vState.begin(); pState != vState.end(); pState++)
+	{
+		(*pState)->propagate();
+	}
 }

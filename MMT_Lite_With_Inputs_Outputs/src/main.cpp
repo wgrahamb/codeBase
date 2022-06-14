@@ -30,12 +30,9 @@ MassProp *mprop;
 Motor *motor;
 actuators *act;
 Atmos *atm;
-Airframe *air;
 Aero *aero;
 Motion *mot;
-navigatorPerfect *navigator;
 NavProc *navproc;
-FlightProc *flightproc;
 GuideLaw *guidelaw;
 RollAuto *rollauto;
 MomContAuto *momcontauto;
@@ -62,14 +59,11 @@ void init()
 	atm = new Atmos("atmos.dat", out, sys);
 	motor = new Motor("motor.dat", out, sys);
 	act = new actuators("actuators.dat", out, sys);
-	air = new Airframe("airframe.dat", out, sys);
 	aero = new Aero("aero.dat", out, sys);
 	mot = new Motion("motion.dat", out, sys);
 
 	// GNC
-	navigator = new navigatorPerfect("navigatorPerfect.dat", out, sys);
 	navproc = new NavProc("navproc.dat", out, sys);
-	flightproc = new FlightProc("flightproc.dat", out, sys);
 	guidelaw = new GuideLaw("guidelaw.dat", out, sys);
 	rollauto = new RollAuto("rollauto.dat", out, sys);
 	momcontauto = new MomContAuto("momcontauto.dat", out, sys);
@@ -98,9 +92,7 @@ int main()
 	sys->init(); // OVER HEAD
 	preflt->init(); // POINTLESS BUT INTEGRAL
 
-	navigator->init(); // START ENGINE
 	navproc->init();
-	flightproc->init();
 
 	guidelaw->init();
 	rollauto->init();
@@ -109,7 +101,6 @@ int main()
 	atm->init();
 	motor->init();
 	act->init();
-	air->init();
 	aero->init();
 
 	mot->init(); // END ENGINE
@@ -186,66 +177,11 @@ int main()
 			////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 			////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-			// Navigator handle inputs.
-			navigator->handleInput(navigationState);
-
-			// Navigator Update. (Does not actually do anything but I am leaving it for now.)
-			navigator->update();
-			////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-			////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 			// Navproc handle inputs.
 			navproc->handleInput(navigationState);
 
-			// Navproc Update.
+			// Navproc Update. (Does nothing. leaving for now)
 			navproc->update();
-
-			// Navproc Outputs.
-			bool navprocOutputProcessExecuting = navproc->executing;
-			double navprocOutputRollAngle = navproc->phi_hat;
-			////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-			////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-			// Flightproc handle inputs.
-			flightproc->handleInput(navigationState);
-
-			// Flightproc Update.
-			flightproc->update();
-
-			// Flightproc Outputs.
-			double flightprocOutputAlpha = flightproc->alpha_est_nr;
-			double flightprocOutputBeta = flightproc->beta_est_nr;
-			double flightprocOutputAxialMomentOfInertia = flightproc->ajx_est;
-			Vecff flightprocOutputNonRolledBodyRateEstimate = flightproc->w_est_nr;
-			double flightprocOutputMach = flightproc->amach;
-			double flightprocOutputCld = flightproc->cld_est;
-			double flightprocOutputDynamicPressure = flightproc->q_est;
-			double flightprocOutputReferenceArea = flightproc->sref_est;
-			double flightprocOutputReferenceDiameter = flightproc->dia_est;
-			double flightprocOutputCna = flightproc->cna_est;
-			double flightprocOutputCnd = flightproc->cnd_est;
-			double flightprocOutputCmd0 = flightproc->cmd0_est;
-			double flightprocOutputTransverseMomentOfInertia = flightproc->ajy_est;
-			double flightprocOutputMass = flightproc->amass_est;
-			double flightprocOutputXcg = flightproc->xcg_est;
-			double flightprocOutputXimu = flightproc->ximu_est;
-			double flightprocOutputSpeed = flightproc->v_est;
-			Vecff flightprocOutputBodyGravEstimate = flightproc->gb_est_nr;
-			Vecff flightprocOutputBodyAccelEstimate = flightproc->abg_est_nr;
-			double flightprocOutputAngleOfAttack = flightproc->alphaTot_est_nr;
-			////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-			////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-			// Guide Law Inputs.
-			guidelaw->handleInput(navigationState);
-
-			// Guide Law Update.
-			guidelaw->update();
-			
-			// Guide Law Outputs.
-			double guidelawOutputNormalGuidanceCommand = guidelaw->gamd_q;
-			double guidelawOutputSideGuidanceCommand = guidelaw->gamd_r;
-			double guidelawOutputGamDotLimit = guidelaw->gamdot_Lim;
 			////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 			////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -280,23 +216,19 @@ int main()
 			////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 			////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-			// Motor inputs.
-			double motorInputXCenterOfGravity = mpropOutputXcg;
-			double motorInputYCenterOfGravity = mpropOutputYcg;
-			double motorInputZCenterOfGravity = mpropOutputZcg;
-			double motorInputAirTemp = atmosOutputAirTemp;
-			double motorInputAirTempNominal = atmosOutputAirTempNominal;
-			double motorInputPressure = atmosOutputPressure;
+			// Motor handle input.
+			motor->handleInput(
+				navigationState,
+				mpropOutputXcg,
+				mpropOutputYcg,
+				mpropOutputZcg,
+				atmosOutputAirTemp,
+				atmosOutputAirTempNominal,
+				atmosOutputPressure
+			);
 
 			// Motor update.
-			motor->update(
-				motorInputXCenterOfGravity,
-				motorInputYCenterOfGravity,
-				motorInputZCenterOfGravity,
-				motorInputAirTemp,
-				motorInputAirTempNominal,
-				motorInputPressure
-			);
+			motor->update();
 
 			// Motor outputs.
 			double motorOutputThrust = motor->thrust;
@@ -305,8 +237,25 @@ int main()
 			////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 			////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+			// Guide Law Inputs.
+			guidelaw->handleInput(navigationState);
+
+			// Guide Law Update.
+			guidelaw->update();
+			
+			// Guide Law Outputs.
+			double guidelawOutputNormalGuidanceCommand = guidelaw->gamd_q;
+			double guidelawOutputSideGuidanceCommand = guidelaw->gamd_r;
+			double guidelawOutputGamDotLimit = guidelaw->gamdot_Lim;
+			////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+			////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 			// Roll Auto handle input.
-			rollauto->handleInput(navigationState, atmosOutputMach, atmosOutputDynamicPressure);
+			rollauto->handleInput(
+				navigationState,
+				atmosOutputMach,
+				atmosOutputDynamicPressure
+			);
 
 			// Roll Auto Update.
 			rollauto->update();
@@ -315,92 +264,40 @@ int main()
 			double rollautoOutputRollFinCommandDegrees = rollauto->rollFinCommandDegrees;
 			////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-
-
-
 			////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-			// Momcontauto inputs.
-			double momcontautoInputNormalGuidanceCommand = guidelawOutputNormalGuidanceCommand;
-			double momcontautoInputSideGuidanceCommand = guidelawOutputSideGuidanceCommand;
-			double momcontautoInputGamDotLimit = guidelawOutputGamDotLimit;
-			bool momcontautoInputProcessExecuting = navprocOutputProcessExecuting;
-			double momcontautoInputRollAngle = navprocOutputRollAngle;
-			double momcontautoInputMach = flightprocOutputMach;
-			double momcontautoInputDynamicPressure = flightprocOutputDynamicPressure;
-			double momcontautoInputReferenceArea = flightprocOutputReferenceArea;
-			double momcontautoInputCna = flightprocOutputCna;
-			double momcontautoInputCnd = flightprocOutputCnd;
-			double momcontautoInputCmd0 = flightprocOutputCmd0;
-			double momcontautoInputTransverseMomentOfInertia = flightprocOutputTransverseMomentOfInertia;
-			double momcontautoInputMass = flightprocOutputMass;
-			double momcontautoInputXcg = flightprocOutputXcg;
-			double momcontautoInputXimu = flightprocOutputXimu;
-			double momcontautoInputReferenceDiameter = flightprocOutputReferenceDiameter;
-			double momcontautoInputSpeed = flightprocOutputSpeed;
-			Vecff momcontautoInputNonRolledBodyRate = flightprocOutputNonRolledBodyRateEstimate;
-			Vecff momcontautoInputBodyGravEstimate = flightprocOutputBodyGravEstimate;
-			Vecff momcontautoInputBodyAccelEstimate = flightprocOutputBodyAccelEstimate;
-			double momcontautoInputAlpha = flightprocOutputAlpha;
-			double momcontautoInputBeta = flightprocOutputBeta;
-			double momcontautoInputAngleOfAttack = flightprocOutputAngleOfAttack;
+			// Momcontauto handle input.
+			momcontauto->handleInput(
+				navigationState,
+				guidelawOutputNormalGuidanceCommand,
+				guidelawOutputSideGuidanceCommand,
+				guidelawOutputGamDotLimit,
+				atmosOutputMach,
+				atmosOutputDynamicPressure,
+				mpropOutputMass,
+				mpropOutputXcg
+			);
 
 			// Momcontauto update.
-			momcontauto->update(
-				momcontautoInputNormalGuidanceCommand,
-				momcontautoInputSideGuidanceCommand,
-				momcontautoInputGamDotLimit,
-				momcontautoInputProcessExecuting,
-				momcontautoInputRollAngle,
-				momcontautoInputMach,
-				momcontautoInputDynamicPressure,
-				momcontautoInputReferenceArea,
-				momcontautoInputCna,
-				momcontautoInputCnd,
-				momcontautoInputCmd0,
-				momcontautoInputTransverseMomentOfInertia,
-				momcontautoInputMass,
-				momcontautoInputXcg,
-				momcontautoInputXimu,
-				momcontautoInputReferenceDiameter,
-				momcontautoInputSpeed,
-				momcontautoInputNonRolledBodyRate,
-				momcontautoInputBodyGravEstimate,
-				momcontautoInputBodyAccelEstimate,
-				momcontautoInputAlpha,
-				momcontautoInputBeta,
-				momcontautoInputAngleOfAttack
-			);
+			momcontauto->update();
 
 			// Momcontauto outputs.
 			double momcontautoOutputYawFinCommandDegrees = momcontauto->yawFinCommandDegrees;
 			double momcontautoOutputPitchFinCommandDegrees = momcontauto->pitchFinCommandDegrees;
 			////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-
-
-
 			////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-			// Actuators Input.
-			double actInputRollFinCommandDegrees = rollautoOutputRollFinCommandDegrees;
-			double actInputPitchFinCommandDegrees = momcontautoOutputPitchFinCommandDegrees;
-			double actInputYawFinCommandDegrees = momcontautoOutputYawFinCommandDegrees;
-			double actInputAngleOfAttack = flightprocOutputAngleOfAttack;
-			double actInputMach = flightprocOutputMach;
-			double actInputDynamicPressure = flightprocOutputDynamicPressure;
-			double actInputRollAngle = navprocOutputRollAngle;
+			// Actuators handle input.
+			act->handleInput(
+				navigationState,
+				rollautoOutputRollFinCommandDegrees,
+				momcontautoOutputPitchFinCommandDegrees,
+				momcontautoOutputYawFinCommandDegrees,
+				atmosOutputMach,
+				atmosOutputDynamicPressure
+			);
 
 			// Actuators Update.
-			act->update(
-				actInputRollFinCommandDegrees,
-				actInputPitchFinCommandDegrees,
-				actInputYawFinCommandDegrees,
-				actInputAngleOfAttack,
-				actInputMach,
-				actInputDynamicPressure,
-				actInputRollAngle
-			);
+			act->update();
 
 			//Actuators Ouput.
 			double actOutputFinOneDeflectionDegrees = act->defl1;
@@ -409,70 +306,26 @@ int main()
 			double actOutputFinFourDeflectionDegrees = act->defl4;
 			////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-
-
-
 			////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-			// Airframe inputs.
-			// Airframe update.
-			air->update();
-			// Airframe outputs.
-			double airframeOutputRefDiameter = air->dia;
-			double airframeOutputRefArea = air->sref;
-			int airframeOutputSpinFlag = air->spin_Flag;
-			double airframeOutputRailLength = air->xrail;
-			double airframeOutputPScale = air->pScale;
-			////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-
-
-
-			////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-			// Aero inputs.
-			double aeroInputFinOneDeflectionDegrees = actOutputFinOneDeflectionDegrees;
-			double aeroInputFinTwoDeflectionDegrees = actOutputFinTwoDeflectionDegrees;
-			double aeroInputFinThreeDeflectionDegrees = actOutputFinThreeDeflectionDegrees;
-			double aeroInputFinFourDeflectionDegrees = actOutputFinFourDeflectionDegrees;
-			double aeroInputCenterOfGravity = mpropOutputXcg;
-			double aeroInputThrust = motorOutputThrust;
-			double aeroInputRefDiam = airframeOutputRefDiameter;
-			double aeroInputRefArea = airframeOutputRefArea;
-			double aeroInputDynamicPressure = atmosOutputDynamicPressure;
-			double aeroInputMach = atmosOutputMach;
-			double aeroInputTotalAngleOfAttack = flightprocOutputAngleOfAttack;
-			double aeroInputPhiPrime = mot->aphi;
-			double aeroInputSpeed = flightprocOutputSpeed;
-			double aeroInputRollRate = flightprocOutputNonRolledBodyRateEstimate.x;
-			double aeroInputPitchRate = flightprocOutputNonRolledBodyRateEstimate.y;
+			// Aero handle input.
+			aero->handleInput(
+				navigationState,
+				actOutputFinOneDeflectionDegrees,
+				actOutputFinTwoDeflectionDegrees,
+				actOutputFinThreeDeflectionDegrees,
+				actOutputFinFourDeflectionDegrees,
+				mpropOutputXcg,
+				motorOutputThrust,
+				atmosOutputDynamicPressure,
+				atmosOutputMach
+			);
 
 			// Aero update.
-			aero->update(
-				aeroInputFinOneDeflectionDegrees,
-				aeroInputFinTwoDeflectionDegrees,
-				aeroInputFinThreeDeflectionDegrees,
-				aeroInputFinFourDeflectionDegrees,
-				aeroInputCenterOfGravity,
-				aeroInputThrust,
-				aeroInputRefDiam,
-				aeroInputRefArea,
-				aeroInputDynamicPressure,
-				aeroInputMach,
-				aeroInputTotalAngleOfAttack,
-				aeroInputPhiPrime,
-				aeroInputSpeed,
-				aeroInputRollRate,
-				aeroInputPitchRate
-			);
+			aero->update();
 			// Aero outputs.
 			Vec aeroOutputForce = aero->force;
 			Vec aeroOutputMoment = aero->moment;
 			////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-
-
 
 			////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 			// Motion inputs.
@@ -481,9 +334,6 @@ int main()
 			Vec motionInputAeroMoment = aeroOutputMoment;
 			Vec motionInputMotorForce = motorOutputForce;
 			Vec motionInputMotorMoment = motorOutputMoment;
-			int motionInputSpinFlag = airframeOutputSpinFlag;
-			double motionInputRailLength = airframeOutputRailLength;
-			double motionInputPScale = airframeOutputPScale;
 			double motionInputMass = mpropOutputMass;
 			Mat motionInputInertiaTensor = mpropOutputInertiaTensor;
 
@@ -494,18 +344,11 @@ int main()
 				motionInputAeroMoment,
 				motionInputMotorForce,
 				motionInputMotorMoment,
-				motionInputSpinFlag,
-				motionInputRailLength,
-				motionInputPScale,
 				motionInputMass,
 				motionInputInertiaTensor
 			);
 			// Motion outputs grabbed directly from pointer.
 			////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-
-
 
 			// END ENGINE
 			out->update();
@@ -532,9 +375,7 @@ int main()
 				sys->rpt(); // OVER HEAD
 				preflt->rpt(); // POINTLESS BUT INTEGRAL
 
-				navigator->rpt(); // START ENGINE
 				navproc->rpt();
-				flightproc->rpt();
 				guidelaw->rpt();
 				rollauto->rpt();
 				momcontauto->rpt();
@@ -543,7 +384,6 @@ int main()
 				motor->rpt();
 				act->rpt();
 				aero->rpt();
-				air->rpt();
 				mot->rpt(); // END ENGINE
 
 				out->rpt();
@@ -558,9 +398,7 @@ int main()
 			sys->propagateStates(); // OVER HEAD
 			preflt->propagateStates(); // POINTLESS BUT INTEGRAL
 
-			navigator->propagateStates(); // START ENGINE
 			navproc->propagateStates();
-			flightproc->propagateStates();
 			guidelaw->propagateStates();
 			rollauto->propagateStates();
 			momcontauto->propagateStates();
@@ -569,7 +407,6 @@ int main()
 			motor->propagateStates();
 			act->propagateStates();
 			aero->propagateStates();
-			air->propagateStates();
 			mot->propagateStates(); // END ENGINE
 
 			out->propagateStates();

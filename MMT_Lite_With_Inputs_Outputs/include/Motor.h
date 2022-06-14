@@ -22,7 +22,6 @@ class Motor : public Block {
 
 		Motor( string infile, Output *outp, System *sysp);
 
-		double anoz;
 		double m0, mf;
 		double sdt;
 		double te;
@@ -59,14 +58,26 @@ class Motor : public Block {
 		bool after_launch;
 
 		void init();
-		void update(
-			double XCenterOfGravity,
-			double YCenterOfGravity,
-			double ZCenterOfGravity,
+
+		// Inputs.
+
+		double XCenterOfGravity;
+		double YCenterOfGravity;
+		double ZCenterOfGravity;
+		double airTemperature;
+		double airTemperatureNominal;
+		double currentAirPressure;
+
+		void handleInput(
+			NavigationState const &navigationState,
+			double xcg,
+			double ycg,
+			double zcg,
 			double airTemp,
 			double airTempNominal,
-			double pressure
+			double airPressure
 		);
+		void update();
 		void rpt();
 
 	private:

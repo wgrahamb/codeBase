@@ -6,6 +6,7 @@
 #include "System.h"
 #include "Output.h"
 #include "Filer.h"
+
 actuators::actuators(string inFile, Output *outp, System *sysp)
 {
 
@@ -45,23 +46,58 @@ void actuators::init()
 
 }
 
-void actuators::update(
+void actuators::handleInput(
+	NavigationState const &navigationState,
 	double rollFinCommandDegrees,
 	double pitchFinCommandDegrees,
 	double yawFinCommandDegrees,
-	double angleOfAttack,
 	double mach,
-	double dynamicPressure,
-	double phi
+	double q
 )
+{
+	rollFinCommandInDegrees = rollFinCommandDegrees;
+	pitchFinCommandInDegrees = pitchFinCommandDegrees;
+	yawFinCommandInDegrees = yawFinCommandDegrees;
+	machSpeed = mach;
+	dynamicPressure = q;
+
+	rollAngle = navigationState.missileLTFEulerAngles_[0];
+
+	Vecff euler;
+	euler.x = navigationState.missileLTFEulerAngles_[0];
+	euler.y = navigationState.missileLTFEulerAngles_[1];
+	euler.z = navigationState.missileLTFEulerAngles_[2];
+	
+	Matff dcm = euler.getDCM();
+
+	Vecff missileLocalVelocity;
+	missileLocalVelocity.x = navigationState.missileLTFVelocity_[0];
+	missileLocalVelocity.y = navigationState.missileLTFVelocity_[1];
+	missileLocalVelocity.z = navigationState.missileLTFVelocity_[2];
+
+	Vecff missileBodyVelocity = dcm * missileLocalVelocity;
+
+	double temp = sqrt(missileBodyVelocity.y * missileBodyVelocity.y + missileBodyVelocity.z * missileBodyVelocity.z);
+	if (missileBodyVelocity.x == 0.0)
+	{
+		angleOfAttack = 0.0;
+	}
+	else
+	{
+		angleOfAttack = atan2(temp, missileBodyVelocity.x) * rtd;
+	}
+
+}
+
+void actuators::update()
 {
 
 	double del1c, del2c, del3c, del4c;
 	double del1b, del2b, del3b, del4b;
-	del1b = -1 * pitchFinCommandDegrees + yawFinCommandDegrees + rollFinCommandDegrees;
-	del2b = -1 * pitchFinCommandDegrees - yawFinCommandDegrees + rollFinCommandDegrees;
-	del3b =  pitchFinCommandDegrees - yawFinCommandDegrees + rollFinCommandDegrees;
-	del4b =  pitchFinCommandDegrees + yawFinCommandDegrees + rollFinCommandDegrees;
+	del1b = -1 * pitchFinCommandInDegrees + yawFinCommandInDegrees + rollFinCommandInDegrees;
+	del2b = -1 * pitchFinCommandInDegrees - yawFinCommandInDegrees + rollFinCommandInDegrees;
+	del3b =  pitchFinCommandInDegrees - yawFinCommandInDegrees + rollFinCommandInDegrees;
+	del4b =  pitchFinCommandInDegrees + yawFinCommandInDegrees + rollFinCommandInDegrees;
 
 	// find max deflection and then normalize to del_max, if req'd
 	double delb_max = 0.0;

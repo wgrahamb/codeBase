@@ -255,23 +255,91 @@ void Aero::init() {
 
 }
 
-void Aero::update(
+void Aero::handleInput(
+	NavigationState const &navigationState,
 	double finDeflOne,
 	double finDeflTwo,
 	double finDeflThree,
 	double finDeflFour,
 	double centerOfGravity,
 	double thrust,
-	double refDiam,
-	double refArea,
-	double dynamicPressure,
-	double inputMach,
-	double totalAngleOfAttack,
-	double phiPrime,
-	double speed,
-	double nonRolledRollRate,
-	double nonRolledPitchRate
+	double q,
+	double mach
 )
+{
+
+	finDeflectionOneDegrees = finDeflOne;
+	finDeflectionTwoDegrees = finDeflTwo;
+	finDeflectionThreeDegrees = finDeflThree;
+	finDeflectionFourDegrees = finDeflFour;
+	missileCenterOfGravity = centerOfGravity;
+	motorTotalThrust = thrust;
+	dynamicPressure = q;
+	machSpeed = mach;
+
+	Vecff euler;
+	euler.x = navigationState.missileLTFEulerAngles_[0];
+	euler.y = navigationState.missileLTFEulerAngles_[1];
+	euler.z = navigationState.missileLTFEulerAngles_[2];
+	
+	Matff dcm = euler.getDCM();
+
+	Vecff missileLocalVelocity;
+	missileLocalVelocity.x = navigationState.missileLTFVelocity_[0];
+	missileLocalVelocity.y = navigationState.missileLTFVelocity_[1];
+	missileLocalVelocity.z = navigationState.missileLTFVelocity_[2];
+
+	missileSpeed = missileLocalVelocity.mag();
+
+	Vecff missileBodyVelocity = dcm * missileLocalVelocity;
+
+	double temp = sqrt(missileBodyVelocity.y * missileBodyVelocity.y + missileBodyVelocity.z * missileBodyVelocity.z);
+	if (missileBodyVelocity.x == 0.0)
+	{
+		angleOfAttack = 0.0;
+	}
+	else
+	{
+		angleOfAttack = atan2(temp, missileBodyVelocity.x) * rtd;
+	}
+
+	if (missileBodyVelocity.x == 0.0)
+	{
+		phiPrime = 0.0;
+	}
+	else
+	{
+		phiPrime = atan2(missileBodyVelocity.y, missileBodyVelocity.z) * rtd;
+		if (phiPrime > 180.0)
+		{
+			phiPrime -= 360.0;
+		}
+		else if (phiPrime < -1 * 180.0)
+		{
+			phiPrime += 360.0;
+		}
+	}
+
+	Vecff bodyRate;
+	bodyRate.x = navigationState.missileBodyRate_[0];
+	bodyRate.y = navigationState.missileBodyRate_[1];
+	bodyRate.z = navigationState.missileBodyRate_[2];
+
+	Vecff rollOnlyEuler;
+	rollOnlyEuler.x = -1 * navigationState.missileLTFEulerAngles_[0];
+	rollOnlyEuler.y = 0.0;
+	rollOnlyEuler.z = 0.0;
+
+	Matff missileRolledToNonRolledDCM = rollOnlyEuler.getDCM();
+
+	Vecff missileNonRolledBodyRate = missileRolledToNonRolledDCM * bodyRate;
+
+	nonRolledRollRate = missileNonRolledBodyRate.x;
+	nonRolledPitchRate = missileNonRolledBodyRate.y;
+
+}
+
+void Aero::update()
 {
 	if(State::sample())
 	{
@@ -284,15 +352,15 @@ void Aero::update(
 	}
 
 	q = dynamicPressure;
-	mach = inputMach;
-	totalAngleOfAttackDegrees = totalAngleOfAttack;
+	mach = machSpeed;
+	totalAngleOfAttackDegrees = angleOfAttack;
 	phiPrimeDegrees = phiPrime;
 
 	// Capture deflections locally for output
-	defl1 = finDeflOne;
-	defl2 = finDeflTwo;
-	defl3 = finDeflThree;
-	defl4 = finDeflFour;
+	defl1 = finDeflectionOneDegrees;
+	defl2 = finDeflectionTwoDegrees;
+	defl3 = finDeflectionThreeDegrees;
+	defl4 = finDeflectionFourDegrees;
 
 	//Fin Mixing
 	delr = (  defl1 + defl2 + defl3 + defl4) / 4.0;
@@ -320,7 +388,7 @@ void Aero::update(
 		CA_POFF_C = (caoff_stb + caoff_d) * (1.0+ca_Err);
 
 		//CA
-		if(thrust > 0.0)
+		if(motorTotalThrust > 0.0)
 		{
 			CA_C = CA_PON_C;
 		}
@@ -331,10 +399,10 @@ void Aero::update(
 
 		// RATE ESTIMATES
 		double vtol = 0.1;
-		if (speed > vtol)
+		if (missileSpeed > vtol)
 		{
-			phat = (nonRolledRollRate * refDiam)/(2.0 * speed) * rtd;
-			qhat = (nonRolledPitchRate * refDiam)/(2.0 * speed) * rtd;
+			phat = (nonRolledRollRate * referenceDiameter)/(2.0 * missileSpeed) * rtd;
+			qhat = (nonRolledPitchRate * referenceDiameter)/(2.0 * missileSpeed) * rtd;
 		}
 		else
 		{
@@ -348,7 +416,7 @@ void Aero::update(
 		CN_C   = (cn_stb + cn_d) * (1.0+cn_Err);
 
 		//CM
-		xcal = centerOfGravity / refDiam;
+		xcal = missileCenterOfGravity / referenceDiameter;
 		cm_stb = STABILITY_CM + STABILITY_CN*xcal - STABILITY_CN*xcp_Err;
 		cm_d   = (dP_INC_CM + dY_INC_CM + dR_INC_CM + dPdY_INC_CM + dPdR_INC_CM + dYdR_INC_CM) + ( cn_d )*xcal;
 		CMcg_C  = ((cm_stb + cm_d) * (1.0+cm_Err)) + (DAMP_CMQnr*qhat*cos(phiPrimeDegrees*dtr) * (1.0+cmq_Err));
@@ -368,13 +436,13 @@ void Aero::update(
 		cll_d   = (dP_INC_CLL + dY_INC_CLL + dR_INC_CLL + dPdY_INC_CLL + dPdR_INC_CLL + dYdR_INC_CLL);
 		CLL_C = ((cll_stb + cll_d) * (1.0+cll_Err)) + (DAMP_CLLP*phat * (1.0+clp_Err)); 
 
-		force.x  = -CA_C * q * refArea;
-		force.y  =  CY_C * q * refArea;
-		force.z  = -CN_C * q * refArea;
+		force.x  = -CA_C * q * referenceArea;
+		force.y  =  CY_C * q * referenceArea;
+		force.z  = -CN_C * q * referenceArea;
 
-		moment.x =  CLL_C   * q * refArea * refDiam;
-		moment.y =  CMcg_C  * q * refArea * refDiam;
-		moment.z =  CLNcg_C * q * refArea * refDiam;
+		moment.x =  CLL_C   * q * referenceArea * referenceDiameter;
+		moment.y =  CMcg_C  * q * referenceArea * referenceDiameter;
+		moment.z =  CLNcg_C * q * referenceArea * referenceDiameter;
 
 	}
 
@@ -391,7 +459,7 @@ void Aero::update(
 		CA_POFF_C = caoff_stb + caoff_d;
 
 		//CA
-		if(thrust > 0.0)
+		if(motorTotalThrust > 0.0)
 		{
 			CA_C = CA_PON_C;
 		}
@@ -402,10 +470,10 @@ void Aero::update(
 
 		// RATE ESTIMATES
 		double vtol = 0.1;
-		if (speed > vtol)
+		if (missileSpeed > vtol)
 		{
-			phat = (nonRolledRollRate * refDiam)/(2.0 * speed) * rtd;
-			qhat = (nonRolledPitchRate * refDiam)/(2.0 * speed) * rtd;
+			phat = (nonRolledRollRate * referenceDiameter)/(2.0 * missileSpeed) * rtd;
+			qhat = (nonRolledPitchRate * referenceDiameter)/(2.0 * missileSpeed) * rtd;
 		}
 		else
 		{
@@ -419,7 +487,7 @@ void Aero::update(
 		CN_C   = cn_stb + cn_d;
 
 		//CM
-		xcal = centerOfGravity / refDiam;
+		xcal = missileCenterOfGravity / referenceDiameter;
 		cm_stb = STABILITY_CM + STABILITY_CN*xcal - STABILITY_CN*xcp_Err;
 		cm_d   = dP_INC_CM + dY_INC_CM + dR_INC_CM ;
 		CMcg_C = cm_stb + cm_d + cn_d * xcal + DAMP_CMQnr * qhat * cos(phiPrimeDegrees * dtr);
@@ -439,13 +507,13 @@ void Aero::update(
 		cll_d   = dP_INC_CLL + dY_INC_CLL + dR_INC_CLL;
 		CLL_C = cll_stb + cll_d + DAMP_CLLP * phat;
 
-		force.x  = -CA_C * q * refArea;
-		force.y  =  CY_C * q * refArea;
-		force.z  = -CN_C * q * refArea;
+		force.x  = -CA_C * q * referenceArea;
+		force.y  =  CY_C * q * referenceArea;
+		force.z  = -CN_C * q * referenceArea;
 
-		moment.x =  CLL_C   * q * refArea * refDiam;
-		moment.y =  CMcg_C  * q * refArea * refDiam;
-		moment.z =  CLNcg_C * q * refArea * refDiam;
+		moment.x =  CLL_C   * q * referenceArea * referenceDiameter;
+		moment.y =  CMcg_C  * q * referenceArea * referenceDiameter;
+		moment.z =  CLNcg_C * q * referenceArea * referenceDiameter;
 
 	}
 

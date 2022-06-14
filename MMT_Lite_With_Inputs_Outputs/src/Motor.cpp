@@ -73,11 +73,10 @@ Motor::Motor( string infile, Output *outp, System *sysp )
 
 void Motor::init()
 {
+
 	tick = 0.0;
 	kt = 0;
 	after_launch = false;
-
-	double anoz = 0.000426642;
 
 	force    = Vec( 0.0, 0.0, 0.0);
 	moment   = Vec( 0.0, 0.0, 0.0);
@@ -119,16 +118,29 @@ void Motor::init()
 	masspd = 0.0;
 
 	burnout_flg = -1;
+
 }
 
-void Motor::update(
-	double XCenterOfGravity,
-	double YCenterOfGravity,
-	double ZCenterOfGravity,
+void Motor::handleInput(
+	NavigationState const &navigationState,
+	double xcg,
+	double ycg,
+	double zcg,
 	double airTemp,
 	double airTempNominal,
-	double pressure
-) {
+	double airPressure
+)
+{
+	XCenterOfGravity = xcg;
+	YCenterOfGravity = ycg;
+	ZCenterOfGravity = zcg;
+	airTemperature = airTemp;
+	airTemperatureNominal = airTempNominal;
+	currentAirPressure = airPressure;
+}
+
+void Motor::update()
+{
 
 	if( State::sample()) {tick = ( double)kt++;}
 	if( State::sample( State::EVENT, 0.0)) {}
@@ -149,8 +161,8 @@ void Motor::update(
 	}
 
 	//Hot/Cold Motor Scale Factors
-	time_fac = 1.0 - time_param * (airTemp - airTempNominal);
-	thr_fac  = 1.0 + thr_param  * (airTemp - airTempNominal);
+	time_fac = 1.0 - time_param * (airTemperature - airTemperatureNominal);
+	thr_fac  = 1.0 + thr_param  * (airTemperature - airTemperatureNominal);
 	
 	//Hot/Cold Motor Scale Factor (Combination time and thrust)
 	thrust_TempScale = 1.0/(time_fac*thr_fac);
@@ -160,7 +172,7 @@ void Motor::update(
 
 	//Thrust (scale thrust based on Hot/Cold motor)
 	thrust_vac = thrust_vs_t->interp( tmotor ) * thrust_TempScale;
-	thrust = thrust_vac - anoz * pressure;
+	thrust = thrust_vac - nozzleExitArea * currentAirPressure;
 	if( thrust < 0.0)
 	{
 		thrust = 0.0;

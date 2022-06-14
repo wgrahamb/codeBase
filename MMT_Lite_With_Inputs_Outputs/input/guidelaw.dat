@@ -8,7 +8,7 @@ gamdot_Lim = 3.5  #in terms of G; will need to multiply by 9.8 and divide by vel
 gamdot_Type = 1   #Type: 1 uses vector method; Type: 2 uses arcsin method
 
 gamY_T = 10.0 #Gamma Impact Angles 
-gamP_T = -15.0 
+gamP_T = -10.0 
 
 #Waypoint 1 is now derived from navproc->pt
 

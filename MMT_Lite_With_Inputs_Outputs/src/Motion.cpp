@@ -26,6 +26,8 @@ Motion::Motion(string infile, Output *outp, System *sysp) {
 	ff->setLine0( "Motion");
 	xd = ff->getDouble( "xd");
 	//Detent Force to constrain Missile while on Launcher
+	spinFlagIn = ff->getInt("spin_Flag");
+	pScaleIn = ff->getDouble("pScale");
 	Fdetent = ff->getDouble( "Fdetent");
 	breakwireDelay = ff->getDouble( "breakwireDelay");
 	deg_tol = ff->getDouble( "deg_tol");
@@ -225,6 +227,8 @@ void Motion::init()
 	wqo_err = 0.0;
 	wro_err = 0.0;
 
+	railLengthIn = launchRailLength;
+
 }
 
 void Motion::update(
@@ -233,9 +237,6 @@ void Motion::update(
 	Vec aeroMoment,
 	Vec motorForce,
 	Vec motorMoment,
-	int spinFlag,
-	double railLength,
-	double pScale,
 	double mass,
 	Mat inertiaTensor
 )
@@ -243,7 +244,7 @@ void Motion::update(
 
 	if(State::sample())
 	{
-		tick = ( double)kt++;
+		tick = (double)kt++;
 	}
 	//
 	if(State::sample( State::EVENT, 0.0)) {}
@@ -253,9 +254,6 @@ void Motion::update(
 	aeroMomentIn = aeroMoment;
 	motorForceIn = motorForce;
 	motorMomentIn = motorMoment;
-	spinFlagIn = spinFlag;
-	railLengthIn = railLength;
-	pScaleIn = pScale;
 	massIn = mass;
 	inertiaTensorIn = inertiaTensor;
 
@@ -298,7 +296,7 @@ void Motion::SumForcesMoments()
 	{ //Induced Roll from Spin Vanes
 		if((rail_Flag == 1) && (sys->t_sys <= sys->t_bo))
 		{
-			 motorMomentIn.x = inducedMoment();
+			motorMomentIn.x = inducedMoment();
 		}
 	}
 
