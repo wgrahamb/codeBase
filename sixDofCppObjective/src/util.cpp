@@ -318,6 +318,13 @@ void multiplyVectorTimesScalar(double scalar, double vec[3], double out[3]) {
 }
 
 // GRAHAM BEECH
+void divideVectorTimesScalar(double scalar, double vec[3], double out[3]) {
+	out[0] = vec[0] / scalar;
+	out[1] = vec[1] / scalar;
+	out[2] = vec[2] / scalar;
+}
+
+// GRAHAM BEECH
 double linearInterpolationWithBoundedEnds(std::vector<std::vector<double>> table, double tableInput) {
 	int lowIndex = -100000;
 	int highIndex = 100000;
