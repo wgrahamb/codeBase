@@ -1,0 +1,4 @@
+cmake_minimum_required (VERSION 2.8.11)
+project (NOVICE_CPP)
+set(CMAKE_BUILD_TYPE Debug)
+add_executable(NOVICE_CPP NOVICE.cpp util.cpp)

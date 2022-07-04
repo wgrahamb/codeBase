@@ -1,0 +1,36 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/graham/docs/codeBase/CPP_NOVICE/NOVICE.cpp
+iostream
+-
+fstream
+-
+sstream
+-
+iomanip
+-
+chrono
+-
+math.h
+-
+vector
+-
+map
+-
+algorithm
+-
+util.h
+/home/graham/docs/codeBase/CPP_NOVICE/util.h
+
+/home/graham/docs/codeBase/CPP_NOVICE/util.h
+vector
+-
+string
+-
+

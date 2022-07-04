@@ -13,8 +13,5 @@ inPutFile = r"input.txt"
 with open(inPutFile, "w") as f:
 	f.writelines(inPutString)
 
-process = subprocess.Popen(["./sixDofSim"])
+process = subprocess.Popen(["./NOVICE_CPP"])
 process.wait()
-
-
-# shutil.copy("/home/graham/docs/sixDofCpp/log.txt", "/mnt/c/Users/graha/Documents/pythonRepo/pythonRepo/sixDofCppVisual/stable.txt")

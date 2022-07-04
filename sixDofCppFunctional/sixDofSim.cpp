@@ -800,14 +800,14 @@ void seeker() {
 	wlq2d = wlq2d_new;
 
 	// YAW CONTROL
-	double wlrd_new = wlr1 - mslEulerDot[2];
+	double wlrd_new = wlr1 - mslRate[2];
 	double wlr_new = integrate(wlrd_new, wlrd, wlr, integrationStep);
 	wlr = wlr_new;
 	wlrd = wlrd_new;
 	seekerYaw = wlr;
 
 	// PITCH CONTROL
-	double wlqd_new = wlq1 - mslEulerDot[1];
+	double wlqd_new = wlq1 - mslRate[1];
 	double wlq_new = integrate(wlqd_new, wlqd, wlq, integrationStep);
 	wlq = wlq_new;
 	wlqd = wlqd_new;
@@ -890,14 +890,14 @@ void control() {
 		double GKP = (2 * wrcl * zrcl + DLP) / DLD;
 		double GKPHI = wrcl * wrcl / DLD;
 		double EPHI = GKPHI * (rollAngleComm - mslEuler[0]);
-		rollFinComm = EPHI - GKP * mslEulerDot[0];
+		rollFinComm = EPHI - GKP * mslRate[0];
 
 		// PITCH
 		double zzdNew = normCommand - mslBodyAcc[2];
 		double zzNew = integrate(zzdNew, zzd, zz, integrationStep);
 		zz = zzNew;
 		zzd = zzdNew;
-		double deflPitch = -1 * GAINFB1 * mslBodyAcc[2] - GAINFB2 * mslEulerDot[1] + GAINFB3 * zz;
+		double deflPitch = -1 * GAINFB1 * mslBodyAcc[2] - GAINFB2 * mslRate[1] + GAINFB3 * zz;
 		if (abs(deflPitch) > maxDefl) {
 			if (deflPitch > 0) {
 				deflPitch = maxDefl;
@@ -913,7 +913,7 @@ void control() {
 		double yyNew = integrate(yydNew, yyd, yy, integrationStep);
 		yy = yyNew;
 		yyd = yydNew;
-		double deflYaw = GAINFB1 * mslBodyAcc[1] - GAINFB2 * mslEulerDot[2] + GAINFB3 * yy;
+		double deflYaw = GAINFB1 * mslBodyAcc[1] - GAINFB2 * mslRate[2] + GAINFB3 * yy;
 		if (abs(deflYaw) > maxDefl) {
 			if (deflYaw > 0) {
 				deflYaw = maxDefl;
@@ -939,7 +939,7 @@ void control() {
 		double GKP = (2 * wrcl * zrcl + DLP) / DLD;
 		double GKPHI = wrcl * wrcl / DLD;
 		double EPHI = GKPHI * (rollAngleComm - mslEuler[0]);
-		rollFinComm = EPHI - GKP * mslEulerDot[0];
+		rollFinComm = EPHI - GKP * mslRate[0];
 
 		// RATE CONTROL
 		double ZRATE = DNA / mslSpeed - DMA * DND / (mslSpeed * DMD); // ND
@@ -951,10 +951,10 @@ void control() {
 		double GRATE = (-1 * TEMP1 + sqrt(RADIX)) / (-1 * DMD); // ND
 
 		// PITCH
-		pitchFinComm = GRATE * mslEulerDot[1]; // RADIANS
+		pitchFinComm = GRATE * mslRate[1]; // RADIANS
 
 		// YAW
-		yawFinComm = GRATE * mslEulerDot[2]; // RADIANS
+		yawFinComm = GRATE * mslRate[2]; // RADIANS
 
 
 	}
@@ -1132,11 +1132,11 @@ void aeroBallisticAngles() {
 	yawDeflAeroDeg = radToDeg * yawDeflAeroFrame;
 	rollDeflDeg = radToDeg * rollFinDefl;
 	totalFinDeflDeg = (abs(pitchDeflAeroDeg) + abs(yawDeflAeroDeg)) / 2;
-	double pitchRateAeroFrame = mslEulerDot[1] * cosPhiPrime - mslEulerDot[2] * sinPhiPrime;
+	double pitchRateAeroFrame = mslRate[1] * cosPhiPrime - mslRate[2] * sinPhiPrime;
 	pitchRateAeroDeg = radToDeg * pitchRateAeroFrame;
-	double yawRateAeroFrame = mslEulerDot[1] * sinPhiPrime + mslEulerDot[2] * cosPhiPrime;
+	double yawRateAeroFrame = mslRate[1] * sinPhiPrime + mslRate[2] * cosPhiPrime;
 	yawRateAeroDeg = radToDeg * yawRateAeroFrame;
-	rollRateDeg = radToDeg * mslEulerDot[0];
+	rollRateDeg = radToDeg * mslRate[0];
 	sinOfFourTimesPhiPrime = sin(4 * phiPrime);
 	squaredSinOfTwoTimesPhiPrime = pow((sin(2 * phiPrime)), 2);
 }

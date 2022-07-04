@@ -18,7 +18,7 @@ double markovDistribution(double sigma,double bcor,double time,double intstep,do
 double rayleighDistribution(double mode);
 double uniformDistribution(double min,double max);
 double unituni();
-double integrate(double dy_new, double dy, double y, double intStep);
+double trapezoidIntegrate(double dy_new, double dy, double y, double intStep);
 void flightPathAnglesToLocalOrientation (double azimuth, double elevation, double localFrame[3][3]);
 void eulerAnglesToLocalOrientation (double phi, double theta, double psi, double matrix[3][3]);
 void unitVec (double vector[3], double unitVector[3]);
@@ -37,55 +37,5 @@ void multiplyVectorTimesScalar(double scalar, double vec[3], double out[3]);
 void divideVectorByScalar(double scalar, double vec[3], double out[3]);
 double linearInterpolationWithBoundedEnds(std::vector<std::vector<double>> table, double tableInput);
 double biLinearInterpolationWithBoundedBorders(std::vector<std::vector<double>> table, double tableRowInput, double tableColumnInput);
-
-struct mslDataPacket
-{
-	double mslTimeStep;
-	double mslIntegrationStep;
-	double mslMaxTime;
-	double mslTof;
-
-	double mslDynamicPressure;
-	double mslSpeedOfSound;
-	double mslTotalPressure;
-
-	// ENGINE OUTPUT
-	double mslLocalOrient[3][3];
-	double mslPos[3];
-	double mslRange;
-	double mslVel[3];
-	double mslBodyVel[3];
-	double mslSpeed;
-	double mslMach;
-	double mslAcc[3];
-	double mslBodyAcc[3];
-	double mslEuler[3];
-	double mslEulerDot[3];
-	double mslRate[3];
-	double mslRateDot[3];
-	double mslAlpha;
-	double mslBeta;
-
-	// ENGINE INPUT
-	double mslWayPoint[3];
-	double forwardLeftUpMslToIntercept[3];
-
-	double CX;
-	double CY;
-	double CZ;
-	double CL;
-	double CN;
-	double CM;
-	double mslMass;
-	double mslTMoi;
-	double mslAMoi;
-	double mslThrust;
-	double mslRefArea;
-	double mslRefDiam;
-
-	double missDistance;
-	bool fly;
-	std::string lethality;
-};
 
 #endif
