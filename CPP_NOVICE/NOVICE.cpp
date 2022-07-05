@@ -63,23 +63,23 @@ struct MissilePacket
 {
 
 	/* Missile constants. */
-	const double missileReferenceArea = 0.01824; // M^2.
-	const double missileReferenceDiameter = 0.1524; // Meters.
-	const double missileNozzleExitArea = 0.0125; // M^2.
-	const double missileRocketBurnOut = 2.421; // Seconds.
-	const double missileSeekerG = 10.0; // Seeker Kalman filter gain. Per second.
-	const double missileSeekerZETA = 0.9; // Seeker Kalman filter damping. Non dimensional.
-	const double missileSeekerWN = 60.0; // Seeker Kalman filter natural frequency. Radians per second.
-	const double missileProportionalGuidanceGain = 3.0; // Guidance homing gain.
-	const double missileLineOfAttackGuidanceGain = 1.5; // Guidance midcourse gain.
-	const double missileMaximumAccelerationAllowed = 450.0; // Meters per s^2. Roughly 45 Gs.
-	const double missileConstantRateControlZETA = 0.6; // Damping of constant rate control. Non dimensional.
-	const double missileRollControlWN = 20.0; // Natural frequency of roll closed loop complex pole. Radians per second.
-	const double missileRollControlZETA = 0.9; // Damping of roll closed loop complex pole. Non dimensional.
-	const double missileControlMaxFinDeflection = 28.0; // Degrees.
-	const double missileRollAngleCommand = 0.0; // Degrees or radians.
-	const double missileTotalAngleOfAttackMaximum = 40.0; // Degrees.
-	const double missileSeaLevelPressure = 101325; // Pascals.
+	double missileReferenceArea = 0.01824; // M^2.
+	double missileReferenceDiameter = 0.1524; // Meters.
+	double missileNozzleExitArea = 0.0125; // M^2.
+	double missileRocketBurnOut = 2.421; // Seconds.
+	double missileSeekerG = 10.0; // Seeker Kalman filter gain. Per second.
+	double missileSeekerZETA = 0.9; // Seeker Kalman filter damping. Non dimensional.
+	double missileSeekerWN = 60.0; // Seeker Kalman filter natural frequency. Radians per second.
+	double missileProportionalGuidanceGain = 3.0; // Guidance homing gain.
+	double missileLineOfAttackGuidanceGain = 1.5; // Guidance midcourse gain.
+	double missileMaximumAccelerationAllowed = 450.0; // Meters per s^2. Roughly 45 Gs.
+	double missileConstantRateControlZETA = 0.6; // Damping of constant rate control. Non dimensional.
+	double missileRollControlWN = 20.0; // Natural frequency of roll closed loop complex pole. Radians per second.
+	double missileRollControlZETA = 0.9; // Damping of roll closed loop complex pole. Non dimensional.
+	double missileControlMaxFinDeflection = 28.0; // Degrees.
+	double missileRollAngleCommand = 0.0; // Degrees or radians.
+	double missileTotalAngleOfAttackMaximum = 40.0; // Degrees.
+	double missileSeaLevelPressure = 101325; // Pascals.
 
 	/* Missile variables. */
 	// Missile packet.
@@ -260,9 +260,6 @@ struct MissilePacket
 	// Performance and end check.
 	double missileMissDistance = 0.0; // Meters.
 	string missileLethality; // For termination check.
-
-	// Log file.
-	ofstream missileLogFile;
 
 };
 
@@ -471,7 +468,7 @@ void initializeMissile(MissilePacket &Missile, string inputFile)
 
 	// Initialize missile FLU velocity.
 	threeByThreeTimesThreeByOne(
-		Missile.missileSeekerENUToFLUMatrix,
+		Missile.missileENUToFLUMatrix,
 		Missile.missileENUVelocity,
 		Missile.missileFLUVelocity
 	);
@@ -615,7 +612,113 @@ void seeker(MissilePacket &Missile)
 	Missile.missileSeekerWLR2 = wlr2_new;
 	Missile.missileSeekerWLR2D = wlr2d_new;
 
+	// Yaw control.
+	wlrd_new = Missile.missileSeekerWLR1 - Missile.missileRate[2];
+	wlr_new = trapezoidIntegrate(wlrd_new, Missile.missileSeekerWLRD, Missile.missileSeekerWLR, timeStep);
+	Missile.missileSeekerWLR = wlr_new;
+	Missile.missileSeekerWLRD = wlrd_new;
+	Missile.missileSeekerYaw = Missile.missileSeekerWLR;
+
 	// Seeker pitch.
+	wlq1d_new = Missile.missileSeekerWLQ2;
+	wlq1_new = trapezoidIntegrate(wlq1d_new, Missile.missileSeekerWLQ1D, Missile.missileSeekerWLQ1, timeStep);
+	Missile.missileSeekerWLQ1 = wlq1_new;
+	Missile.missileSeekerWLQ1D = wlq1d_new;
+	wlq2d_new = gg * Missile.missileSeekerPitchError - 2 * Missile.missileSeekerZETA * Missile.missileSeekerWN * Missile.missileSeekerWLQ1D - wsq * Missile.missileSeekerWLQ1;
+	wlq2_new = trapezoidIntegrate(wlq2d_new, Missile.missileSeekerWLQ2D, Missile.missileSeekerWLQ2, timeStep);
+	Missile.missileSeekerWLQ2 = wlq2_new;
+	Missile.missileSeekerWLQ2D = wlq2d_new;
+
+	// Pitch control.
+	wlrd_new = Missile.missileSeekerWLQ1 - Missile.missileRate[1];
+	wlq_new = trapezoidIntegrate(wlqd_new, Missile.missileSeekerWLQD, Missile.missileSeekerWLQ, timeStep);
+	Missile.missileSeekerWLQ = wlq_new;
+	Missile.missileSeekerWLQD = wlqd_new;
+	Missile.missileSeekerPitch = Missile.missileSeekerWLQ;
+
+	// Calculate FLU relative position for guidance.
+	subtractTwoVectors(Missile.missileENUPosition, Missile.missilePip, missileToInterceptENURelativePosition);
+	eulerAnglesToLocalOrientation(
+		0.0,
+		-Missile.missileSeekerPitch,
+		Missile.missileSeekerYaw,
+		seekerAttitudeToENUMatrix
+	);
+	threeByThreeTimesThreeByThree(
+		seekerAttitudeToENUMatrix,
+		Missile.missileENUToFLUMatrix,
+		Missile.missileSeekerENUToFLUMatrix
+	);
+	threeByThreeTimesThreeByOne(
+		Missile.missileSeekerENUToFLUMatrix,
+		missileToInterceptENURelativePosition,
+		seekerToInterceptENURelativePosition
+	);
+	error[0] = 1.0;
+	error[1] = 0.5;
+	error[2] = 0.2;
+	multiplyTwoVectors(
+		seekerToInterceptENURelativePosition,
+		error,
+		seekerToInterceptENURelativePositionWithError
+	);
+	azAndElFromVector(
+		Missile.missileSeekerYawError,
+		Missile.missileSeekerPitchError,
+		seekerToInterceptENURelativePositionWithError
+	);
+	oneByThreeTimesThreeByThree(
+		seekerToInterceptENURelativePositionWithError,
+		seekerAttitudeToENUMatrix,
+		Missile.missileToInterceptFLURelativePosition
+	);
+
+
+}
+
+void guidance(MissilePacket &Missile)
+{
+
+	double forwardLeftUpMissileToInterceptPositionUnitVector[3];
+	unitVec(Missile.missileToInterceptFLURelativePosition, forwardLeftUpMi ssileToInterceptPositionUnitVector);
+	double forwardLeftUpMissileToInterceptLineOfSightVel[3];
+	vectorProjection(forwardLeftUpMissileToInterceptPositionUnitVector, Missile.missileFLUVelocity, forwardLeftUpMissileToInterceptLineOfSightVel);
+	double timeToGo, forwardLeftUpMissileToInterceptPositionMagnitude, forwardLeftUpMissileToInterceptLineOfSightVelMagnitude;
+	magnitude(Missile.missileToInterceptFLURelativePosition, forwardLeftUpMissileToInterceptPositionMagnitude);
+	magnitude(forwardLeftUpMissileToInterceptLineOfSightVel, forwardLeftUpMissileToInterceptLineOfSightVelMagnitude);
+	timeToGo = forwardLeftUpMissileToInterceptPositionMagnitude / forwardLeftUpMissileToInterceptLineOfSightVelMagnitude;
+	if (timeToGo < 5)
+	{
+		double closingVelocity[3];
+		multiplyVectorTimesScalar(-1.0, Missile.missileFLUVelocity, closingVelocity);
+		double closingSpeed;
+		magnitude(closingVelocity, closingSpeed);
+		double TEMP1[3], TEMP2;
+		crossProductTwoVectors(Missile.missileToInterceptFLURelativePosition, closingVelocity, TEMP1);
+		dotProductTwoVectors(Missile.missileToInterceptFLURelativePosition, Missile.missileToInterceptFLURelativePosition, TEMP2);
+		double lineOfSightRate[3];
+		divideVectorByScalar(TEMP2, TEMP1, lineOfSightRate);
+		double TEMP3, TEMP4[3];
+		double proportionalGuidanceGain = 3.0;
+		TEMP3 = -1 * Missile.missileProportionalGuidanceGain * closingSpeed;
+		multiplyVectorTimesScalar(TEMP3, forwardLeftUpMissileToInterceptPositionUnitVector, TEMP4);
+		double COMMAND[3];
+		crossProductTwoVectors(TEMP4, lineOfSightRate, COMMAND);
+		Missile.missileGuidanceNormalCommand = COMMAND[2];
+		Missile.missileGuidanceSideCommand = COMMAND[1];
+	}
+	else
+	{
+		double lineOfAttack[3];
+		lineOfAttack[0] = forwardLeftUpMissileToInterceptPositionUnitVector[0] - 0.3;
+		lineOfAttack[1] = forwardLeftUpMissileToInterceptPositionUnitVector[1] - 0.3;
+		lineOfAttack[2] = -0.5;
+		double forwardLeftUpMissileToInterceptLineOfAttackVel[3];
+		vectorProjection(lineOfAttack, Missile.missileFLUVelocity, forwardLeftUpMissileToInterceptLineOfAttackVel);
+		double G = 1 - exp(-0.001 * forwardLeftUpMissileToInterceptPositionMagnitude);
+		Missile.missileGuidanceNormalCommand = Missile.missileLineOfAttackGuidanceGain * (forwardLeftUpMissileToInterceptLineOfSightVel[2] + G * forwardLeftUpMissileToInterceptLineOfAttackVel[2]);
+		Missile.missileGuidanceSideCommand = Missile.missileLineOfAttackGuidanceGain * (forwardLeftUpMissileToInterceptLineOfSightVel[1] + G * forwardLeftUpMissileToInterceptLineOfAttackVel[1]);
+	}
 
 }
 
@@ -623,13 +726,18 @@ int main()
 {
 
 	MissilePacket originalMissile;
+	auto copiedMissile = originalMissile;
 	lookUpTablesFormat(originalMissile, "shortRangeInterceptorTables.txt");
 	initializeMissile(originalMissile, "input.txt");
 
+	// Functions test.
 	timeOfFlight(originalMissile);
 	atmosphere(originalMissile);
+	seeker(originalMissile);
+	guidance(originalMissile);
 
 	cout << "HOWDY WORLD, FROM CPP NOVICE." << endl;
 	cout << "\n";
 	return 0;
+
 }
