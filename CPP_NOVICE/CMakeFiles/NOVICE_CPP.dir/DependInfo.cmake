@@ -4,8 +4,8 @@ set(CMAKE_DEPENDS_LANGUAGES
   )
 # The set of files for implicit dependencies of each language:
 set(CMAKE_DEPENDS_CHECK_CXX
-  "/home/graham/docs/codeBase/CPP_NOVICE/NOVICE.cpp" "/home/graham/docs/codeBase/CPP_NOVICE/CMakeFiles/NOVICE_CPP.dir/NOVICE.cpp.o"
-  "/home/graham/docs/codeBase/CPP_NOVICE/util.cpp" "/home/graham/docs/codeBase/CPP_NOVICE/CMakeFiles/NOVICE_CPP.dir/util.cpp.o"
+  "/home/graham/codeBase/CPP_NOVICE/NOVICE.cpp" "/home/graham/codeBase/CPP_NOVICE/CMakeFiles/NOVICE_CPP.dir/NOVICE.cpp.o"
+  "/home/graham/codeBase/CPP_NOVICE/util.cpp" "/home/graham/codeBase/CPP_NOVICE/CMakeFiles/NOVICE_CPP.dir/util.cpp.o"
   )
 set(CMAKE_CXX_COMPILER_ID "GNU")
 

@@ -680,7 +680,7 @@ void guidance(MissilePacket &Missile)
 {
 
 	double forwardLeftUpMissileToInterceptPositionUnitVector[3];
-	unitVec(Missile.missileToInterceptFLURelativePosition, forwardLeftUpMi ssileToInterceptPositionUnitVector);
+	unitVec(Missile.missileToInterceptFLURelativePosition, forwardLeftUpMissileToInterceptPositionUnitVector);
 	double forwardLeftUpMissileToInterceptLineOfSightVel[3];
 	vectorProjection(forwardLeftUpMissileToInterceptPositionUnitVector, Missile.missileFLUVelocity, forwardLeftUpMissileToInterceptLineOfSightVel);
 	double timeToGo, forwardLeftUpMissileToInterceptPositionMagnitude, forwardLeftUpMissileToInterceptLineOfSightVelMagnitude;
@@ -710,8 +710,8 @@ void guidance(MissilePacket &Missile)
 	else
 	{
 		double lineOfAttack[3];
-		lineOfAttack[0] = forwardLeftUpMissileToInterceptPositionUnitVector[0] - 0.3;
-		lineOfAttack[1] = forwardLeftUpMissileToInterceptPositionUnitVector[1] - 0.3;
+		lineOfAttack[0] = forwardLeftUpMissileToInterceptPositionUnitVector[0];
+		lineOfAttack[1] = forwardLeftUpMissileToInterceptPositionUnitVector[1];
 		lineOfAttack[2] = -0.5;
 		double forwardLeftUpMissileToInterceptLineOfAttackVel[3];
 		vectorProjection(lineOfAttack, Missile.missileFLUVelocity, forwardLeftUpMissileToInterceptLineOfAttackVel);
@@ -722,11 +722,122 @@ void guidance(MissilePacket &Missile)
 
 }
 
+void control(MissilePacket &Missile)
+{
+
+	if (Missile.missileMachSpeed > 0.6) // Maneuvering.
+	{
+
+		double DNA = Missile.missileCNA * (Missile.missileDynamicPressure * Missile.missileReferenceArea / Missile.missileMass); // METERS PER SECOND^2
+		double DMA = Missile.missileCMA * (Missile.missileDynamicPressure * Missile.missileReferenceArea * Missile.missileReferenceDiameter / Missile.missileTransverseMomentOfInertia); // PER SECOND^2
+		double DMD = Missile.missileCMD * (Missile.missileDynamicPressure * Missile.missileReferenceArea * Missile.missileReferenceDiameter / Missile.missileTransverseMomentOfInertia); // PER SECOND^2
+		double DMQ = Missile.missileCMQ * (Missile.missileReferenceDiameter / (2 * Missile.missileSpeed)) * (Missile.missileDynamicPressure * Missile.missileReferenceArea * Missile.missileReferenceDiameter / Missile.missileTransverseMomentOfInertia); // PER SECOND
+		double DLP = Missile.missileCLP * (Missile.missileReferenceDiameter / (2 * Missile.missileSpeed)) * (Missile.missileDynamicPressure * Missile.missileReferenceArea * Missile.missileReferenceDiameter / Missile.missileAxialMomentOfInertia); // PER SECOND
+		double DLD = Missile.missileCLD * (Missile.missileDynamicPressure * Missile.missileReferenceArea * Missile.missileReferenceDiameter / Missile.missileAxialMomentOfInertia); // PER SECOND^2
+
+		double WACL = 0.013 * sqrt(Missile.missileDynamicPressure) + 7.1;
+		double ZACL = 0.000559 * sqrt(Missile.missileDynamicPressure) + 0.232;
+		double PACL = 14;
+
+		// FEEDBACK GAINS
+		double GAINFB3 = WACL * WACL * PACL / (DNA * DMD);
+		double GAINFB2 = (2 * ZACL * WACL + PACL + DMQ - DNA / Missile.missileSpeed) / DMD;
+		double GAINFB1 = (
+			WACL * WACL + 2 * ZACL * WACL * PACL + DMA + DMQ * DNA / Missile.missileSpeed - GAINFB2 * DMD * DNA / Missile.missileSpeed
+		) / (DNA * DMD);
+
+		// ROLL
+		double GKP = (2 * Missile.missileRollControlWN * Missile.missileRollControlZETA + DLP) / DLD;
+		double GKPHI = Missile.missileRollControlWN * Missile.missileRollControlWN / DLD;
+		double EPHI = GKPHI * (Missile.missileRollAngleCommand - Missile.missileENUEulerAngles[0]);
+		Missile.missileRollFinCommand = EPHI - GKP * Missile.missileRate[0];
+
+		// PITCH
+		double zzdNew = Missile.missileGuidanceNormalCommand - Missile.missileFLUAcceleration[2];
+		double zzNew = trapezoidIntegrate(zzdNew, Missile.missileControlZZD, Missile.missileControlZZ, timeStep);
+		Missile.missileControlZZ = zzNew;
+		Missile.missileControlZZD = zzdNew;
+		double deflPitch = -1 * GAINFB1 * Missile.missileFLUAcceleration[2] - GAINFB2 * Missile.missileRate[1] + GAINFB3 * Missile.missileControlZZ;
+		if (abs(deflPitch) > Missile.missileControlMaxFinDeflection)
+		{
+			if (deflPitch > 0)
+			{
+				deflPitch = Missile.missileControlMaxFinDeflection;
+			}
+			else if (deflPitch < 0)
+			{
+				deflPitch = -1 * Missile.missileControlMaxFinDeflection;
+			}
+		}
+		Missile.missilePitchFinCommand = deflPitch * degToRad;
+
+		// YAW
+		double yydNew = Missile.missileFLUAcceleration[1] - Missile.missileGuidanceSideCommand;
+		double yyNew = trapezoidIntegrate(yydNew, Missile.missileControlYYD, Missile.missileControlYY, timeStep);
+		Missile.missileControlYY = yyNew;
+		Missile.missileControlYYD = yydNew;
+		double deflYaw = GAINFB1 * Missile.missileFLUAcceleration[1] - GAINFB2 * Missile.missileRate[2] + GAINFB3 * Missile.missileControlYY;
+		if (abs(deflYaw) > Missile.missileControlMaxFinDeflection)
+		{
+			if (deflYaw > 0)
+			{
+				deflYaw = Missile.missileControlMaxFinDeflection;
+			}
+			else if (deflYaw < 0)
+			{
+				deflYaw = -1 * Missile.missileControlMaxFinDeflection;
+			}
+		}
+		Missile.missileYawFinCommand = deflYaw * degToRad;
+
+	}
+	else if (Missile.missileMachSpeed > 0.1) // Rate lock.
+	{
+
+		double DNA = Missile.missileCNA * (Missile.missileDynamicPressure * Missile.missileReferenceArea / Missile.missileMass); // METERS PER SECOND^2
+		double DND = Missile.missileCND * (Missile.missileDynamicPressure * Missile.missileReferenceArea / Missile.missileMass); // METERS PER SECOND^2
+		double DMA = Missile.missileCMA * (Missile.missileDynamicPressure * Missile.missileReferenceArea * Missile.missileReferenceDiameter / Missile.missileTransverseMomentOfInertia); // PER SECOND^2
+		double DMD = Missile.missileCMD * (Missile.missileDynamicPressure * Missile.missileReferenceArea * Missile.missileReferenceDiameter / Missile.missileTransverseMomentOfInertia); // PER SECOND^2
+		double DMQ = Missile.missileCMQ * (Missile.missileReferenceDiameter / (2 * Missile.missileSpeed)) * (Missile.missileDynamicPressure * Missile.missileReferenceArea * Missile.missileReferenceDiameter / Missile.missileTransverseMomentOfInertia); // PER SECOND
+		double DLP = Missile.missileCLP * (Missile.missileReferenceDiameter / (2 * Missile.missileSpeed)) * (Missile.missileDynamicPressure * Missile.missileReferenceArea * Missile.missileReferenceDiameter / Missile.missileAxialMomentOfInertia); // PER SECOND
+		double DLD = Missile.missileCLD * (Missile.missileDynamicPressure * Missile.missileReferenceArea * Missile.missileReferenceDiameter / Missile.missileAxialMomentOfInertia); // PER SECOND^2
+
+		// ROLL
+		double GKP = (2 * Missile.missileRollControlWN * Missile.missileRollControlZETA + DLP) / DLD;
+		double GKPHI = Missile.missileRollControlWN * Missile.missileRollControlWN / DLD;
+		double EPHI = GKPHI * (Missile.missileRollAngleCommand - Missile.missileENUEulerAngles[0]);
+		Missile.missileRollFinCommand = EPHI - GKP * Missile.missileRate[0];
+
+		// RATE CONTROL
+		double ZRATE = DNA / Missile.missileSpeed - DMA * DND / (Missile.missileSpeed * DMD); // ND
+		double AA = DNA / Missile.missileSpeed - DMQ; // ND
+		double BB = -1 * DMA - DMQ * DNA / Missile.missileSpeed; // ND
+		double TEMP1 = AA - 2 * Missile.missileConstantRateControlZETA * Missile.missileConstantRateControlZETA * ZRATE; // ND
+		double TEMP2 = AA * AA - 4 * Missile.missileConstantRateControlZETA * Missile.missileConstantRateControlZETA * BB; // ND
+		double RADIX = TEMP1 * TEMP1 - TEMP2; // ND
+		double GRATE = (-1 * TEMP1 + sqrt(RADIX)) / (-1 * DMD); // ND
+
+		// PITCH
+		Missile.missilePitchFinCommand = GRATE * Missile.missileRate[1]; // RADIANS
+
+		// YAW
+		Missile.missileYawFinCommand = GRATE * Missile.missileRate[2]; // RADIANS
+
+	}
+	else // Free flight.
+	{
+		Missile.missileRollFinCommand = 0.0;
+		Missile.missilePitchFinCommand = 0.0;
+		Missile.missileYawFinCommand = 0.0;
+	}
+
+}
+
 int main()
 {
 
 	MissilePacket originalMissile;
-	auto copiedMissile = originalMissile;
+	auto copiedMissile = originalMissile; // Just a test. Works great. No pointers makes it easy!
 	lookUpTablesFormat(originalMissile, "shortRangeInterceptorTables.txt");
 	initializeMissile(originalMissile, "input.txt");
 
@@ -735,6 +846,7 @@ int main()
 	atmosphere(originalMissile);
 	seeker(originalMissile);
 	guidance(originalMissile);
+	control(originalMissile);
 
 	cout << "HOWDY WORLD, FROM CPP NOVICE." << endl;
 	cout << "\n";
