@@ -1,3 +1,3 @@
-/home/graham/codeBase/CPP_NOVICE/CMakeFiles/rebuild_cache.dir
-/home/graham/codeBase/CPP_NOVICE/CMakeFiles/edit_cache.dir
-/home/graham/codeBase/CPP_NOVICE/CMakeFiles/NOVICE_CPP.dir
+/home/graham/docs/codeBase/CPP_NOVICE/CMakeFiles/rebuild_cache.dir
+/home/graham/docs/codeBase/CPP_NOVICE/CMakeFiles/edit_cache.dir
+/home/graham/docs/codeBase/CPP_NOVICE/CMakeFiles/NOVICE_CPP.dir
