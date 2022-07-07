@@ -5,7 +5,7 @@
 		"name": "g++ build and debug active file",
 		"type": "cppdbg",
 		"request": "launch",
-		"program": "/home/graham/docs/codeBase/CPP_NOVICE/NOVICE_CPP",
+		"program": "/home/graham/codeBase/CPP_NOVICE/NOVICE_CPP",
 		"args": [],
 		"stopAtEntry": false,
 		"cwd": "${workspaceFolder}",

@@ -1034,7 +1034,7 @@ void aeroBallisticAnglesAndConversions(MissilePacket &Missile)
 	Missile.totalFinDeflectionDegrees = (abs(Missile.pitchDeflectionAeroBallisticFrameDegrees) + abs(Missile.yawDeflectionAeroBallisticFrameDegrees)) / 2;
 	double pitchRateAeroFrame = Missile.bodyRate[1] * Missile.cosPhiPrime - Missile.bodyRate[2] * Missile.sinPhiPrime;
 	Missile.pitchRateAeroBallisticFrameDegrees = radToDeg * pitchRateAeroFrame;
-	double yawRateAeroFrame = Missile.bodyRate[1] * missile.sinPhiPrime + Missile.bodyRate[2] * Missile.cosPhiPrime;
+	double yawRateAeroFrame = Missile.bodyRate[1] * Missile.sinPhiPrime + Missile.bodyRate[2] * Missile.cosPhiPrime;
 	Missile.yawRateAeroBallisticFrameDegrees = radToDeg * yawRateAeroFrame;
 	Missile.rollRateDegrees = radToDeg * Missile.bodyRate[0];
 	Missile.sinOfFourTimesPhiPrime = sin(4 * phiPrime);
@@ -1064,25 +1064,55 @@ void dataLookUp(MissilePacket &Missile)
 	}
 	index = Missile.tableNameIndexPairs["CYP"];
 	Missile.CYP = biLinearInterpolationWithBoundedBorders(Missile.tables[index], Missile.machSpeed, Missile.alphaPrimeDegrees);
-	Missile.CYDR = biLinearInterpolationWithBoundedBorders("CYDR", mslMach, alphaPrimeDeg);
-	Missile.CN0 = biLinearInterpolationWithBoundedBorders("CN0", mslMach, alphaPrimeDeg);
-	Missile.CNP = biLinearInterpolationWithBoundedBorders("CNP", mslMach, alphaPrimeDeg);
-	Missile.CNDQ = biLinearInterpolationWithBoundedBorders("CNDQ", mslMach, alphaPrimeDeg);
-	Missile.CLLAP = biLinearInterpolationWithBoundedBorders("CLLAP", mslMach, alphaPrimeDeg);
-	Missile.CLLP = biLinearInterpolationWithBoundedBorders("CLLP", mslMach, alphaPrimeDeg);
-	Missile.CLLDP = biLinearInterpolationWithBoundedBorders("CLLDP", mslMach, alphaPrimeDeg);
-	Missile.CLM0 = biLinearInterpolationWithBoundedBorders("CLM0", mslMach, alphaPrimeDeg);
-	Missile.CLMP = biLinearInterpolationWithBoundedBorders("CLMP", mslMach, alphaPrimeDeg);
-	Missile.CLMQ = linearInterpolationWithBoundedEnds("CLMQ", mslMach);
-	Missile.CLMDQ = biLinearInterpolationWithBoundedBorders("CLMDQ", mslMach, alphaPrimeDeg);
-	Missile.CLNP = biLinearInterpolationWithBoundedBorders("CLNP", mslMach, alphaPrimeDeg);
-	Missile.mass = linearInterpolationWithBoundedEnds("MASS", mslTof);
-	Missile.unadjustedThrust = linearInterpolationWithBoundedEnds("THRUST", mslTof);
-	Missile.transverseMomentOfInertia = linearInterpolationWithBoundedEnds("TMOI", mslTof);
-	Missile.axialMomentOfInertia = linearInterpolationWithBoundedEnds("AMOI", mslTof);
-	Missile.centerOfGravityFromNose = linearInterpolationWithBoundedEnds("CG", mslTof);
+	index = Missile.tableNameIndexPairs["CYDR"];
+	Missile.CYDR = biLinearInterpolationWithBoundedBorders(Missile.tables[index], Missile.machSpeed, Missile.alphaPrimeDegrees);
+	index = Missile.tableNameIndexPairs["CN0"];
+	Missile.CN0 = biLinearInterpolationWithBoundedBorders(Missile.tables[index], Missile.machSpeed, Missile.alphaPrimeDegrees);
+	index = Missile.tableNameIndexPairs["CNP"];
+	Missile.CNP = biLinearInterpolationWithBoundedBorders(Missile.tables[index], Missile.machSpeed, Missile.alphaPrimeDegrees);
+	index = Missile.tableNameIndexPairs["CNDQ"];
+	Missile.CNDQ = biLinearInterpolationWithBoundedBorders(Missile.tables[index], Missile.machSpeed, Missile.alphaPrimeDegrees);
+	index = Missile.tableNameIndexPairs["CLLAP"];
+	Missile.CLLAP = biLinearInterpolationWithBoundedBorders(Missile.tables[index], Missile.machSpeed, Missile.alphaPrimeDegrees);
+	index = Missile.tableNameIndexPairs["CLLP"];
+	Missile.CLLP = biLinearInterpolationWithBoundedBorders(Missile.tables[index], Missile.machSpeed, Missile.alphaPrimeDegrees);
+	index = Missile.tableNameIndexPairs["CLLDP"];
+	Missile.CLLDP = biLinearInterpolationWithBoundedBorders(Missile.tables[index], Missile.machSpeed, Missile.alphaPrimeDegrees);
+	index = Missile.tableNameIndexPairs["CLM0"];
+	Missile.CLM0 = biLinearInterpolationWithBoundedBorders(Missile.tables[index], Missile.machSpeed, Missile.alphaPrimeDegrees);
+	index = Missile.tableNameIndexPairs["CLMP"];
+	Missile.CLMP = biLinearInterpolationWithBoundedBorders(Missile.tables[index], Missile.machSpeed, Missile.alphaPrimeDegrees);
+	index = Missile.tableNameIndexPairs["CLMQ"];
+	Missile.CLMQ = linearInterpolationWithBoundedEnds(Missile.tables[index], Missile.machSpeed);
+	index = Missile.tableNameIndexPairs["CLMDQ"];
+	Missile.CLMDQ = biLinearInterpolationWithBoundedBorders(Missile.tables[index], Missile.machSpeed, Missile.alphaPrimeDegrees);
+	index = Missile.tableNameIndexPairs["CLNP"]
+;	Missile.CLNP = biLinearInterpolationWithBoundedBorders(Missile.tables[index], Missile.machSpeed, Missile.alphaPrimeDegrees);
+	index = Missile.tableNameIndexPairs["MASS"];
+	Missile.mass = linearInterpolationWithBoundedEnds(Missile.tables[index], Missile.timeOfFlight);
+	index = Missile.tableNameIndexPairs["THRUST"];
+	Missile.unadjustedThrust = linearInterpolationWithBoundedEnds(Missile.tables[index], Missile.timeOfFlight);
+	index = Missile.tableNameIndexPairs["TMOI"];
+	Missile.transverseMomentOfInertia = linearInterpolationWithBoundedEnds(Missile.tables[index], Missile.timeOfFlight);
+	index = Missile.tableNameIndexPairs["AMOI"];
+	Missile.axialMomentOfInertia = linearInterpolationWithBoundedEnds(Missile.tables[index], Missile.timeOfFlight);
+	index = Missile.tableNameIndexPairs["CG"];
+	Missile.centerOfGravityFromNose = linearInterpolationWithBoundedEnds(Missile.tables[index], Missile.timeOfFlight);
 
 }
+
+void propulsion(MissilePacket &Missile)
+{
+	if (Missile.timeOfFlight >= ROCKET_BURN_OUT_TIME)
+	{
+		Missile.thrust = 0.0;
+	}
+	else
+	{
+		Missile.thrust = Missile.unadjustedThrust + (SEA_LEVEL_PRESSURE - Missile.pressure) * THRUST_EXIT_AREA;
+	}
+}
+
 
 int main()
 {
@@ -1099,6 +1129,8 @@ int main()
 	guidance(originalMissile);
 	control(originalMissile);
 	aeroBallisticAnglesAndConversions(originalMissile);
+	dataLookUp(originalMissile);
+	propulsion(originalMissile);
 
 	cout << "HOWDY WORLD, FROM CPP NOVICE." << endl;
 	cout << "\n";

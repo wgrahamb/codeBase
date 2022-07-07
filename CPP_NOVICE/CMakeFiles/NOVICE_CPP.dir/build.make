@@ -43,10 +43,10 @@ RM = /usr/bin/cmake -E remove -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/graham/docs/codeBase/CPP_NOVICE
+CMAKE_SOURCE_DIR = /home/graham/codeBase/CPP_NOVICE
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/graham/docs/codeBase/CPP_NOVICE
+CMAKE_BINARY_DIR = /home/graham/codeBase/CPP_NOVICE
 
 # Include any dependencies generated for this target.
 include CMakeFiles/NOVICE_CPP.dir/depend.make
@@ -59,29 +59,29 @@ include CMakeFiles/NOVICE_CPP.dir/flags.make
 
 CMakeFiles/NOVICE_CPP.dir/NOVICE.cpp.o: CMakeFiles/NOVICE_CPP.dir/flags.make
 CMakeFiles/NOVICE_CPP.dir/NOVICE.cpp.o: NOVICE.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/graham/docs/codeBase/CPP_NOVICE/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/NOVICE_CPP.dir/NOVICE.cpp.o"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/NOVICE_CPP.dir/NOVICE.cpp.o -c /home/graham/docs/codeBase/CPP_NOVICE/NOVICE.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/graham/codeBase/CPP_NOVICE/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/NOVICE_CPP.dir/NOVICE.cpp.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/NOVICE_CPP.dir/NOVICE.cpp.o -c /home/graham/codeBase/CPP_NOVICE/NOVICE.cpp
 
 CMakeFiles/NOVICE_CPP.dir/NOVICE.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/NOVICE_CPP.dir/NOVICE.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/graham/docs/codeBase/CPP_NOVICE/NOVICE.cpp > CMakeFiles/NOVICE_CPP.dir/NOVICE.cpp.i
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/graham/codeBase/CPP_NOVICE/NOVICE.cpp > CMakeFiles/NOVICE_CPP.dir/NOVICE.cpp.i
 
 CMakeFiles/NOVICE_CPP.dir/NOVICE.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/NOVICE_CPP.dir/NOVICE.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/graham/docs/codeBase/CPP_NOVICE/NOVICE.cpp -o CMakeFiles/NOVICE_CPP.dir/NOVICE.cpp.s
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/graham/codeBase/CPP_NOVICE/NOVICE.cpp -o CMakeFiles/NOVICE_CPP.dir/NOVICE.cpp.s
 
 CMakeFiles/NOVICE_CPP.dir/util.cpp.o: CMakeFiles/NOVICE_CPP.dir/flags.make
 CMakeFiles/NOVICE_CPP.dir/util.cpp.o: util.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/graham/docs/codeBase/CPP_NOVICE/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/NOVICE_CPP.dir/util.cpp.o"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/NOVICE_CPP.dir/util.cpp.o -c /home/graham/docs/codeBase/CPP_NOVICE/util.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/graham/codeBase/CPP_NOVICE/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/NOVICE_CPP.dir/util.cpp.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/NOVICE_CPP.dir/util.cpp.o -c /home/graham/codeBase/CPP_NOVICE/util.cpp
 
 CMakeFiles/NOVICE_CPP.dir/util.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/NOVICE_CPP.dir/util.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/graham/docs/codeBase/CPP_NOVICE/util.cpp > CMakeFiles/NOVICE_CPP.dir/util.cpp.i
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/graham/codeBase/CPP_NOVICE/util.cpp > CMakeFiles/NOVICE_CPP.dir/util.cpp.i
 
 CMakeFiles/NOVICE_CPP.dir/util.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/NOVICE_CPP.dir/util.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/graham/docs/codeBase/CPP_NOVICE/util.cpp -o CMakeFiles/NOVICE_CPP.dir/util.cpp.s
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/graham/codeBase/CPP_NOVICE/util.cpp -o CMakeFiles/NOVICE_CPP.dir/util.cpp.s
 
 # Object files for target NOVICE_CPP
 NOVICE_CPP_OBJECTS = \
@@ -95,7 +95,7 @@ NOVICE_CPP: CMakeFiles/NOVICE_CPP.dir/NOVICE.cpp.o
 NOVICE_CPP: CMakeFiles/NOVICE_CPP.dir/util.cpp.o
 NOVICE_CPP: CMakeFiles/NOVICE_CPP.dir/build.make
 NOVICE_CPP: CMakeFiles/NOVICE_CPP.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/graham/docs/codeBase/CPP_NOVICE/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Linking CXX executable NOVICE_CPP"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/graham/codeBase/CPP_NOVICE/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Linking CXX executable NOVICE_CPP"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/NOVICE_CPP.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.
@@ -108,6 +108,6 @@ CMakeFiles/NOVICE_CPP.dir/clean:
 .PHONY : CMakeFiles/NOVICE_CPP.dir/clean
 
 CMakeFiles/NOVICE_CPP.dir/depend:
-	cd /home/graham/docs/codeBase/CPP_NOVICE && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/graham/docs/codeBase/CPP_NOVICE /home/graham/docs/codeBase/CPP_NOVICE /home/graham/docs/codeBase/CPP_NOVICE /home/graham/docs/codeBase/CPP_NOVICE /home/graham/docs/codeBase/CPP_NOVICE/CMakeFiles/NOVICE_CPP.dir/DependInfo.cmake --color=$(COLOR)
+	cd /home/graham/codeBase/CPP_NOVICE && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/graham/codeBase/CPP_NOVICE /home/graham/codeBase/CPP_NOVICE /home/graham/codeBase/CPP_NOVICE /home/graham/codeBase/CPP_NOVICE /home/graham/codeBase/CPP_NOVICE/CMakeFiles/NOVICE_CPP.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : CMakeFiles/NOVICE_CPP.dir/depend
 
