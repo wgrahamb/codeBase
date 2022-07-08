@@ -343,6 +343,22 @@ void divideVectorByScalar(double scalar, double vec[3], double out[3])
 	out[2] = vec[2] / scalar;
 }
 
+// Graham Beech.
+void setArrayEquivalentToReference(double arrayToBeChanged[3], double reference[3])
+{
+	arrayToBeChanged[0] = reference[0];
+	arrayToBeChanged[1] = reference[1];
+	arrayToBeChanged[2] = reference[2];
+}
+
+// Graham Beech.
+void setArrayEquivalentToZero(double array[3])
+{
+	array[0] = 0.0;
+	array[1] = 0.0;
+	array[2] = 0.0;
+}
+
 // GRAHAM BEECH
 double linearInterpolationWithBoundedEnds(std::vector<std::vector<double>> table, double tableInput)
 {

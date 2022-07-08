@@ -35,6 +35,8 @@ void dotProductTwoVectors (double vec1[3], double vec2[3], double &out);
 void vectorProjection (double uv[3], double vec[3], double out[3]);
 void multiplyVectorTimesScalar(double scalar, double vec[3], double out[3]);
 void divideVectorByScalar(double scalar, double vec[3], double out[3]);
+void setArrayEquivalentToReference(double arrayToBeChanged[3], double reference[3]);
+void setArrayEquivalentToZero(double array[3]);
 double linearInterpolationWithBoundedEnds(std::vector<std::vector<double>> table, double tableInput);
 double biLinearInterpolationWithBoundedBorders(std::vector<std::vector<double>> table, double tableRowInput, double tableColumnInput);
 
