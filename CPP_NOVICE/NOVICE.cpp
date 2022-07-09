@@ -531,8 +531,8 @@ void initializeMissile(MissilePacket &Missile, string inputFile)
 		missileToInterceptFLURelativePositionElevation,
 		missileToInterceptFLURelativePositionUnit
 	);
-	Missile.seekerPitch = missileToInterceptFLURelativePositionAzimuth;
-	Missile.seekerYaw = missileToInterceptFLURelativePositionElevation;
+	Missile.seekerPitch = missileToInterceptFLURelativePositionElevation;
+	Missile.seekerYaw = missileToInterceptFLURelativePositionAzimuth;
 	flightPathAnglesToLocalOrientation(
 		missileToInterceptFLURelativePositionAzimuth,
 		-missileToInterceptFLURelativePositionElevation,
@@ -650,7 +650,7 @@ void seeker(MissilePacket &Missile)
 	Missile.seekerWLQ2D = wlq2d_new;
 
 	// Pitch control.
-	wlrd_new = Missile.seekerWLQ1 - Missile.bodyRate[1];
+	wlqd_new = Missile.seekerWLQ1 - Missile.bodyRate[1];
 	wlq_new = trapezoidIntegrate(wlqd_new, Missile.seekerWLQD, Missile.seekerWLQ, TIME_STEP);
 	Missile.seekerWLQ = wlq_new;
 	Missile.seekerWLQD = wlqd_new;
@@ -706,7 +706,7 @@ void guidance(MissilePacket &Missile)
 	magnitude(Missile.missileToInterceptFLURelativePosition, forwardLeftUpMissileToInterceptPositionMagnitude);
 	magnitude(forwardLeftUpMissileToInterceptLineOfSightVel, forwardLeftUpMissileToInterceptLineOfSightVelMagnitude);
 	timeToGo = forwardLeftUpMissileToInterceptPositionMagnitude / forwardLeftUpMissileToInterceptLineOfSightVelMagnitude;
-	if (timeToGo < 5)
+	if (timeToGo < 50000000000)
 	{
 		double closingVelocity[3];
 		multiplyVectorTimesScalar(-1.0, Missile.FLUVelocity, closingVelocity);
@@ -718,7 +718,6 @@ void guidance(MissilePacket &Missile)
 		double lineOfSightRate[3];
 		divideVectorByScalar(TEMP2, TEMP1, lineOfSightRate);
 		double TEMP3, TEMP4[3];
-		double proportionalGuidanceGain = 3.0;
 		TEMP3 = -1 * PROPORTIONAL_GUIDANCE_GAIN * closingSpeed;
 		multiplyVectorTimesScalar(TEMP3, forwardLeftUpMissileToInterceptPositionUnitVector, TEMP4);
 		double COMMAND[3];
@@ -738,6 +737,14 @@ void guidance(MissilePacket &Missile)
 		Missile.guidanceNormalCommand = LINE_OF_ATTACK_GUIDANCE_GAIN * (forwardLeftUpMissileToInterceptLineOfSightVel[2] + G * forwardLeftUpMissileToInterceptLineOfAttackVel[2]);
 		Missile.guidanceSideCommand = LINE_OF_ATTACK_GUIDANCE_GAIN * (forwardLeftUpMissileToInterceptLineOfSightVel[1] + G * forwardLeftUpMissileToInterceptLineOfAttackVel[1]);
 	}
+	double trigRatio = atan2(Missile.guidanceNormalCommand, Missile.guidanceSideCommand);
+	double accMag = sqrt(Missile.guidanceNormalCommand * Missile.guidanceNormalCommand + Missile.guidanceSideCommand * Missile.guidanceSideCommand);
+	if (accMag > Missile.accelerationLimit)
+	{
+		accMag = Missile.accelerationLimit;
+	}
+	Missile.guidanceSideCommand = accMag * cos(trigRatio);
+	Missile.guidanceNormalCommand = accMag * sin(trigRatio);
 
 }
 
@@ -754,7 +761,7 @@ void control(MissilePacket &Missile)
 		double DLP = Missile.CLP * (REFERENCE_DIAMETER / (2 * Missile.speed)) * (Missile.dynamicPressure * REFERENCE_AREA * REFERENCE_DIAMETER / Missile.axialMomentOfInertia); // PER SECOND
 		double DLD = Missile.CLD * (Missile.dynamicPressure * REFERENCE_AREA * REFERENCE_DIAMETER / Missile.axialMomentOfInertia); // PER SECOND^2
 
-		double WACL = 0.013 * sqrt(Missile.dynamicPressure) + 7.1;
+		double WACL = 0.013 * sqrt(Missile.dynamicPressure) + Missile.machSpeed * 11;
 		double ZACL = 0.000559 * sqrt(Missile.dynamicPressure) + 0.232;
 		double PACL = 14;
 
@@ -1108,8 +1115,8 @@ void dataLookUp(MissilePacket &Missile)
 	Missile.CLMQ = linearInterpolationWithBoundedEnds(Missile.tables[index], Missile.machSpeed);
 	index = Missile.tableNameIndexPairs["CLMDQ"];
 	Missile.CLMDQ = biLinearInterpolationWithBoundedBorders(Missile.tables[index], Missile.machSpeed, Missile.alphaPrimeDegrees);
-	index = Missile.tableNameIndexPairs["CLNP"]
-;	Missile.CLNP = biLinearInterpolationWithBoundedBorders(Missile.tables[index], Missile.machSpeed, Missile.alphaPrimeDegrees);
+	index = Missile.tableNameIndexPairs["CLNP"];
+	Missile.CLNP = biLinearInterpolationWithBoundedBorders(Missile.tables[index], Missile.machSpeed, Missile.alphaPrimeDegrees);
 	index = Missile.tableNameIndexPairs["MASS"];
 	Missile.mass = linearInterpolationWithBoundedEnds(Missile.tables[index], Missile.timeOfFlight);
 	index = Missile.tableNameIndexPairs["THRUST"];
@@ -1331,7 +1338,6 @@ void aerodynamicAngles(MissilePacket &Missile)
 {
 
 	threeByThreeTimesThreeByOne(Missile.ENUToFLUMatrix, Missile.ENUVelocity, Missile.FLUVelocity);
-	magnitude(Missile.FLUVelocity, Missile.speed);
 	Missile.alpha = -1.0 * atan2(Missile.FLUVelocity[2], Missile.FLUVelocity[0]);
 	Missile.beta = atan2(Missile.FLUVelocity[1], Missile.FLUVelocity[0]);
 
@@ -1726,8 +1732,10 @@ int main()
 		seeker(originalMissile);
 		guidance(originalMissile);
 		control(originalMissile);
+		actuators(originalMissile);
 		aeroBallisticAnglesAndConversions(originalMissile);
 		dataLookUp(originalMissile);
+		maneuveringLimit(originalMissile);
 		propulsion(originalMissile);
 		aerodynamicIntegrationCoefficients(originalMissile);
 		aerodynamicFeedbackCoefficients(originalMissile);
