@@ -18,7 +18,7 @@ double markovDistribution(double sigma,double bcor,double time,double intstep,do
 double rayleighDistribution(double mode);
 double uniformDistribution(double min,double max);
 double unituni();
-double integrate(double dy_new, double dy, double y, double intStep);
+double trapezoidIntegrate(double dy_new, double dy, double y, double intStep);
 void flightPathAnglesToLocalOrientation (double azimuth, double elevation, double localFrame[3][3]);
 void eulerAnglesToLocalOrientation (double phi, double theta, double psi, double matrix[3][3]);
 void unitVec (double vector[3], double unitVector[3]);
@@ -35,6 +35,8 @@ void dotProductTwoVectors (double vec1[3], double vec2[3], double &out);
 void vectorProjection (double uv[3], double vec[3], double out[3]);
 void multiplyVectorTimesScalar(double scalar, double vec[3], double out[3]);
 void divideVectorByScalar(double scalar, double vec[3], double out[3]);
+void setArrayEquivalentToReference(double arrayToBeChanged[3], double reference[3]);
+void setArrayEquivalentToZero(double array[3]);
 double linearInterpolationWithBoundedEnds(std::vector<std::vector<double>> table, double tableInput);
 double biLinearInterpolationWithBoundedBorders(std::vector<std::vector<double>> table, double tableRowInput, double tableColumnInput);
 

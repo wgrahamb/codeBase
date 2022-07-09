@@ -58,6 +58,7 @@ using namespace std;
 // Simulation control.
 const double TIME_STEP = 1.0 / 1000.0;
 const double HALF_TIME_STEP = TIME_STEP / 2.0;
+const double MAX_TIME = 400.0;
 
 /* Missile constants. */
 const double REFERENCE_AREA = 0.01824; // M^2.
@@ -134,21 +135,21 @@ struct MissilePacket
 
 	// Guidance.
 	double missileToInterceptFLURelativePosition[3] = {0.0, 0.0, 0.0}; // Meters.
-	double missileGuidanceNormalCommand = 0.0; // Meters per s^2.
-	double missileGuidanceSideCommand = 0.0; // Meters per s^2.
+	double guidanceNormalCommand = 0.0; // Meters per s^2.
+	double guidanceSideCommand = 0.0; // Meters per s^2.
 	double accelerationLimit = 0.0; // Meters per s^2.
 
 	// Control.
 	double controlYY = 0.0; // Yaw feed forward integration. Meters per second.
 	double controlYYD = 0.0; // Yaw feed forward derivative. Meters per second.
-	double missileControlZZ = 0.0; // Pitch feed forward integration. Meters per second.
-	double missileControlZZD = 0.0; // Pitch feed forward derivative. Meters per second.
-	double missileRollFinCommand = 0.0; // Radians.
-	double missilePitchFinCommand = 0.0; // Radians.
+	double controlZZ = 0.0; // Pitch feed forward integration. Meters per second.
+	double controlZZD = 0.0; // Pitch feed forward derivative. Meters per second.
+	double rollFinCommand = 0.0; // Radians.
+	double pitchFinCommand = 0.0; // Radians.
 	double yawFinCommand = 0.0; // Radians.
 
 	// Actuators.
-	double rollFinDeflectionRadians = 0.0; // Radians.
+	double rollFinDeflection = 0.0; // Radians.
 	double pitchFinDeflection = 0.0; // Radians.
 	double yawFinDeflection = 0.0; // Radians.
 	double DEL1 = 0.0; // Radians.
@@ -563,13 +564,6 @@ void initializeMissile(MissilePacket &Missile, string inputFile)
 
 }
 
-void timeOfFlight(MissilePacket &Missile)
-{
-
-	Missile.timeOfFlight += TIME_STEP;
-
-}
-
 void atmosphere(MissilePacket &Missile)
 {
 
@@ -729,8 +723,8 @@ void guidance(MissilePacket &Missile)
 		multiplyVectorTimesScalar(TEMP3, forwardLeftUpMissileToInterceptPositionUnitVector, TEMP4);
 		double COMMAND[3];
 		crossProductTwoVectors(TEMP4, lineOfSightRate, COMMAND);
-		Missile.missileGuidanceNormalCommand = COMMAND[2];
-		Missile.missileGuidanceSideCommand = COMMAND[1];
+		Missile.guidanceNormalCommand = COMMAND[2];
+		Missile.guidanceSideCommand = COMMAND[1];
 	}
 	else
 	{
@@ -741,8 +735,8 @@ void guidance(MissilePacket &Missile)
 		double forwardLeftUpMissileToInterceptLineOfAttackVel[3];
 		vectorProjection(lineOfAttack, Missile.FLUVelocity, forwardLeftUpMissileToInterceptLineOfAttackVel);
 		double G = 1 - exp(-0.001 * forwardLeftUpMissileToInterceptPositionMagnitude);
-		Missile.missileGuidanceNormalCommand = LINE_OF_ATTACK_GUIDANCE_GAIN * (forwardLeftUpMissileToInterceptLineOfSightVel[2] + G * forwardLeftUpMissileToInterceptLineOfAttackVel[2]);
-		Missile.missileGuidanceSideCommand = LINE_OF_ATTACK_GUIDANCE_GAIN * (forwardLeftUpMissileToInterceptLineOfSightVel[1] + G * forwardLeftUpMissileToInterceptLineOfAttackVel[1]);
+		Missile.guidanceNormalCommand = LINE_OF_ATTACK_GUIDANCE_GAIN * (forwardLeftUpMissileToInterceptLineOfSightVel[2] + G * forwardLeftUpMissileToInterceptLineOfAttackVel[2]);
+		Missile.guidanceSideCommand = LINE_OF_ATTACK_GUIDANCE_GAIN * (forwardLeftUpMissileToInterceptLineOfSightVel[1] + G * forwardLeftUpMissileToInterceptLineOfAttackVel[1]);
 	}
 
 }
@@ -775,14 +769,14 @@ void control(MissilePacket &Missile)
 		double GKP = (2 * ROLL_CONTROL_WN * ROLL_CONTROL_ZETA + DLP) / DLD;
 		double GKPHI = ROLL_CONTROL_WN * ROLL_CONTROL_WN / DLD;
 		double EPHI = GKPHI * (ROLL_ANGLE_COMMAND - Missile.ENUEulerAngles[0]);
-		Missile.missileRollFinCommand = EPHI - GKP * Missile.bodyRate[0];
+		Missile.rollFinCommand = EPHI - GKP * Missile.bodyRate[0];
 
 		// PITCH
-		double zzdNew = Missile.missileGuidanceNormalCommand - Missile.FLUAcceleration[2];
-		double zzNew = trapezoidIntegrate(zzdNew, Missile.missileControlZZD, Missile.missileControlZZ, TIME_STEP);
-		Missile.missileControlZZ = zzNew;
-		Missile.missileControlZZD = zzdNew;
-		double deflPitch = -1 * GAINFB1 * Missile.FLUAcceleration[2] - GAINFB2 * Missile.bodyRate[1] + GAINFB3 * Missile.missileControlZZ;
+		double zzdNew = Missile.guidanceNormalCommand - Missile.FLUAcceleration[2];
+		double zzNew = trapezoidIntegrate(zzdNew, Missile.controlZZD, Missile.controlZZ, TIME_STEP);
+		Missile.controlZZ = zzNew;
+		Missile.controlZZD = zzdNew;
+		double deflPitch = -1 * GAINFB1 * Missile.FLUAcceleration[2] - GAINFB2 * Missile.bodyRate[1] + GAINFB3 * Missile.controlZZ;
 		if (abs(deflPitch) > FIN_CONTROL_MAX_DEFLECTION_DEGREES)
 		{
 			if (deflPitch > 0)
@@ -794,10 +788,10 @@ void control(MissilePacket &Missile)
 				deflPitch = -1 * FIN_CONTROL_MAX_DEFLECTION_DEGREES;
 			}
 		}
-		Missile.missilePitchFinCommand = deflPitch * degToRad;
+		Missile.pitchFinCommand = deflPitch * degToRad;
 
 		// YAW
-		double yydNew = Missile.FLUAcceleration[1] - Missile.missileGuidanceSideCommand;
+		double yydNew = Missile.FLUAcceleration[1] - Missile.guidanceSideCommand;
 		double yyNew = trapezoidIntegrate(yydNew, Missile.controlYYD, Missile.controlYY, TIME_STEP);
 		Missile.controlYY = yyNew;
 		Missile.controlYYD = yydNew;
@@ -831,7 +825,7 @@ void control(MissilePacket &Missile)
 		double GKP = (2 * ROLL_CONTROL_WN * ROLL_CONTROL_ZETA + DLP) / DLD;
 		double GKPHI = ROLL_CONTROL_WN * ROLL_CONTROL_WN / DLD;
 		double EPHI = GKPHI * (ROLL_ANGLE_COMMAND - Missile.ENUEulerAngles[0]);
-		Missile.missileRollFinCommand = EPHI - GKP * Missile.bodyRate[0];
+		Missile.rollFinCommand = EPHI - GKP * Missile.bodyRate[0];
 
 		// RATE CONTROL
 		double ZRATE = DNA / Missile.speed - DMA * DND / (Missile.speed * DMD); // ND
@@ -843,7 +837,7 @@ void control(MissilePacket &Missile)
 		double GRATE = (-1 * TEMP1 + sqrt(RADIX)) / (-1 * DMD); // ND
 
 		// PITCH
-		Missile.missilePitchFinCommand = GRATE * Missile.bodyRate[1]; // RADIANS
+		Missile.pitchFinCommand = GRATE * Missile.bodyRate[1]; // RADIANS
 
 		// YAW
 		Missile.yawFinCommand = GRATE * Missile.bodyRate[2]; // RADIANS
@@ -851,8 +845,8 @@ void control(MissilePacket &Missile)
 	}
 	else // Free flight.
 	{
-		Missile.missileRollFinCommand = 0.0;
-		Missile.missilePitchFinCommand = 0.0;
+		Missile.rollFinCommand = 0.0;
+		Missile.pitchFinCommand = 0.0;
 		Missile.yawFinCommand = 0.0;
 	}
 
@@ -861,10 +855,10 @@ void control(MissilePacket &Missile)
 void actuators(MissilePacket &Missile)
 {
 
-	double DEL1C = -Missile.missileRollFinCommand + Missile.missilePitchFinCommand - Missile.yawFinCommand;
-	double DEL2C = -Missile.missileRollFinCommand + Missile.missilePitchFinCommand + Missile.yawFinCommand;
-	double DEL3C = Missile.missileRollFinCommand + Missile.missilePitchFinCommand - Missile.yawFinCommand;
-	double DEL4C = Missile.missileRollFinCommand + Missile.missilePitchFinCommand + Missile.yawFinCommand;
+	double DEL1C = -Missile.rollFinCommand + Missile.pitchFinCommand - Missile.yawFinCommand;
+	double DEL2C = -Missile.rollFinCommand + Missile.pitchFinCommand + Missile.yawFinCommand;
+	double DEL3C = Missile.rollFinCommand + Missile.pitchFinCommand - Missile.yawFinCommand;
+	double DEL4C = Missile.rollFinCommand + Missile.pitchFinCommand + Missile.yawFinCommand;
 
 	int flag;
 
@@ -1040,7 +1034,7 @@ void actuators(MissilePacket &Missile)
 		Missile.DEL4DOTDOT = 0.0;
 	}
 
-	Missile.rollFinDeflectionRadians = (-Missile.DEL1 - Missile.DEL2 + Missile.DEL3 + Missile.DEL4) / 4;
+	Missile.rollFinDeflection = (-Missile.DEL1 - Missile.DEL2 + Missile.DEL3 + Missile.DEL4) / 4;
 	Missile.pitchFinDeflection = (Missile.DEL1 + Missile.DEL2 + Missile.DEL3 + Missile.DEL4) / 4;
 	Missile.yawFinDeflection = (-Missile.DEL1 + Missile.DEL2 - Missile.DEL3 + Missile.DEL4) / 4;
 
@@ -1058,7 +1052,7 @@ void aeroBallisticAnglesAndConversions(MissilePacket &Missile)
 	Missile.pitchDeflectionAeroBallisticFrameDegrees = radToDeg * pitchDeflAeroFrame;
 	double yawDeflAeroFrame = Missile.pitchFinDeflection * Missile.sinPhiPrime + Missile.yawFinDeflection * Missile.cosPhiPrime;
 	Missile.yawDeflectionAeroBallisticFrameDegrees = radToDeg * yawDeflAeroFrame;
-	Missile.rollFinDeflectionDegrees = radToDeg * Missile.rollFinDeflectionRadians;
+	Missile.rollFinDeflectionDegrees = radToDeg * Missile.rollFinDeflection;
 	Missile.totalFinDeflectionDegrees = (abs(Missile.pitchDeflectionAeroBallisticFrameDegrees) + abs(Missile.yawDeflectionAeroBallisticFrameDegrees)) / 2;
 	double pitchRateAeroFrame = Missile.bodyRate[1] * Missile.cosPhiPrime - Missile.bodyRate[2] * Missile.sinPhiPrime;
 	Missile.pitchRateAeroBallisticFrameDegrees = radToDeg * pitchRateAeroFrame;
@@ -1232,6 +1226,10 @@ void eulerIntegrateStates(MissilePacket &Missile)
 	multiplyVectorTimesScalar(TIME_STEP, Missile.V0, deltaPos);
 	addTwoVectors(Missile.P0, deltaPos, Missile.P1);
 
+	double distanceTravelled;
+	magnitude(deltaPos, distanceTravelled);
+	Missile.range += distanceTravelled;
+
 	double deltaVel[3];
 	multiplyVectorTimesScalar(TIME_STEP, Missile.A1, deltaVel);
 	addTwoVectors(Missile.V0, deltaVel, Missile.V1);
@@ -1325,31 +1323,455 @@ void missileMotion(MissilePacket &Missile)
 		rk4IntegrateStates(Missile);
 	}
 
+	eulerAnglesToLocalOrientation(Missile.ENUEulerAngles[0], -1.0 * Missile.ENUEulerAngles[1], Missile.ENUEulerAngles[2], Missile.ENUToFLUMatrix);
+
+}
+
+void aerodynamicAngles(MissilePacket &Missile)
+{
+
+	threeByThreeTimesThreeByOne(Missile.ENUToFLUMatrix, Missile.ENUVelocity, Missile.FLUVelocity);
+	magnitude(Missile.FLUVelocity, Missile.speed);
+	Missile.alpha = -1.0 * atan2(Missile.FLUVelocity[2], Missile.FLUVelocity[0]);
+	Missile.beta = atan2(Missile.FLUVelocity[1], Missile.FLUVelocity[0]);
+
+}
+
+void writeLogFileHeader(ofstream &logFile)
+{
+
+	// Logging everything.
+	logFile << fixed << setprecision(10) <<
+	"tgtE" <<
+	" " << "tgtN" <<
+	" " << "tgtU" <<
+	" " << "tof" <<
+	" " << "posE" <<
+	" " << "posN" <<
+	" " << "posU" <<
+	" " << "range" <<
+	" " << "velE" <<
+	" " << "velN" <<
+	" " << "velU" <<
+	" " << "u" <<
+	" " << "v" <<
+	" " << "w" <<
+	" " << "speed" <<
+	" " << "mach" <<
+	" " << "accE" <<
+	" " << "accN" <<
+	" " << "accU" <<
+	" " << "udot" <<
+	" " << "vdot" <<
+	" " << "wdot" <<
+	" " << "ENUToFLU_0_0" <<
+	" " << "ENUToFLU_0_1" <<
+	" " << "ENUToFLU_0_2" <<
+	" " << "ENUToFLU_1_0" <<
+	" " << "ENUToFLU_1_1" <<
+	" " << "ENUToFLU_1_2" <<
+	" " << "ENUToFLU_2_0" <<
+	" " << "ENUToFLU_2_1" <<
+	" " << "ENUToFLU_2_2" <<
+	" " << "alpha" <<
+	" " << "beta" <<
+	" " << "phi" <<
+	" " << "theta" <<
+	" " << "psi" <<
+	" " << "phiDot" <<
+	" " << "thetaDot" <<
+	" " << "psiDot" <<
+	" " << "p" <<
+	" " << "q" <<
+	" " << "r" <<
+	" " << "pdot" <<
+	" " << "qdot" <<
+	" " << "rdot" <<
+	" " << "gravity" <<
+	" " << "axialGravity" <<
+	" " << "sideGravity" <<
+	" " << "normalGravity" <<
+	" " << "pressure" <<
+	" " << "dynamicPressure" <<
+	" " << "seekerPitch" <<
+	" " << "seekerYaw" <<
+	" " << "seekerENUToFLU_0_0" <<
+	" " << "seekerENUToFLU_0_1" <<
+	" " << "seekerENUToFLU_0_2" <<
+	" " << "seekerENUToFLU_1_0" <<
+	" " << "seekerENUToFLU_1_1" <<
+	" " << "seekerENUToFLU_1_2" <<
+	" " << "seekerENUToFLU_2_0" <<
+	" " << "seekerENUToFLU_2_1" <<
+	" " << "seekerENUToFLU_2_2" <<
+	" " << "seekerPitchError" <<
+	" " << "seekerYawError" <<
+	" " << "seekerWLR" <<
+	" " << "seekerWLRD" <<
+	" " << "seekerWLR1" <<
+	" " << "seekerWLR1D" <<
+	" " << "seekerWLR2" <<
+	" " << "seekerWLR2D" <<
+	" " << "seekerWLQ" <<
+	" " << "seekerWLQD" <<
+	" " << "seekerWLQ1" <<
+	" " << "seekerWLQ1D" <<
+	" " << "seekerWLQ2" <<
+	" " << "seekerWLQ2D" <<
+	" " << "missileToInterceptRelativePositionForward"
+	" " << "missileToInterceptRelativePositionLeft"
+	" " << "missileToInterceptRelativePositionUp"
+	" " << "guidanceNormalCommand" <<
+	" " << "guidanceSideCommand" <<
+	" " << "accelerationLimit" <<
+	" " << "controlYY" <<
+	" " << "controlYYD" <<
+	" " << "controlZZ" <<
+	" " << "controlZZD" <<
+	" " << "rollFinCommand" <<
+	" " << "pitchFinCommand" <<
+	" " << "yawFinCommand" <<
+	" " << "rollFinDeflection" <<
+	" " << "pitchFinDeflection" <<
+	" " << "yawFinDeflection" <<
+	" " << "finOneDeflection" <<
+	" " << "finOneDeflectionDerived" <<
+	" " << "finOneRate" <<
+	" " << "finOneRateDerived" <<
+	" " << "finTwoDeflection" <<
+	" " << "finTwoDeflectionDerived" <<
+	" " << "finTwoRate" <<
+	" " << "finTwoRateDerived" <<
+	" " << "finThreeDeflection" <<
+	" " << "finThreeDeflectionDerived" <<
+	" " << "finThreeRate" <<
+	" " << "finThreeRateDerived" <<
+	" " << "finFourDeflection" <<
+	" " << "finFourDeflectionDerived" <<
+	" " << "finFourRate" <<
+	" " << "finFourRateDerived" <<
+	" " << "alphaPrime" <<
+	" " << "sinPhiPrime" <<
+	" " << "cosPhiPrime" <<
+	" " << "rollFinDeflectionDegrees" <<
+	" " << "pitchFinDeflectionDegreesAeroBallisticFrame" <<
+	" " << "yawFinDeflectionDegreesAeroBallisticFrame" <<
+	" " << "totalFinDeflectionDegrees" <<
+	" " << "pitchRateDeflectionDegreesAeroBallisticFrame" <<
+	" " << "yawRateDeflectionDegreesAeroBallisticFrame" <<
+	" " << "rollRateDegrees" <<
+	" " << "sinOfFourTimesPhiPrime" <<
+	" " << "squaredSinOfTwoTimesPhiPrime"
+	" " << "CA0" <<
+	" " << "CAA" <<
+	" " << "CAD" <<
+	" " << "CAOFF" <<
+	" " << "CYP" <<
+	" " << "CYDR" <<
+	" " << "CN0" <<
+	" " << "CNP" <<
+	" " << "CNDQ" <<
+	" " << "CLLAP" <<
+	" " << "CLLP" <<
+	" " << "CLLDP" <<
+	" " << "CLM0" <<
+	" " << "CLMP" <<
+	" " << "CLMQ" <<
+	" " << "CLMDQ" <<
+	" " << "CLNP" <<
+	" " << "mass" <<
+	" " << "unadjustedThrust" <<
+	" " << "transverseMomentOfInertia" <<
+	" " << "axialMomentOfInertia" <<
+	" " << "centerOfGravityFromNose" <<
+	" " << "thrust" <<
+	" " << "CX" <<
+	" " << "CY" <<
+	" " << "CZ" <<
+	" " << "CL" <<
+	" " << "CM" <<
+	" " << "CN" <<
+	" " << "CNA" <<
+	" " << "CMA" <<
+	" " << "CND" <<
+	" " << "CMD" <<
+	" " << "CMQ" <<
+	" " << "CLP" <<
+	" " << "CLD" <<
+	" " << "staticMargin" <<
+	" " << "missDistance" <<
+	" " << "lethality" <<
+	" " << "launch" <<
+	"\n";
+
+}
+
+void logData(MissilePacket &Missile, ofstream &logFile)
+{
+
+	// Logging everything.
+	logFile << fixed << setprecision(10) <<
+	" " << Missile.pip[0] <<
+	" " << Missile.pip[1] <<
+	" " << Missile.pip[2] <<
+	" " << Missile.timeOfFlight <<
+	" " << Missile.ENUPosition[0] <<
+	" " << Missile.ENUPosition[1] <<
+	" " << Missile.ENUPosition[2] <<
+	" " << Missile.range <<
+	" " << Missile.ENUVelocity[0] <<
+	" " << Missile.ENUVelocity[1] <<
+	" " << Missile.ENUVelocity[2] <<
+	" " << Missile.FLUVelocity[0] <<
+	" " << Missile.FLUVelocity[1] <<
+	" " << Missile.FLUVelocity[2] <<
+	" " << Missile.speed <<
+	" " << Missile.machSpeed <<
+	" " << Missile.ENUAcceleration[0] <<
+	" " << Missile.ENUAcceleration[1] <<
+	" " << Missile.ENUAcceleration[2] <<
+	" " << Missile.FLUAcceleration[0] <<
+	" " << Missile.FLUAcceleration[1] <<
+	" " << Missile.FLUAcceleration[2] <<
+	" " << Missile.ENUToFLUMatrix[0][0] <<
+	" " << Missile.ENUToFLUMatrix[0][1] <<
+	" " << Missile.ENUToFLUMatrix[0][2] <<
+	" " << Missile.ENUToFLUMatrix[1][0] <<
+	" " << Missile.ENUToFLUMatrix[1][1] <<
+	" " << Missile.ENUToFLUMatrix[1][2] <<
+	" " << Missile.ENUToFLUMatrix[2][0] <<
+	" " << Missile.ENUToFLUMatrix[2][1] <<
+	" " << Missile.ENUToFLUMatrix[2][2] <<
+	" " << Missile.alpha <<
+	" " << Missile.beta <<
+	" " << Missile.ENUEulerAngles[0] <<
+	" " << Missile.ENUEulerAngles[1] <<
+	" " << Missile.ENUEulerAngles[2] <<
+	" " << Missile.ENUEulerDot[0] <<
+	" " << Missile.ENUEulerDot[1] <<
+	" " << Missile.ENUEulerDot[2] <<
+	" " << Missile.bodyRate[0] <<
+	" " << Missile.bodyRate[1] <<
+	" " << Missile.bodyRate[2] <<
+	" " << Missile.bodyRateDot[0] <<
+	" " << Missile.bodyRateDot[1] <<
+	" " << Missile.bodyRateDot[2] <<
+	" " << Missile.gravity <<
+	" " << Missile.FLUGravity[0] <<
+	" " << Missile.FLUGravity[1] <<
+	" " << Missile.FLUGravity[2] <<
+	" " << Missile.pressure <<
+	" " << Missile.dynamicPressure <<
+	" " << Missile.seekerPitch <<
+	" " << Missile.seekerYaw <<
+	" " << Missile.seekerENUToFLUMatrix[0][0] <<
+	" " << Missile.seekerENUToFLUMatrix[0][1] <<
+	" " << Missile.seekerENUToFLUMatrix[0][2] <<
+	" " << Missile.seekerENUToFLUMatrix[1][0] <<
+	" " << Missile.seekerENUToFLUMatrix[1][1] <<
+	" " << Missile.seekerENUToFLUMatrix[1][2] <<
+	" " << Missile.seekerENUToFLUMatrix[2][0] <<
+	" " << Missile.seekerENUToFLUMatrix[2][1] <<
+	" " << Missile.seekerENUToFLUMatrix[2][2] <<
+	" " << Missile.seekerPitchError <<
+	" " << Missile.seekerYawError <<
+	" " << Missile.seekerWLR <<
+	" " << Missile.seekerWLRD <<
+	" " << Missile.seekerWLR1 <<
+	" " << Missile.seekerWLR1D <<
+	" " << Missile.seekerWLR2 <<
+	" " << Missile.seekerWLR2D <<
+	" " << Missile.seekerWLQ <<
+	" " << Missile.seekerWLQD <<
+	" " << Missile.seekerWLQ1 <<
+	" " << Missile.seekerWLQ1D <<
+	" " << Missile.seekerWLQ2 <<
+	" " << Missile.seekerWLQ2D <<
+	" " << Missile.missileToInterceptFLURelativePosition[0] <<
+	" " << Missile.missileToInterceptFLURelativePosition[1] <<
+	" " << Missile.missileToInterceptFLURelativePosition[2] <<
+	" " << Missile.guidanceNormalCommand <<
+	" " << Missile.guidanceSideCommand <<
+	" " << Missile.accelerationLimit <<
+	" " << Missile.controlYY <<
+	" " << Missile.controlYYD <<
+	" " << Missile.controlZZ <<
+	" " << Missile.controlZZD <<
+	" " << Missile.rollFinCommand <<
+	" " << Missile.pitchFinCommand <<
+	" " << Missile.yawFinCommand <<
+	" " << Missile.rollFinDeflection <<
+	" " << Missile.pitchFinDeflection <<
+	" " << Missile.yawFinDeflection <<
+	" " << Missile.DEL1 <<
+	" " << Missile.DEL1D <<
+	" " << Missile.DEL1DOT <<
+	" " << Missile.DEL1DOTDOT <<
+	" " << Missile.DEL2 <<
+	" " << Missile.DEL2D <<
+	" " << Missile.DEL2DOT <<
+	" " << Missile.DEL2DOTDOT <<
+	" " << Missile.DEL3 <<
+	" " << Missile.DEL3D <<
+	" " << Missile.DEL3DOT <<
+	" " << Missile.DEL3DOTDOT <<
+	" " << Missile.DEL4 <<
+	" " << Missile.DEL4D <<
+	" " << Missile.DEL4DOT <<
+	" " << Missile.DEL4DOTDOT <<
+	" " << Missile.alphaPrimeDegrees <<
+	" " << Missile.sinPhiPrime <<
+	" " << Missile.cosPhiPrime <<
+	" " << Missile.rollFinDeflectionDegrees <<
+	" " << Missile.pitchDeflectionAeroBallisticFrameDegrees <<
+	" " << Missile.yawDeflectionAeroBallisticFrameDegrees <<
+	" " << Missile.totalFinDeflectionDegrees <<
+	" " << Missile.pitchRateAeroBallisticFrameDegrees <<
+	" " << Missile.yawRateAeroBallisticFrameDegrees <<
+	" " << Missile.rollRateDegrees <<
+	" " << Missile.sinOfFourTimesPhiPrime <<
+	" " << Missile.squaredSinOfTwoTimesPhiPrime <<
+	" " << Missile.CA0 <<
+	" " << Missile.CAA <<
+	" " << Missile.CAD <<
+	" " << Missile.CAOFF <<
+	" " << Missile.CYP <<
+	" " << Missile.CYDR <<
+	" " << Missile.CN0 <<
+	" " << Missile.CNP <<
+	" " << Missile.CNDQ <<
+	" " << Missile.CLLAP <<
+	" " << Missile.CLLP <<
+	" " << Missile.CLLDP <<
+	" " << Missile.CLM0 <<
+	" " << Missile.CLMP <<
+	" " << Missile.CLMQ <<
+	" " << Missile.CLMDQ <<
+	" " << Missile.CLNP <<
+	" " << Missile.mass <<
+	" " << Missile.unadjustedThrust <<
+	" " << Missile.transverseMomentOfInertia <<
+	" " << Missile.axialMomentOfInertia <<
+	" " << Missile.centerOfGravityFromNose <<
+	" " << Missile.thrust <<
+	" " << Missile.CX <<
+	" " << Missile.CY <<
+	" " << Missile.CZ <<
+	" " << Missile.CL <<
+	" " << Missile.CM <<
+	" " << Missile.CN <<
+	" " << Missile.CNA <<
+	" " << Missile.CMA <<
+	" " << Missile.CND <<
+	" " << Missile.CMD <<
+	" " << Missile.CMQ <<
+	" " << Missile.CLP <<
+	" " << Missile.CLD <<
+	" " << Missile.staticMargin <<
+	" " << Missile.missDistance <<
+	" " << Missile.lethality <<
+	" " << Missile.launch <<
+	"\n";
+
+}
+
+void performanceAndTerminationCheck(MissilePacket &Missile)
+{
+
+	magnitude(Missile.missileToInterceptFLURelativePosition, Missile.missDistance);
+
+	if (Missile.ENUPosition[2] < 0)
+	{
+		Missile.lethality = "GROUND COLLISION";
+	}
+	else if (Missile.missDistance < 2.0)
+	{
+		Missile.lethality = "SUCCESSFUL INTERCEPT";
+	}
+	else if (Missile.missileToInterceptFLURelativePosition[0] < 0.0)
+	{
+		Missile.lethality = "POINT OF CLOSEST APPROACH PASSED";
+	}
+	else if (isnan(Missile.ENUPosition[0]))
+	{
+		Missile.lethality = "NOT A NUMBER";
+	}
+	else if (Missile.timeOfFlight > MAX_TIME)
+	{
+		Missile.lethality = "MAX TIME EXCEEDED";
+	}
+
 }
 
 int main()
 {
+
+	auto wallClockStart = chrono::high_resolution_clock::now();
 
 	MissilePacket originalMissile;
 	auto copiedMissile = originalMissile; // Just a test. Works great. No pointers makes it easy!
 	lookUpTablesFormat(originalMissile, "shortRangeInterceptorTables.txt");
 	initializeMissile(originalMissile, "input.txt");
 
-	// Functions test.
-	timeOfFlight(originalMissile); // Soon to be handled by motion module.
-	atmosphere(originalMissile);
-	seeker(originalMissile);
-	guidance(originalMissile);
-	control(originalMissile);
-	aeroBallisticAnglesAndConversions(originalMissile);
-	dataLookUp(originalMissile);
-	propulsion(originalMissile);
-	aerodynamicIntegrationCoefficients(originalMissile);
-	aerodynamicFeedbackCoefficients(originalMissile);
-	missileMotion(originalMissile);
+	ofstream originalLogFile;
+	originalLogFile.open("output/originalMissile.txt");
+	writeLogFileHeader(originalLogFile);
 
-	cout << "HOWDY WORLD, FROM CPP NOVICE." << endl;
-	cout << "\n";
+	double lastTime = 0.0;
+	cout << "FLIGHT" << "\n";
+	while (originalMissile.lethality == "FLYING")
+	{
+
+		atmosphere(originalMissile);
+		seeker(originalMissile);
+		guidance(originalMissile);
+		control(originalMissile);
+		aeroBallisticAnglesAndConversions(originalMissile);
+		dataLookUp(originalMissile);
+		propulsion(originalMissile);
+		aerodynamicIntegrationCoefficients(originalMissile);
+		aerodynamicFeedbackCoefficients(originalMissile);
+		missileMotion(originalMissile);
+		aerodynamicAngles(originalMissile);
+		logData(originalMissile, originalLogFile);
+		performanceAndTerminationCheck(originalMissile);
+
+		auto print_it = static_cast<int>(round(originalMissile.timeOfFlight * 10000.0)) % 10000;
+		if (print_it == 0)
+		{
+			cout << fixed << setprecision(4) <<
+			"TOF " << originalMissile.timeOfFlight <<
+			" E " << originalMissile.ENUPosition[0] <<
+			" N " << originalMissile.ENUPosition[1] <<
+			" U " << originalMissile.ENUPosition[2] <<
+			" RANGE " << originalMissile.range <<
+			" MACH " << originalMissile.machSpeed << "\n";
+			lastTime = originalMissile.timeOfFlight;
+		}
+
+	}
+
+	cout << "\n" << endl;
+	cout << "MISSION REPORT" << endl;
+	cout << fixed << setprecision(4) <<
+	"TOF " << originalMissile.timeOfFlight << " " <<
+	" E " << originalMissile.ENUPosition[0] << " " <<
+	" N " << originalMissile.ENUPosition[1] << " " <<
+	" U " << originalMissile.ENUPosition[2] << " " <<
+	" RANGE " << originalMissile.range << " " <<
+	" MACH " << originalMissile.machSpeed << "\n";
+	lastTime = originalMissile.timeOfFlight;
+	cout << setprecision(6) <<
+	"MISS DISTANCE " << originalMissile.missDistance << " FORWARD, LEFT, UP, MISS DISTANCE " <<
+	originalMissile.missileToInterceptFLURelativePosition[0] << " " <<
+	originalMissile.missileToInterceptFLURelativePosition[1] << " " <<
+	originalMissile.missileToInterceptFLURelativePosition[2] << endl;
+	cout << "SIMULATION RESULT: " << originalMissile.lethality << endl;
+	auto wallClockEnd = chrono::high_resolution_clock::now();
+	auto simRealRunTime = chrono::duration_cast<chrono::milliseconds>(wallClockEnd - wallClockStart);
+	cout << "SIMULATION RUN TIME :" << simRealRunTime.count() << " MILLISECONDS" << endl;
+	cout << "\n" << endl;
+
 	return 0;
 
 }
