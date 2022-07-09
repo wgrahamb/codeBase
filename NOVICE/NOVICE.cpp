@@ -16,8 +16,6 @@
 using namespace std;
 
 /* To do */
-// Add blended guidance.
-// Make logging more robust.
 // Move all variables to a missile struct, which is passed to all functions.
 // Begin on NOVICE algorithms.
 // Typedef vector for target trajectory.
@@ -82,7 +80,7 @@ const double SEEKER_KF_G = 10.0; // Seeker Kalman filter gain. Per second.
 const double SEEKER_KF_ZETA = 0.9; // Seeker Kalman filter damping. Non dimensional.
 const double SEEKER_KF_WN = 60.0; // Seeker Kalman filter natural frequency. Radians per second.
 const double PROPORTIONAL_GUIDANCE_GAIN = 3.0; // Guidance homing gain. Non dimensional.
-const double LINE_OF_ATTACK_GUIDANCE_GAIN = 1.5; // Guidance midcourse gain. Non dimensional.
+const double LINE_OF_ATTACK_GUIDANCE_GAIN = 1.0; // Guidance midcourse gain. Non dimensional.
 const double MAXIMUM_ACCELERATION = 450.0; // Roughly 45 Gs. Meters per s^2.
 const double RATE_CONTROL_ZETA = 0.6; // Damping of constant rate control. Non dimensional.
 const double ROLL_CONTROL_WN = 20.0; // Natural frequency of roll closed loop complex pole. Radians per second.
@@ -96,6 +94,210 @@ const double ROLL_ANGLE_COMMAND = 0.0; // Radians.
 const double ALPHA_PRIME_MAX = 40.0; // Degrees.
 const double SEA_LEVEL_PRESSURE = 101325; // Pascals.
 const double LAUNCH_CENTER_OF_GRAVITY_FROM_NOSE = 1.5357; // Meters.
+
+struct Missile
+{
+
+	/* Variables */
+	double pip[3]; // Predicted Intercept Point. Meters.
+
+	// Missile state.
+	bool launch = true; // Launch command. True for now, will be needed for fire control.
+	double timeOfFlight = 0.0; // Seconds.
+	double missileENUToFLUMatrix[3][3]; // Non dimensional.
+	double ENUPosition[3]; // Meters.
+	double range = 0.0; // Meters.
+	double ENUVelocity[3]; // Meters per second.
+	double FLUVelocity[3]; // Meters per second.
+	double speed; // Meters per second.
+	double machSpeed = 0.0; // Non dimensional.
+	double ENUAcceleration[3]; // Meters per second^2.
+	double FLUAcceleration[3]; // Meters per second^2.
+	double alphaRadians = 0.0; // Radians.
+	double betaRadians = 0.0; // Radians.
+	double alphaDegrees = 0.0; // Degrees.
+	double betaDegrees = 0.0; // Degrees.
+	double ENUEulerAngles[3]; // Radians.
+	double ENUEulerDot[3] = {0.0, 0.0, 0.0}; // Radians per second.
+	double bodyRate[3] = {0.0, 0.0, 0.0}; // Radians per second.
+	double bodyRateDot[3] = {0.0, 0.0, 0.0}; // Radians per second^2.
+
+	// Atmosphere.
+	double grav = 0.0; // Meters per second^2.
+	double FLUGravity[3] = {0.0, 0.0, 0.0}; // Meters per second^2.
+	double pressure = 0.0; // Pascals.
+	double dynamicPressure = 0.0; // Pascals.
+
+	// Seeker.
+	double seekerPitch; // Radians.
+	double seekerYaw; // Radians.
+	double seekerENUToFLUMatrix[3][3]; // Non dimensional.
+	double seekerPitchError; // Seeker boresight vertical offset from target. Radians.
+	double seekerYawError; // Seeker boresight horizontal offset from target. Radians.
+	double seekerWLR; // Pointing yaw rate. Radians per second.
+	double seekerWLRD = 0.0; // Derivative of pointing yaw rate. Radians per second^2.
+	double seekerWLR1 = 0.0; // Yaw sight line spin rate. Radians per second.
+	double seekerWLR1D = 0.0; // Derivative of yaw sight line spin rate. Radians per second^2.
+	double seekerWLR2 = 0.0; // Second state variable in yawing kalman filter. Radians per second^2.
+	double seekerWLR2D = 0.0; // Derivative of second state variable in yawing kalman filter. Radians per second^3.
+	double seekerWLQ; // Pointing pitch rate. Radians per second.
+	double seekerWLQD = 0.0; // Derivative of pointing pitch rate. Radians per second^2.
+	double seekerWLQ1 = 0.0; // Pitch sight line spin rate. Radians per second.
+	double seekerWLQ1D = 0.0; // Derivative of pitch sight line spin rate. Radians per second^2.
+	double seekerWLQ2 = 0.0; // Second state variable in pitching kalman filter. Radians per second^2.
+	double seekerWLQ2D = 0.0; // Derivative of second state variable in pitching kalman filter. Radians per second^3.
+
+	// Guidance.
+	double FLUMissileToPipRelativePosition[3] = {0.0, 0.0, 0.0}; // Meters.
+	double guidanceNormalCommand = 0.0; // Meters per second^2.
+	double guidanceSideCommand = 0.0; // Meters per second^2.
+	double maneuveringLimit = MAXIMUM_ACCELERATION; // Meters per second^2.
+
+	// Control
+	double yawControlFeedForwardIntegration = 0.0; // Yaw feed forward integration. Meters per second.
+	double yawControlFeedForwardDerivative = 0.0; // Yaw feed forward derivative. Meters per second.
+	double pitchControlFeedForwardIntegration = 0.0; // Pitch feed forward integration. Meters per second.
+	double pitchControlFeedForwardDerivative = 0.0; // Pitch feed forward derivative. Meters per second.
+	double pitchFinCommand = 0.0; // Radians.
+	double yawFinCommand = 0.0; // Radians.
+	double rollFinCommand = 0.0; // Radians.
+
+	// Actuators.
+	double FIN1DEFL = 0.0; // Fin deflection. Radians.
+	double FIN1DEFL_D = 0.0; // Fin deflection derived. Radians.
+	double FIN1DEFL_DOT = 0.0; // Fin rate. Radians per second.
+	double FIN1DEFL_DOTDOT = 0.0; // Fin rate derived. Radians per second^2.
+	double FIN2DEFL = 0.0; // Fin deflection. Radians.
+	double FIN2DEFL_D = 0.0; // Fin deflection derived. Radians.
+	double FIN2DEFL_DOT = 0.0; // Fin rate. Radians per second.
+	double FIN2DEFL_DOTDOT = 0.0; // Fin rate derived. Radians per second^2.
+	double FIN3DEFL = 0.0; // Fin deflection. Radians.
+	double FIN3DEFL_D = 0.0; // Fin deflection derived. Radians.
+	double FIN3DEFL_DOT = 0.0; // Fin rate. Radians per second.
+	double FIN3DEFL_DOTDOT = 0.0; // Fin rate derived. Radians per second^2.
+	double FIN4DEFL = 0.0; // Fin deflection. Radians.
+	double FIN4DEFL_D = 0.0; // Fin deflection derived. Radians.
+	double FIN4DEFL_DOT = 0.0; // Fin rate. Radians per second.
+	double FIN4DEFL_DOTDOT = 0.0; // Fin rate derived. Radians per second^2.
+	double pitchFinDeflection = 0.0; // Radians.
+	double yawFinDeflection = 0.0; // Radians.
+	double rollFinDeflection = 0.0; // Radians.
+
+	// Aerodynamic angles and conversions.
+	double alphaPrimeRadians = 0.0; // Radians.
+	double alphaPrimeDegress = 0.0; // Degrees.
+	double sinPhiPrime = 0.0; // Non dimensional.
+	double cosPhiPrime = 0.0; // Non dimensional.
+	double pitchAeroBallisticFinDeflectionDegrees = 0.0; // Degrees.
+	double yawAeroBallisticFinDeflectionDegrees = 0.0; // Degrees.
+	double rollFinDeflectionDegrees = 0.0; // Degrees.
+	double totalFinDeflectionDegrees = 0.0; // Degrees.
+	double pitchAeroBallisticBodyRateDegrees = 0.0; // Degrees per second.
+	double yawAeroBallisticBodyRateDegrees = 0.0; // Degrees per second
+	double rollRateDegrees = 0.0; // Degrees per second.
+	double sinOfFourTimesPhiPrime = 0.0; // Non dimensional.
+	double squaredSinOfTwoTimesPhiPrime = 0.0; // Non dimensional.
+
+	// Table look ups.
+	map<string, int> tableNameIndexPairs;
+	vector<vector<vector<double>>> tables;
+	double CA0 = 0.0; // Axial force coefficient. Non dimensional.
+	double CAA = 0.0; // Axial force derivative of alpha prime. Per degree.
+	double CAD = 0.0; // Axial force derivative of control fin deflection. Per degree^2.
+	double CAOFF = 0.0; // Power off correction term for axial force coefficient. Non dimensional.
+	double CYP = 0.0; // Side force coefficient correction term for when phi is non zero. Non dimensional.
+	double CYDR = 0.0; // Side force derivative of elevator. Per degree.
+	double CN0 = 0.0; // Normal force coefficient. Non dimensional.
+	double CNP = 0.0; // Correction to normal force coefficient term for when phi is non zero. Non dimensional.
+	double CNDQ = 0.0; // Normal force derivative of elevator. Per degree.
+	double CLLAP = 0.0; // Roll moment derivative for (alpha prime^2) for when phi is non zero. Per degree^2
+	double CLLP = 0.0; // Roll moment damping derivative. Degrees.
+	double CLLDP = 0.0; // Roll moment derivative of aileron. Per degree.
+	double CLM0 = 0.0; // Pitching moment coefficient at launch center of gravity. Non dimensional.
+	double CLMP = 0.0; // Correction to pitching moment coefficient for when phi is non zero. Non dimensional.
+	double CLMQ = 0.0; // Pitching moment damping derivative. Per degree.
+	double CLMDQ = 0.0; // Pitching moment derivative of elevator. Per degree.
+	double CLNP = 0.0; // Yaw moment coefficient correction for when phi is non zero. Non dimensional.
+	double mass = 0.0; // Kilograms.
+	double unadjustedThrust = 0.0; // Newtons.
+	double transverseMomentOfInertia = 0.0; // Kilograms * meters^2.
+	double axialMomentOfInertia = 0.0; // Kilograms * meters^2.
+	double centerOfGravityFromNose = 0.0; // Meters.
+
+	// Propulsion.
+	double thrust = 0.0; // Newtons.
+
+	// Aerodynamic integration coefficients.
+	double CX = 0.0; // Non dimensional.
+	double CY = 0.0; // Non dimensional.
+	double CZ = 0.0; // Non dimensional.
+	double CL = 0.0; // Non dimensional.
+	double CM = 0.0; // Non dimensional.
+	double CN = 0.0; // Non dimensional.
+
+	// Aerodynamic feedback coefficients.
+	double CNA = 0.0; // Per degree.
+	double CMA = 0.0; // Per degree.
+	double CND = 0.0; // Per degree.
+	double CMD = 0.0; // Per degree.
+	double CMQ = 0.0; // Per degree.
+	double CLP = 0.0; // Per degree.
+	double CLD = 0.0; // Per degree.
+	double staticMargin = 0.0; // Non dimensional.
+
+	// Performance and termination check.
+	double missDistance = 0.0; // Meters.
+	string lethality;
+
+	// Integration states.
+	// P = ENUPosition
+	// V = ENUVelocity
+	// A = ENUAcceleration
+	// E = ENUEulerAngles
+	// ED = ENUEulerDot
+	// W = BodyRate
+	// WD = BodyRateDot.
+	int INTEGRATION_METHOD = 2;
+	int INTEGRATION_PASS = 0;
+
+	double P0[3] = {0.0, 0.0, 0.0};
+	double V0[3] = {0.0, 0.0, 0.0};
+	double E0[3] = {0.0, 0.0, 0.0};
+	double W0[3] = {0.0, 0.0, 0.0};
+
+	double P1[3] = {0.0, 0.0, 0.0};
+	double V1[3] = {0.0, 0.0, 0.0};
+	double A1[3] = {0.0, 0.0, 0.0};
+	double E1[3] = {0.0, 0.0, 0.0};
+	double ED1[3] = {0.0, 0.0, 0.0};
+	double W1[3] = {0.0, 0.0, 0.0};
+	double WD1[3] = {0.0, 0.0, 0.0};
+
+	double P2[3] = {0.0, 0.0, 0.0};
+	double V2[3] = {0.0, 0.0, 0.0};
+	double A2[3] = {0.0, 0.0, 0.0};
+	double E2[3] = {0.0, 0.0, 0.0};
+	double ED2[3] = {0.0, 0.0, 0.0};
+	double W2[3] = {0.0, 0.0, 0.0};
+	double WD2[3] = {0.0, 0.0, 0.0};
+
+	double P3[3] = {0.0, 0.0, 0.0};
+	double V3[3] = {0.0, 0.0, 0.0};
+	double A3[3] = {0.0, 0.0, 0.0};
+	double E3[3] = {0.0, 0.0, 0.0};
+	double ED3[3] = {0.0, 0.0, 0.0};
+	double W3[3] = {0.0, 0.0, 0.0};
+	double WD3[3] = {0.0, 0.0, 0.0};
+
+	double P4[3] = {0.0, 0.0, 0.0};
+	double V4[3] = {0.0, 0.0, 0.0};
+	double A4[3] = {0.0, 0.0, 0.0};
+	double E4[3] = {0.0, 0.0, 0.0};
+	double ED4[3] = {0.0, 0.0, 0.0};
+	double W4[3] = {0.0, 0.0, 0.0};
+	double WD4[3] = {0.0, 0.0, 0.0};
+
+};
 
 /* Variables */
 double pip[3]; // Predicted Intercept Point. Meters.
@@ -112,8 +314,10 @@ double speed; // Meters per second.
 double machSpeed = 0.0; // Non dimensional.
 double ENUAcceleration[3]; // Meters per second^2.
 double FLUAcceleration[3]; // Meters per second^2.
-double alpha = 0.0; // Radians.
-double beta = 0.0; // Radians.
+double alphaRadians = 0.0; // Radians.
+double betaRadians = 0.0; // Radians.
+double alphaDegrees = 0.0; // Degrees.
+double betaDegrees = 0.0; // Degrees.
 double ENUEulerAngles[3]; // Radians.
 double ENUEulerDot[3] = {0.0, 0.0, 0.0}; // Radians per second.
 double bodyRate[3] = {0.0, 0.0, 0.0}; // Radians per second.
@@ -181,12 +385,13 @@ double yawFinDeflection = 0.0; // Radians.
 double rollFinDeflection = 0.0; // Radians.
 
 // Aerodynamic angles and conversions.
+double alphaPrimeRadians = 0.0; // Radians.
 double alphaPrimeDegress = 0.0; // Degrees.
 double sinPhiPrime = 0.0; // Non dimensional.
 double cosPhiPrime = 0.0; // Non dimensional.
 double pitchAeroBallisticFinDeflectionDegrees = 0.0; // Degrees.
 double yawAeroBallisticFinDeflectionDegrees = 0.0; // Degrees.
-double rollDeflectionDegrees = 0.0; // Degrees.
+double rollFinDeflectionDegrees = 0.0; // Degrees.
 double totalFinDeflectionDegrees = 0.0; // Degrees.
 double pitchAeroBallisticBodyRateDegrees = 0.0; // Degrees per second.
 double yawAeroBallisticBodyRateDegrees = 0.0; // Degrees per second
@@ -244,9 +449,6 @@ double staticMargin = 0.0; // Non dimensional.
 // Performance and termination check.
 double missDistance = 0.0; // Meters.
 string lethality;
-
-// Log file.
-ofstream logFile;
 
 // Integration states.
 // P = ENUPosition
@@ -535,10 +737,6 @@ void init()
 	// Set missile lethality.
 	lethality = "FLYING"; // STATUS
 
-	// Write header for log file.
-	logFile.open("log.txt");
-	logFile << fixed << setprecision(10) << "tof posE posN posU tgtE tgtN tgtU normComm normAch pitchRate thetaRate pitchDefl alpha theta sideComm sideAch yawRate psiRate yawDefl beta psi rollComm phiRate rollRate rollDefl roll seekPitchErr seekYawErr staticMargin mach" << endl;
-
 	// Console output.
 	cout << "\n" << endl;
 	cout << "MODEL INITIATED" << endl;
@@ -633,41 +831,51 @@ void seeker()
 void guidance()
 {
 
-	double forwardLeftUpMslToInterceptPosU[3];
-	double forwardLeftUpMslToInterceptMag;
-	unitVec(FLUMissileToPipRelativePosition, forwardLeftUpMslToInterceptPosU);
-	magnitude(FLUMissileToPipRelativePosition, forwardLeftUpMslToInterceptMag);
-	double relVel[3];
-	relVel[0] = ENUVelocity[0] * -1;
-	relVel[1] = ENUVelocity[1] * -1;
-	relVel[2] = ENUVelocity[2] * -1;
-	double relVelMag;
-	magnitude(relVel, relVelMag);
-	double closingVel[3];
-	threeByThreeTimesThreeByOne(missileENUToFLUMatrix, relVel, closingVel);
-	double TEMP1[3], TEMP2;
-	crossProductTwoVectors(FLUMissileToPipRelativePosition, closingVel, TEMP1);
-	dotProductTwoVectors(FLUMissileToPipRelativePosition, FLUMissileToPipRelativePosition, TEMP2);
-	double lineOfSightRate[3];
-	lineOfSightRate[0] = TEMP1[0] / TEMP2;
-	lineOfSightRate[1] = TEMP1[1] / TEMP2;
-	lineOfSightRate[2] = TEMP1[2] / TEMP2;
-	double command[3];
-	double TEMP3[3];
-	TEMP3[0] = -1 * PROPORTIONAL_GUIDANCE_GAIN * relVelMag * forwardLeftUpMslToInterceptPosU[0];
-	TEMP3[1] = -1 * PROPORTIONAL_GUIDANCE_GAIN * relVelMag * forwardLeftUpMslToInterceptPosU[1];
-	TEMP3[2] = -1 * PROPORTIONAL_GUIDANCE_GAIN * relVelMag * forwardLeftUpMslToInterceptPosU[2];
-	crossProductTwoVectors(TEMP3, lineOfSightRate, command);
-	guidanceNormalCommand = command[2];
-	guidanceSideCommand = command[1];
-	double trigRatio = atan2(guidanceNormalCommand, guidanceSideCommand);
-	double accMag = sqrt(guidanceNormalCommand * guidanceNormalCommand + guidanceSideCommand * guidanceSideCommand);
-	if (accMag > maneuveringLimit)
+	double forwardLeftUpMissileToInterceptPositionUnitVector[3];
+	unitVec(FLUMissileToPipRelativePosition, forwardLeftUpMissileToInterceptPositionUnitVector);
+	double forwardLeftUpMissileToInterceptLineOfSightVel[3];
+	vectorProjection(forwardLeftUpMissileToInterceptPositionUnitVector, FLUVelocity, forwardLeftUpMissileToInterceptLineOfSightVel);
+	double timeToGo, forwardLeftUpMissileToInterceptPositionMagnitude, forwardLeftUpMissileToInterceptLineOfSightVelMagnitude;
+	magnitude(FLUMissileToPipRelativePosition, forwardLeftUpMissileToInterceptPositionMagnitude);
+	magnitude(forwardLeftUpMissileToInterceptLineOfSightVel, forwardLeftUpMissileToInterceptLineOfSightVelMagnitude);
+	timeToGo = forwardLeftUpMissileToInterceptPositionMagnitude / forwardLeftUpMissileToInterceptLineOfSightVelMagnitude;
+
+	if (timeToGo > -10000) // This means the missile is always using proportional guidance.
 	{
-		accMag = maneuveringLimit;
+
+		double closingVelocity[3];
+		multiplyVectorTimesScalar(-1.0, FLUVelocity, closingVelocity);
+		double closingSpeed;
+		magnitude(closingVelocity, closingSpeed);
+		double TEMP1[3], TEMP2;
+		crossProductTwoVectors(FLUMissileToPipRelativePosition, closingVelocity, TEMP1);
+		dotProductTwoVectors(FLUMissileToPipRelativePosition, FLUMissileToPipRelativePosition, TEMP2);
+		double lineOfSightRate[3];
+		divideVectorByScalar(TEMP2, TEMP1, lineOfSightRate);
+		double TEMP3, TEMP4[3];
+		double proportionalGuidanceGain = 3.0;
+		TEMP3 = -1 * proportionalGuidanceGain * closingSpeed;
+		multiplyVectorTimesScalar(TEMP3, forwardLeftUpMissileToInterceptPositionUnitVector, TEMP4);
+		double COMMAND[3];
+		crossProductTwoVectors(TEMP4, lineOfSightRate, COMMAND);
+		guidanceNormalCommand = COMMAND[2];
+		guidanceSideCommand = COMMAND[1];
+
 	}
-	guidanceSideCommand = accMag * cos(trigRatio);
-	guidanceNormalCommand = accMag * sin(trigRatio);
+	else // Otherwise use trajectory shaping. Need an algorithm for line of attack scheduling. This missile likes pro nav.
+	{
+
+		double lineOfAttack[3];
+		lineOfAttack[0] = 0.2;
+		lineOfAttack[1] = 0.2;
+		lineOfAttack[2] = 0.2;
+		double forwardLeftUpMissileToInterceptLineOfAttackVel[3];
+		vectorProjection(lineOfAttack, FLUVelocity, forwardLeftUpMissileToInterceptLineOfAttackVel);
+		double G = 1 - exp(-0.001 * forwardLeftUpMissileToInterceptPositionMagnitude);
+		guidanceNormalCommand = LINE_OF_ATTACK_GUIDANCE_GAIN * (forwardLeftUpMissileToInterceptLineOfSightVel[2] + G * forwardLeftUpMissileToInterceptLineOfAttackVel[2]);
+		guidanceSideCommand = LINE_OF_ATTACK_GUIDANCE_GAIN * (forwardLeftUpMissileToInterceptLineOfSightVel[1] + G * forwardLeftUpMissileToInterceptLineOfAttackVel[1]);
+
+	}
 
 }
 
@@ -996,18 +1204,20 @@ void actuators()
 void aerodynamicAnglesAndConversions()
 {
 
-	alpha = -1 * atan2(FLUVelocity[2], FLUVelocity[0]);
-	beta = atan2(FLUVelocity[1], FLUVelocity[0]);
-	double alphaPrime = acos(cos(alpha) * cos(beta));
-	alphaPrimeDegress = radToDeg * alphaPrime;
-	double phiPrime = atan2(tan(beta), sin(alpha));
+	alphaRadians = -1 * atan2(FLUVelocity[2], FLUVelocity[0]);
+	betaRadians = atan2(FLUVelocity[1], FLUVelocity[0]);
+	alphaDegrees = alphaRadians * radToDeg;
+	betaDegrees = betaRadians * radToDeg;
+	alphaPrimeRadians = acos(cos(alphaRadians) * cos(betaRadians));
+	alphaPrimeDegress = radToDeg * alphaPrimeRadians;
+	double phiPrime = atan2(tan(betaRadians), sin(alphaRadians));
 	sinPhiPrime = sin(phiPrime);
 	cosPhiPrime = cos(phiPrime);
 	double pitchDeflAeroFrame = pitchFinDeflection * cosPhiPrime - yawFinDeflection * sinPhiPrime;
 	pitchAeroBallisticFinDeflectionDegrees = radToDeg * pitchDeflAeroFrame;
 	double yawDeflAeroFrame = pitchFinDeflection * sinPhiPrime + yawFinDeflection * cosPhiPrime;
 	yawAeroBallisticFinDeflectionDegrees = radToDeg * yawDeflAeroFrame;
-	rollDeflectionDegrees = radToDeg * rollFinDeflection;
+	rollFinDeflectionDegrees = radToDeg * rollFinDeflection;
 	totalFinDeflectionDegrees = (abs(pitchAeroBallisticFinDeflectionDegrees) + abs(yawAeroBallisticFinDeflectionDegrees)) / 2;
 	double pitchRateAeroFrame = bodyRate[1] * cosPhiPrime - bodyRate[2] * sinPhiPrime;
 	pitchAeroBallisticBodyRateDegrees = radToDeg * pitchRateAeroFrame;
@@ -1146,7 +1356,7 @@ void aerodynamicIntegrationCoefficients()
 	CX = CA0 + CAA * alphaPrimeDegress + CAD * (totalFinDeflectionDegrees * totalFinDeflectionDegrees) + CAOFF;
 	double CYAERO = CYP * sinOfFourTimesPhiPrime + CYDR * yawAeroBallisticFinDeflectionDegrees;
 	double CZAERO = CN0 + CNP * squaredSinOfTwoTimesPhiPrime + CNDQ * pitchAeroBallisticFinDeflectionDegrees;
-	CL = CLLAP * pow(alphaPrimeDegress, 2) * sinOfFourTimesPhiPrime + CLLP * rollRateDegrees * REFERENCE_DIAMETER / (2 * speed) + CLLDP * rollDeflectionDegrees;
+	CL = CLLAP * pow(alphaPrimeDegress, 2) * sinOfFourTimesPhiPrime + CLLP * rollRateDegrees * REFERENCE_DIAMETER / (2 * speed) + CLLDP * rollFinDeflectionDegrees;
 	double CNAEROREF = CLNP * sinOfFourTimesPhiPrime + CLMQ * yawAeroBallisticBodyRateDegrees * REFERENCE_DIAMETER / (2 * speed) + CLMDQ * yawAeroBallisticFinDeflectionDegrees;
 	double CNAERO = CNAEROREF - CYAERO * (LAUNCH_CENTER_OF_GRAVITY_FROM_NOSE - centerOfGravityFromNose) / REFERENCE_DIAMETER;
 	double CMAEROREF = CLM0 + CLMP * squaredSinOfTwoTimesPhiPrime + CLMQ * pitchAeroBallisticBodyRateDegrees * REFERENCE_DIAMETER / (2 * speed) + CLMDQ * pitchAeroBallisticFinDeflectionDegrees;
@@ -1623,61 +1833,367 @@ void performanceAndTerminationCheck()
 
 	if (ENUPosition[2] < 0)
 	{
-		lethality = "GROUND COLLISION";
+		lethality = "GROUND_COLLISION";
 	}
 	else if (missDistance < 2.0)
 	{
-		lethality = "SUCCESSFUL INTERCEPT";
+		lethality = "SUCCESSFUL_INTERCEPT";
 	}
 	else if (FLUMissileToPipRelativePosition[0] < 0.0)
 	{
-		lethality = "POINT OF CLOSEST APPROACH PASSED";
+		lethality = "POINT_OF_CLOSEST_APPROACH_PASSED";
 	}
 	else if (isnan(ENUPosition[0]))
 	{
-		lethality = "NOT A NUMBER";
+		lethality = "NOT_A_NUMBER";
 	}
 	else if (timeOfFlight > MAX_TIME)
 	{
-		lethality = "MAX TIME EXCEEDED";
+		lethality = "MAX_TIME_EXCEEDED";
 	}
 
 }
 
-void logData()
+void writeLogFileHeader(ofstream &logFile)
+{
+
+	// Logging everything.
+	logFile << fixed << setprecision(10) <<
+	"tgtE" <<
+	" " << "tgtN" <<
+	" " << "tgtU" <<
+	" " << "tof" <<
+	" " << "posE" <<
+	" " << "posN" <<
+	" " << "posU" <<
+	" " << "range" <<
+	" " << "velE" <<
+	" " << "velN" <<
+	" " << "velU" <<
+	" " << "u" <<
+	" " << "v" <<
+	" " << "w" <<
+	" " << "speed" <<
+	" " << "mach" <<
+	" " << "accE" <<
+	" " << "accN" <<
+	" " << "accU" <<
+	" " << "udot" <<
+	" " << "vdot" <<
+	" " << "wdot" <<
+	" " << "ENUToFLU_0_0" <<
+	" " << "ENUToFLU_0_1" <<
+	" " << "ENUToFLU_0_2" <<
+	" " << "ENUToFLU_1_0" <<
+	" " << "ENUToFLU_1_1" <<
+	" " << "ENUToFLU_1_2" <<
+	" " << "ENUToFLU_2_0" <<
+	" " << "ENUToFLU_2_1" <<
+	" " << "ENUToFLU_2_2" <<
+	" " << "alphaRadians" <<
+	" " << "betaRadians" <<
+	" " << "alphaDegrees" <<
+	" " << "betaDegrees" <<
+	" " << "phi" <<
+	" " << "theta" <<
+	" " << "psi" <<
+	" " << "phiDot" <<
+	" " << "thetaDot" <<
+	" " << "psiDot" <<
+	" " << "p" <<
+	" " << "q" <<
+	" " << "r" <<
+	" " << "pdot" <<
+	" " << "qdot" <<
+	" " << "rdot" <<
+	" " << "gravity" <<
+	" " << "axialGravity" <<
+	" " << "sideGravity" <<
+	" " << "normalGravity" <<
+	" " << "pressure" <<
+	" " << "dynamicPressure" <<
+	" " << "seekerPitch" <<
+	" " << "seekerYaw" <<
+	" " << "seekerENUToFLU_0_0" <<
+	" " << "seekerENUToFLU_0_1" <<
+	" " << "seekerENUToFLU_0_2" <<
+	" " << "seekerENUToFLU_1_0" <<
+	" " << "seekerENUToFLU_1_1" <<
+	" " << "seekerENUToFLU_1_2" <<
+	" " << "seekerENUToFLU_2_0" <<
+	" " << "seekerENUToFLU_2_1" <<
+	" " << "seekerENUToFLU_2_2" <<
+	" " << "seekerPitchError" <<
+	" " << "seekerYawError" <<
+	" " << "seekerWLR" <<
+	" " << "seekerWLRD" <<
+	" " << "seekerWLR1" <<
+	" " << "seekerWLR1D" <<
+	" " << "seekerWLR2" <<
+	" " << "seekerWLR2D" <<
+	" " << "seekerWLQ" <<
+	" " << "seekerWLQD" <<
+	" " << "seekerWLQ1" <<
+	" " << "seekerWLQ1D" <<
+	" " << "seekerWLQ2" <<
+	" " << "seekerWLQ2D" <<
+	" " << "missileToInterceptRelativePositionForward"
+	" " << "missileToInterceptRelativePositionLeft"
+	" " << "missileToInterceptRelativePositionUp"
+	" " << "guidanceNormalCommand" <<
+	" " << "guidanceSideCommand" <<
+	" " << "accelerationLimit" <<
+	" " << "controlYY" <<
+	" " << "controlYYD" <<
+	" " << "controlZZ" <<
+	" " << "controlZZD" <<
+	" " << "rollFinCommand" <<
+	" " << "pitchFinCommand" <<
+	" " << "yawFinCommand" <<
+	" " << "rollFinDeflection" <<
+	" " << "pitchFinDeflection" <<
+	" " << "yawFinDeflection" <<
+	" " << "finOneDeflection" <<
+	" " << "finOneDeflectionDerived" <<
+	" " << "finOneRate" <<
+	" " << "finOneRateDerived" <<
+	" " << "finTwoDeflection" <<
+	" " << "finTwoDeflectionDerived" <<
+	" " << "finTwoRate" <<
+	" " << "finTwoRateDerived" <<
+	" " << "finThreeDeflection" <<
+	" " << "finThreeDeflectionDerived" <<
+	" " << "finThreeRate" <<
+	" " << "finThreeRateDerived" <<
+	" " << "finFourDeflection" <<
+	" " << "finFourDeflectionDerived" <<
+	" " << "finFourRate" <<
+	" " << "finFourRateDerived" <<
+	" " << "alphaPrimeRadians" <<
+	" " << "alphaPrimeDegrees"
+	" " << "sinPhiPrime" <<
+	" " << "cosPhiPrime" <<
+	" " << "rollFinDeflectionDegrees" <<
+	" " << "pitchFinDeflectionDegreesAeroBallisticFrame" <<
+	" " << "yawFinDeflectionDegreesAeroBallisticFrame" <<
+	" " << "totalFinDeflectionDegrees" <<
+	" " << "pitchRateDegreesAeroBallisticFrame" <<
+	" " << "yawRateDegreesAeroBallisticFrame" <<
+	" " << "rollRateDegrees" <<
+	" " << "sinOfFourTimesPhiPrime" <<
+	" " << "squaredSinOfTwoTimesPhiPrime"
+	" " << "CA0" <<
+	" " << "CAA" <<
+	" " << "CAD" <<
+	" " << "CAOFF" <<
+	" " << "CYP" <<
+	" " << "CYDR" <<
+	" " << "CN0" <<
+	" " << "CNP" <<
+	" " << "CNDQ" <<
+	" " << "CLLAP" <<
+	" " << "CLLP" <<
+	" " << "CLLDP" <<
+	" " << "CLM0" <<
+	" " << "CLMP" <<
+	" " << "CLMQ" <<
+	" " << "CLMDQ" <<
+	" " << "CLNP" <<
+	" " << "mass" <<
+	" " << "unadjustedThrust" <<
+	" " << "transverseMomentOfInertia" <<
+	" " << "axialMomentOfInertia" <<
+	" " << "centerOfGravityFromNose" <<
+	" " << "thrust" <<
+	" " << "CX" <<
+	" " << "CY" <<
+	" " << "CZ" <<
+	" " << "CL" <<
+	" " << "CM" <<
+	" " << "CN" <<
+	" " << "CNA" <<
+	" " << "CMA" <<
+	" " << "CND" <<
+	" " << "CMD" <<
+	" " << "CMQ" <<
+	" " << "CLP" <<
+	" " << "CLD" <<
+	" " << "staticMargin" <<
+	" " << "missDistance" <<
+	" " << "lethality" <<
+	" " << "launch" <<
+	"\n";
+
+}
+
+void logData(ofstream &logFile)
 {
 
 	logFile << fixed << setprecision(10) <<
+	pip[0] << " " <<
+	pip[1] << " " <<
+	pip[2] << " " <<
 	timeOfFlight << " " <<
 	ENUPosition[0] << " " <<
 	ENUPosition[1] << " " <<
 	ENUPosition[2] << " " <<
-	pip[0] << " " <<
-	pip[1] << " " <<
-	pip[2] << " " <<
-	guidanceNormalCommand / grav << " " <<
-	FLUAcceleration[2] / grav << " " <<
-	bodyRate[1] * radToDeg << " " <<
-	ENUEulerDot[1] * radToDeg << " " <<
-	pitchFinCommand * radToDeg << " " <<
-	alpha * radToDeg << " " <<
-	ENUEulerAngles[1] * radToDeg << " " <<
-	guidanceSideCommand / grav << " " <<
-	FLUAcceleration[1] / grav << " " <<
-	bodyRate[2] * radToDeg << " " <<
-	ENUEulerDot[2] * radToDeg << " " <<
-	yawFinCommand * radToDeg << " " <<
-	beta * radToDeg << " " <<
-	ENUEulerAngles[2] * radToDeg << " " <<
-	ROLL_ANGLE_COMMAND << " " <<
-	ENUEulerDot[0] * radToDeg << " " <<
-	bodyRate[0] * radToDeg << " " <<
-	rollDeflectionDegrees << " " <<
-	ENUEulerAngles[0] * radToDeg << " " <<
+	range << " " <<
+	ENUVelocity[0] << " " <<
+	ENUVelocity[1] << " " <<
+	ENUVelocity[2] << " " <<
+	FLUVelocity[0] << " " <<
+	FLUVelocity[1] << " " <<
+	FLUVelocity[2] << " " <<
+	speed << " " <<
+	machSpeed << " " <<
+	ENUAcceleration[0] << " " <<
+	ENUAcceleration[1] << " " <<
+	ENUAcceleration[2] << " " <<
+	FLUAcceleration[0] << " " <<
+	FLUAcceleration[1] << " " <<
+	FLUAcceleration[2] << " " <<
+	missileENUToFLUMatrix[0][0] << " " <<
+	missileENUToFLUMatrix[0][1] << " " <<
+	missileENUToFLUMatrix[0][2] << " " <<
+	missileENUToFLUMatrix[1][0] << " " <<
+	missileENUToFLUMatrix[1][1] << " " <<
+	missileENUToFLUMatrix[1][2] << " " <<
+	missileENUToFLUMatrix[2][0] << " " <<
+	missileENUToFLUMatrix[2][1] << " " <<
+	missileENUToFLUMatrix[2][2] << " " <<
+	alphaRadians << " " <<
+	betaRadians << " " <<
+	alphaDegrees << " " <<
+	betaDegrees << " " <<
+	ENUEulerAngles[0] << " " <<
+	ENUEulerAngles[1] << " " <<
+	ENUEulerAngles[2] << " " <<
+	ENUEulerDot[0] << " " <<
+	ENUEulerDot[1] << " " <<
+	ENUEulerDot[2] << " " <<
+	bodyRate[0] << " " <<
+	bodyRate[1] << " " <<
+	bodyRate[2] << " " <<
+	bodyRateDot[0] << " " <<
+	bodyRateDot[1] << " " <<
+	bodyRateDot[2] << " " <<
+	grav << " " <<
+	FLUGravity[0] << " " <<
+	FLUGravity[1] << " " <<
+	FLUGravity[2] << " " <<
+	pressure << " " <<
+	dynamicPressure << " " <<
+	seekerPitch << " " <<
+	seekerYaw << " " <<
+	seekerENUToFLUMatrix[0][0] << " " <<
+	seekerENUToFLUMatrix[0][1] << " " <<
+	seekerENUToFLUMatrix[0][2] << " " <<
+	seekerENUToFLUMatrix[1][0] << " " <<
+	seekerENUToFLUMatrix[1][1] << " " <<
+	seekerENUToFLUMatrix[1][2] << " " <<
+	seekerENUToFLUMatrix[2][0] << " " <<
+	seekerENUToFLUMatrix[2][1] << " " <<
+	seekerENUToFLUMatrix[2][2] << " " <<
 	seekerPitchError << " " <<
 	seekerYawError << " " <<
+	seekerWLR << " " <<
+	seekerWLRD << " " <<
+	seekerWLR1 << " " <<
+	seekerWLR1D << " " <<
+	seekerWLR2 << " " <<
+	seekerWLR2D << " " <<
+	seekerWLQ << " " <<
+	seekerWLQD << " " <<
+	seekerWLQ1 << " " <<
+	seekerWLQ1D << " " <<
+	seekerWLQ2 << " " <<
+	seekerWLQ2D << " " <<
+	FLUMissileToPipRelativePosition[0] << " " <<
+	FLUMissileToPipRelativePosition[1] << " " <<
+	FLUMissileToPipRelativePosition[2] << " " <<
+	guidanceNormalCommand << " " <<
+	guidanceSideCommand << " " <<
+	maneuveringLimit << " " <<
+	yawControlFeedForwardIntegration << " " <<
+	yawControlFeedForwardDerivative << " " <<
+	pitchControlFeedForwardIntegration << " " <<
+	pitchControlFeedForwardDerivative << " " <<
+	rollFinCommand << " " <<
+	pitchFinCommand << " " <<
+	yawFinCommand << " " <<
+	rollFinDeflection << " " <<
+	pitchFinDeflection << " " <<
+	yawFinDeflection << " " <<
+	FIN1DEFL << " " <<
+	FIN1DEFL_D << " " <<
+	FIN1DEFL_DOT << " " <<
+	FIN1DEFL_DOTDOT << " " <<
+	FIN2DEFL << " " <<
+	FIN2DEFL_D << " " <<
+	FIN2DEFL_DOT << " " <<
+	FIN2DEFL_DOTDOT << " " <<
+	FIN3DEFL << " " <<
+	FIN3DEFL_D << " " <<
+	FIN3DEFL_DOT << " " <<
+	FIN3DEFL_DOTDOT << " " <<
+	FIN4DEFL << " " <<
+	FIN4DEFL_D << " " <<
+	FIN4DEFL_DOT << " " <<
+	FIN4DEFL_DOTDOT << " " <<
+	alphaPrimeRadians << " " <<
+	alphaPrimeDegress << " " <<
+	sinPhiPrime << " " <<
+	cosPhiPrime << " " <<
+	rollFinDeflectionDegrees << " " <<
+	pitchAeroBallisticFinDeflectionDegrees << " " <<
+	yawAeroBallisticFinDeflectionDegrees << " " <<
+	totalFinDeflectionDegrees << " " <<
+	pitchAeroBallisticBodyRateDegrees << " " <<
+	yawAeroBallisticBodyRateDegrees << " " <<
+	rollRateDegrees << " " <<
+	sinOfFourTimesPhiPrime << " " <<
+	squaredSinOfTwoTimesPhiPrime << " " <<
+	CA0 << " " <<
+	CAA << " " <<
+	CAD << " " <<
+	CAOFF << " " <<
+	CYP << " " <<
+	CYDR << " " <<
+	CN0 << " " <<
+	CNP << " " <<
+	CNDQ << " " <<
+	CLLAP << " " <<
+	CLLP << " " <<
+	CLLDP << " " <<
+	CLM0 << " " <<
+	CLMP << " " <<
+	CLMQ << " " <<
+	CLMDQ << " " <<
+	CLNP << " " <<
+	mass << " " <<
+	unadjustedThrust << " " <<
+	transverseMomentOfInertia << " " <<
+	axialMomentOfInertia << " " <<
+	centerOfGravityFromNose << " " <<
+	thrust << " " <<
+	CX << " " <<
+	CY << " " <<
+	CZ << " " <<
+	CL << " " <<
+	CM << " " <<
+	CN << " " <<
+	CNA << " " <<
+	CMA << " " <<
+	CND << " " <<
+	CMD << " " <<
+	CMQ << " " <<
+	CLP << " " <<
+	CLD << " " <<
 	staticMargin << " " <<
-	machSpeed << "\n";
+	missDistance << " " <<
+	lethality << " " <<
+	launch <<
+	"\n";
 
 }
 
@@ -1686,6 +2202,9 @@ int main ()
 
 	init();
 	double lastTime = 0;
+	ofstream logFile;
+	logFile.open("log.txt");
+	writeLogFileHeader(logFile);
 	cout << "FLIGHT" << endl;
 	while (lethality == "FLYING")
 	{
@@ -1704,7 +2223,7 @@ int main ()
 		if (INTEGRATION_PASS == 0)
 		{
 			performanceAndTerminationCheck();
-			logData();
+			logData(logFile);
 			auto print_it = static_cast<int>(round(timeOfFlight * 10000.0)) % 10000;
 			if (print_it == 0)
 			{
@@ -1717,8 +2236,6 @@ int main ()
 	cout << "MISSION REPORT" << endl;
 	cout << setprecision(6) << "FINAL POSITION AT " << timeOfFlight << " E " << ENUPosition[0] << " N " << ENUPosition[1] << " U " << ENUPosition[2] << " RANGE " << range << " MACH " << machSpeed << endl;
 	cout << setprecision(6) << "MISS DISTANCE " << missDistance << " FORWARD, LEFT, UP, MISS DISTANCE " << FLUMissileToPipRelativePosition[0] << " " << FLUMissileToPipRelativePosition[1] << " " << FLUMissileToPipRelativePosition[2] << endl;
-	logFile << "\n";
-	logFile << setprecision(6) << "MISS DISTANCE " << missDistance << " FORWARD, LEFT, UP, MISS DISTANCE " << FLUMissileToPipRelativePosition[0] << " " << FLUMissileToPipRelativePosition[1] << " " << FLUMissileToPipRelativePosition[2] << endl;
 	cout << "SIMULATION RESULT: " << lethality << endl;
 	auto wallClockEnd = chrono::high_resolution_clock::now();
 	auto simRealRunTime = chrono::duration_cast<chrono::milliseconds>(wallClockEnd - wallClockStart);
