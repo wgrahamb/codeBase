@@ -16,10 +16,17 @@
 using namespace std;
 
 /* To do */
-// Add rk2 and rk4 integration methods.
 // Add blended guidance.
+// Make logging more robust.
 // Move all variables to a missile struct, which is passed to all functions.
 // Begin on NOVICE algorithms.
+// Typedef vector for target trajectory.
+// Bisection algorithm pip selection.
+// Seeker on mode for missile.
+// Each missile should have a pip and target states.
+// Structs for NOVICE players.
+// Scene generator.
+// Scene loader.
 
 /*
 # Missile Model:
@@ -94,6 +101,7 @@ const double LAUNCH_CENTER_OF_GRAVITY_FROM_NOSE = 1.5357; // Meters.
 double pip[3]; // Predicted Intercept Point. Meters.
 
 // Missile state.
+bool launch = true; // Launch command. True for now, will be needed for fire control.
 double timeOfFlight = 0.0; // Seconds.
 double missileENUToFLUMatrix[3][3]; // Non dimensional.
 double ENUPosition[3]; // Meters.
@@ -239,6 +247,54 @@ string lethality;
 
 // Log file.
 ofstream logFile;
+
+// Integration states.
+// P = ENUPosition
+// V = ENUVelocity
+// A = ENUAcceleration
+// E = ENUEulerAngles
+// ED = ENUEulerDot
+// W = BodyRate
+// WD = BodyRateDot.
+int INTEGRATION_METHOD = 2;
+int INTEGRATION_PASS = 0;
+
+double P0[3] = {0.0, 0.0, 0.0};
+double V0[3] = {0.0, 0.0, 0.0};
+double E0[3] = {0.0, 0.0, 0.0};
+double W0[3] = {0.0, 0.0, 0.0};
+
+double P1[3] = {0.0, 0.0, 0.0};
+double V1[3] = {0.0, 0.0, 0.0};
+double A1[3] = {0.0, 0.0, 0.0};
+double E1[3] = {0.0, 0.0, 0.0};
+double ED1[3] = {0.0, 0.0, 0.0};
+double W1[3] = {0.0, 0.0, 0.0};
+double WD1[3] = {0.0, 0.0, 0.0};
+
+double P2[3] = {0.0, 0.0, 0.0};
+double V2[3] = {0.0, 0.0, 0.0};
+double A2[3] = {0.0, 0.0, 0.0};
+double E2[3] = {0.0, 0.0, 0.0};
+double ED2[3] = {0.0, 0.0, 0.0};
+double W2[3] = {0.0, 0.0, 0.0};
+double WD2[3] = {0.0, 0.0, 0.0};
+
+double P3[3] = {0.0, 0.0, 0.0};
+double V3[3] = {0.0, 0.0, 0.0};
+double A3[3] = {0.0, 0.0, 0.0};
+double E3[3] = {0.0, 0.0, 0.0};
+double ED3[3] = {0.0, 0.0, 0.0};
+double W3[3] = {0.0, 0.0, 0.0};
+double WD3[3] = {0.0, 0.0, 0.0};
+
+double P4[3] = {0.0, 0.0, 0.0};
+double V4[3] = {0.0, 0.0, 0.0};
+double A4[3] = {0.0, 0.0, 0.0};
+double E4[3] = {0.0, 0.0, 0.0};
+double ED4[3] = {0.0, 0.0, 0.0};
+double W4[3] = {0.0, 0.0, 0.0};
+double WD4[3] = {0.0, 0.0, 0.0};
 
 void lookUpTablesFormat (string dataFile)
 {
@@ -1138,74 +1194,425 @@ void aerodynamicFeedbackCoefficients()
 void eulerIntegrateStates()
 {
 
-	timeOfFlight += TIME_STEP;
+	INTEGRATION_PASS = 0;
 
-	double axialForce = thrust - CX * dynamicPressure * REFERENCE_AREA + FLUGravity[0] * mass;
-	double sideForce = CY * dynamicPressure * REFERENCE_AREA + FLUGravity[1] * mass;
-	double normalForce = CZ * dynamicPressure * REFERENCE_AREA + FLUGravity[2] * mass;
+	setArrayEquivalentToReference(P0, ENUPosition);
+	setArrayEquivalentToReference(V0, ENUVelocity);
+	setArrayEquivalentToReference(W0, bodyRate);
+	setArrayEquivalentToReference(E0, ENUEulerAngles);
 
-	double rollMoment = CL * dynamicPressure * REFERENCE_AREA * REFERENCE_DIAMETER;
-	double pitchMoment = CM * dynamicPressure * REFERENCE_AREA * REFERENCE_DIAMETER;
-	double yawMoment = CN * dynamicPressure * REFERENCE_AREA * REFERENCE_DIAMETER;
-
-	FLUAcceleration[0] = axialForce / mass - (bodyRate[1] * FLUVelocity[2] - bodyRate[2] * FLUVelocity[1]);
-	FLUAcceleration[1] = sideForce / mass - (bodyRate[2] * FLUVelocity[0] - bodyRate[0] * FLUVelocity[2]);
-	FLUAcceleration[2] = normalForce / mass - (bodyRate[0] * FLUVelocity[1] - bodyRate[1] * FLUVelocity[0]);
-
-	oneByThreeTimesThreeByThree(FLUAcceleration, missileENUToFLUMatrix, ENUAcceleration);
-
-	bodyRateDot[0] = rollMoment / axialMomentOfInertia;
-	bodyRateDot[1] = (1 / transverseMomentOfInertia) * ((transverseMomentOfInertia - axialMomentOfInertia) * bodyRate[0] * bodyRate[2] + pitchMoment);
-	bodyRateDot[2] = (1 / transverseMomentOfInertia) * ((axialMomentOfInertia - transverseMomentOfInertia) * bodyRate[0] * bodyRate[1] + yawMoment);
-
-	ENUEulerDot[0] = bodyRate[0] + (bodyRate[1] * sin(ENUEulerAngles[0]) + bodyRate[2] * cos(ENUEulerAngles[0])) * tan(ENUEulerAngles[1]);
-	ENUEulerDot[1] = bodyRate[1] * cos(ENUEulerAngles[0]) - bodyRate[2] * sin(ENUEulerAngles[0]);
-	ENUEulerDot[2] = -1 * (bodyRate[1] * sin(ENUEulerAngles[0]) + bodyRate[2] * cos(ENUEulerAngles[0])) / cos(ENUEulerAngles[1]);
+	setArrayEquivalentToReference(A1, ENUAcceleration);
+	setArrayEquivalentToReference(WD1, bodyRateDot);
+	setArrayEquivalentToReference(ED1, ENUEulerDot);
 
 	double deltaPos[3];
-	multiplyVectorTimesScalar(TIME_STEP, ENUVelocity, deltaPos);
-	double newMslPos[3];
-	addTwoVectors(ENUPosition, deltaPos, newMslPos);
-	ENUPosition[0] = newMslPos[0];
-	ENUPosition[1] = newMslPos[1];
-	ENUPosition[2] = newMslPos[2];
+	multiplyVectorTimesScalar(TIME_STEP, V0, deltaPos);
+	addTwoVectors(P0, deltaPos, P1);
 
 	double distanceTravelled;
 	magnitude(deltaPos, distanceTravelled);
 	range += distanceTravelled;
 
 	double deltaVel[3];
-	multiplyVectorTimesScalar(TIME_STEP, ENUAcceleration, deltaVel);
-	double newMslVel[3];
-	addTwoVectors(ENUVelocity, deltaVel, newMslVel);
-	ENUVelocity[0] = newMslVel[0];
-	ENUVelocity[1] = newMslVel[1];
-	ENUVelocity[2] = newMslVel[2];
-
-	threeByThreeTimesThreeByOne(missileENUToFLUMatrix, ENUVelocity, FLUVelocity);
+	multiplyVectorTimesScalar(TIME_STEP, A1, deltaVel);
+	addTwoVectors(V0, deltaVel, V1);
 
 	double deltaOmega[3];
-	multiplyVectorTimesScalar(TIME_STEP, bodyRateDot, deltaOmega);
-	double newMslBodyRate[3];
-	addTwoVectors(bodyRate, deltaOmega, newMslBodyRate);
-	bodyRate[0] = newMslBodyRate[0];
-	bodyRate[1] = newMslBodyRate[1];
-	bodyRate[2] = newMslBodyRate[2];
+	multiplyVectorTimesScalar(TIME_STEP, WD1, deltaOmega);
+	addTwoVectors(W0, deltaOmega, W1);
 
 	double deltaEuler[3];
-	multiplyVectorTimesScalar(TIME_STEP, ENUEulerDot, deltaEuler);
-	double newMslEuler[3];
-	addTwoVectors(ENUEulerAngles, deltaEuler, newMslEuler);
-	ENUEulerAngles[0] = newMslEuler[0];
-	ENUEulerAngles[1] = newMslEuler[1];
-	ENUEulerAngles[2] = newMslEuler[2];
+	multiplyVectorTimesScalar(TIME_STEP, ED1, deltaEuler);
+	addTwoVectors(E0, deltaEuler, E1);
 
+	setArrayEquivalentToReference(ENUPosition, P1);
+	setArrayEquivalentToReference(ENUVelocity, V1);
+	setArrayEquivalentToReference(bodyRate, W1);
+	setArrayEquivalentToReference(ENUEulerAngles, E1);
+
+	if (launch)
+	{
+		timeOfFlight += TIME_STEP;
+	}
+
+	setArrayEquivalentToZero(P0);
+	setArrayEquivalentToZero(V0);
+	setArrayEquivalentToZero(W0);
+	setArrayEquivalentToZero(E0);
+
+	setArrayEquivalentToZero(A1);
+	setArrayEquivalentToZero(WD1);
+	setArrayEquivalentToZero(ED1);
+
+	setArrayEquivalentToZero(P1);
+	setArrayEquivalentToZero(V1);
+	setArrayEquivalentToZero(W1);
+	setArrayEquivalentToZero(E1);
+
+}
+
+void rk2IntegrateStates()
+{
+
+	if (INTEGRATION_PASS == 0)
+	{
+
+		INTEGRATION_PASS += 1;
+
+		setArrayEquivalentToReference(P0, ENUPosition);
+		setArrayEquivalentToReference(V0, ENUVelocity);
+		setArrayEquivalentToReference(W0, bodyRate);
+		setArrayEquivalentToReference(E0, ENUEulerAngles);
+
+		setArrayEquivalentToReference(A1, ENUAcceleration);
+		setArrayEquivalentToReference(WD1, bodyRateDot);
+		setArrayEquivalentToReference(ED1, ENUEulerDot);
+
+		double deltaPos[3];
+		multiplyVectorTimesScalar(HALF_TIME_STEP, V0, deltaPos);
+		addTwoVectors(P0, deltaPos, P1);
+
+		double deltaVel[3];
+		multiplyVectorTimesScalar(HALF_TIME_STEP, A1, deltaVel);
+		addTwoVectors(V0, deltaVel, V1);
+
+		double deltaOmega[3];
+		multiplyVectorTimesScalar(HALF_TIME_STEP, WD1, deltaOmega);
+		addTwoVectors(W0, deltaOmega, W1);
+
+		double deltaEuler[3];
+		multiplyVectorTimesScalar(HALF_TIME_STEP, ED1, deltaEuler);
+		addTwoVectors(E0, deltaEuler, E1);
+
+		setArrayEquivalentToReference(ENUPosition, P1);
+		setArrayEquivalentToReference(ENUVelocity, V1);
+		setArrayEquivalentToReference(bodyRate, W1);
+		setArrayEquivalentToReference(ENUEulerAngles, E1);
+
+		if (launch)
+		{
+			timeOfFlight += HALF_TIME_STEP;
+		}
+
+	}
+	else if (INTEGRATION_PASS == 1)
+	{
+
+		INTEGRATION_PASS = 0;
+
+		setArrayEquivalentToReference(A2, ENUAcceleration);
+		setArrayEquivalentToReference(WD2, bodyRateDot);
+		setArrayEquivalentToReference(ED2, ENUEulerDot);
+
+		double deltaPos[3];
+		multiplyVectorTimesScalar(TIME_STEP, V1, deltaPos);
+		addTwoVectors(P0, deltaPos, P2);
+
+		double distanceTravelled;
+		magnitude(deltaPos, distanceTravelled);
+		range += distanceTravelled;
+
+		double deltaVel[3];
+		multiplyVectorTimesScalar(TIME_STEP, A2, deltaVel);
+		addTwoVectors(V0, deltaVel, V2);
+
+		double deltaOmega[3];
+		multiplyVectorTimesScalar(TIME_STEP, WD2, deltaOmega);
+		addTwoVectors(W0, deltaOmega, W2);
+
+		double deltaEuler[3];
+		multiplyVectorTimesScalar(TIME_STEP, ED2, deltaEuler);
+		addTwoVectors(E0, deltaEuler, E2);
+
+		setArrayEquivalentToReference(ENUPosition, P2);
+		setArrayEquivalentToReference(ENUVelocity, V2);
+		setArrayEquivalentToReference(bodyRate, W2);
+		setArrayEquivalentToReference(ENUEulerAngles, E2);
+
+		if (launch)
+		{
+			timeOfFlight += HALF_TIME_STEP;
+		}
+
+		setArrayEquivalentToZero(P0);
+		setArrayEquivalentToZero(V0);
+		setArrayEquivalentToZero(W0);
+		setArrayEquivalentToZero(E0);
+
+		setArrayEquivalentToZero(A1);
+		setArrayEquivalentToZero(WD1);
+		setArrayEquivalentToZero(ED1);
+
+		setArrayEquivalentToZero(P1);
+		setArrayEquivalentToZero(V1);
+		setArrayEquivalentToZero(W1);
+		setArrayEquivalentToZero(E1);
+
+		setArrayEquivalentToZero(A2);
+		setArrayEquivalentToZero(WD2);
+		setArrayEquivalentToZero(ED2);
+
+		setArrayEquivalentToZero(P2);
+		setArrayEquivalentToZero(V2);
+		setArrayEquivalentToZero(W2);
+		setArrayEquivalentToZero(E2);
+
+	}
+
+}
+
+void rk4IntegrateStates()
+{
+
+	if (INTEGRATION_PASS == 0)
+	{
+
+		INTEGRATION_PASS += 1;
+
+		setArrayEquivalentToReference(P0, ENUPosition);
+		setArrayEquivalentToReference(V0, ENUVelocity);
+		setArrayEquivalentToReference(W0, bodyRate);
+		setArrayEquivalentToReference(E0, ENUEulerAngles);
+
+		setArrayEquivalentToReference(A1, ENUAcceleration);
+		setArrayEquivalentToReference(WD1, bodyRateDot);
+		setArrayEquivalentToReference(ED1, ENUEulerDot);
+
+		double deltaPos[3];
+		multiplyVectorTimesScalar(HALF_TIME_STEP, V0, deltaPos);
+		addTwoVectors(P0, deltaPos, P1);
+
+		double deltaVel[3];
+		multiplyVectorTimesScalar(HALF_TIME_STEP, A1, deltaVel);
+		addTwoVectors(V0, deltaVel, V1);
+
+		double deltaOmega[3];
+		multiplyVectorTimesScalar(HALF_TIME_STEP, WD1, deltaOmega);
+		addTwoVectors(W0, deltaOmega, W1);
+
+		double deltaEuler[3];
+		multiplyVectorTimesScalar(HALF_TIME_STEP, ED1, deltaEuler);
+		addTwoVectors(E0, deltaEuler, E1);
+
+		setArrayEquivalentToReference(ENUPosition, P1);
+		setArrayEquivalentToReference(ENUVelocity, V1);
+		setArrayEquivalentToReference(bodyRate, W1);
+		setArrayEquivalentToReference(ENUEulerAngles, E1);
+
+		if (launch)
+		{
+			timeOfFlight += HALF_TIME_STEP;
+		}
+
+	}
+	else if (INTEGRATION_PASS == 1)
+	{
+
+		INTEGRATION_PASS += 1;
+
+		setArrayEquivalentToReference(A2, ENUAcceleration);
+		setArrayEquivalentToReference(WD2, bodyRateDot);
+		setArrayEquivalentToReference(ED2, ENUEulerDot);
+
+		double deltaPos[3];
+		multiplyVectorTimesScalar(HALF_TIME_STEP, V1, deltaPos);
+		addTwoVectors(P0, deltaPos, P2);
+
+		double deltaVel[3];
+		multiplyVectorTimesScalar(HALF_TIME_STEP, A2, deltaVel);
+		addTwoVectors(V0, deltaVel, V2);
+
+		double deltaOmega[3];
+		multiplyVectorTimesScalar(HALF_TIME_STEP, WD2, deltaOmega);
+		addTwoVectors(W0, deltaOmega, W2);
+
+		double deltaEuler[3];
+		multiplyVectorTimesScalar(HALF_TIME_STEP, ED2, deltaEuler);
+		addTwoVectors(E0, deltaEuler, E2);
+
+		setArrayEquivalentToReference(ENUPosition, P2);
+		setArrayEquivalentToReference(ENUVelocity, V2);
+		setArrayEquivalentToReference(bodyRate, W2);
+		setArrayEquivalentToReference(ENUEulerAngles, E2);
+
+	}
+	else if (INTEGRATION_PASS == 2)
+	{
+
+		INTEGRATION_PASS += 1;
+
+		setArrayEquivalentToReference(A3, ENUAcceleration);
+		setArrayEquivalentToReference(WD3, bodyRateDot);
+		setArrayEquivalentToReference(ED3, ENUEulerDot);
+
+		double deltaPos[3];
+		multiplyVectorTimesScalar(TIME_STEP, V2, deltaPos);
+		addTwoVectors(P0, deltaPos, P3);
+
+		double deltaVel[3];
+		multiplyVectorTimesScalar(TIME_STEP, A3, deltaVel);
+		addTwoVectors(V0, deltaVel, V3);
+
+		double deltaOmega[3];
+		multiplyVectorTimesScalar(TIME_STEP, WD3, deltaOmega);
+		addTwoVectors(W0, deltaOmega, W3);
+
+		double deltaEuler[3];
+		multiplyVectorTimesScalar(TIME_STEP, ED3, deltaEuler);
+		addTwoVectors(E0, deltaEuler, E3);
+
+		setArrayEquivalentToReference(ENUPosition, P3);
+		setArrayEquivalentToReference(ENUVelocity, V3);
+		setArrayEquivalentToReference(bodyRate, W3);
+		setArrayEquivalentToReference(ENUEulerAngles, E3);
+
+		if (launch)
+		{
+			timeOfFlight += HALF_TIME_STEP;
+		}
+
+	}
+	else if (INTEGRATION_PASS == 3)
+	{
+
+		INTEGRATION_PASS = 0;
+
+		setArrayEquivalentToReference(A4, ENUAcceleration);
+		setArrayEquivalentToReference(WD4, bodyRateDot);
+		setArrayEquivalentToReference(ED4, ENUEulerDot);
+
+		double deltaPos[3];
+		deltaPos[0] = (V0[0] + V1[0] * 2 + V2[0] * 2 + V3[0]) * (TIME_STEP / 6.0);
+		deltaPos[1] = (V0[1] + V1[1] * 2 + V2[1] * 2 + V3[1]) * (TIME_STEP / 6.0);
+		deltaPos[2] = (V0[2] + V1[2] * 2 + V2[2] * 2 + V3[2]) * (TIME_STEP / 6.0);
+		addTwoVectors(P0, deltaPos, P4);
+
+		double distanceTravelled;
+		magnitude(deltaPos, distanceTravelled);
+		range += distanceTravelled;
+
+		double deltaVel[3];
+		deltaVel[0] = (A1[0] + A2[0] * 2 + A3[0] * 2 + A4[0]) * (TIME_STEP / 6.0);
+		deltaVel[1] = (A1[1] + A2[1] * 2 + A3[1] * 2 + A4[1]) * (TIME_STEP / 6.0);
+		deltaVel[2] = (A1[2] + A2[2] * 2 + A3[2] * 2 + A4[2]) * (TIME_STEP / 6.0);
+		addTwoVectors(V0, deltaVel, V4);
+
+		double deltaOmega[3];
+		deltaOmega[0] = (WD1[0] + WD2[0] * 2 + WD3[0] * 2 + WD4[0]) * (TIME_STEP / 6.0);
+		deltaOmega[1] = (WD1[1] + WD2[1] * 2 + WD3[1] * 2 + WD4[1]) * (TIME_STEP / 6.0);
+		deltaOmega[2] = (WD1[2] + WD2[2] * 2 + WD3[2] * 2 + WD4[2]) * (TIME_STEP / 6.0);
+		addTwoVectors(W0, deltaOmega, W4);
+
+		double deltaEuler[3];
+		deltaEuler[0] = (ED1[0] + ED2[0] * 2 + ED3[0] * 2 + ED4[0]) * (TIME_STEP / 6.0);
+		deltaEuler[1] = (ED1[1] + ED2[1] * 2 + ED3[1] * 2 + ED4[1]) * (TIME_STEP / 6.0);
+		deltaEuler[2] = (ED1[2] + ED2[2] * 2 + ED3[2] * 2 + ED4[2]) * (TIME_STEP / 6.0);
+		addTwoVectors(E0, deltaEuler, E4);
+
+		setArrayEquivalentToReference(ENUPosition, P4);
+		setArrayEquivalentToReference(ENUVelocity, V4);
+		setArrayEquivalentToReference(bodyRate, W4);
+		setArrayEquivalentToReference(ENUEulerAngles, E4);
+
+		setArrayEquivalentToZero(P0);
+		setArrayEquivalentToZero(V0);
+		setArrayEquivalentToZero(W0);
+		setArrayEquivalentToZero(E0);
+
+		setArrayEquivalentToZero(A1);
+		setArrayEquivalentToZero(WD1);
+		setArrayEquivalentToZero(ED1);
+
+		setArrayEquivalentToZero(P1);
+		setArrayEquivalentToZero(V1);
+		setArrayEquivalentToZero(W1);
+		setArrayEquivalentToZero(E1);
+
+		setArrayEquivalentToZero(A2);
+		setArrayEquivalentToZero(WD2);
+		setArrayEquivalentToZero(ED2);
+
+		setArrayEquivalentToZero(P2);
+		setArrayEquivalentToZero(V2);
+		setArrayEquivalentToZero(W2);
+		setArrayEquivalentToZero(E2);
+
+		setArrayEquivalentToZero(A3);
+		setArrayEquivalentToZero(WD3);
+		setArrayEquivalentToZero(ED3);
+
+		setArrayEquivalentToZero(P3);
+		setArrayEquivalentToZero(V3);
+		setArrayEquivalentToZero(W3);
+		setArrayEquivalentToZero(E3);
+
+		setArrayEquivalentToZero(A4);
+		setArrayEquivalentToZero(WD4);
+		setArrayEquivalentToZero(ED4);
+
+		setArrayEquivalentToZero(P4);
+		setArrayEquivalentToZero(V4);
+		setArrayEquivalentToZero(W4);
+		setArrayEquivalentToZero(E4);
+
+	}
+
+}
+
+void missileMotion()
+{
+
+	// Forces.
+	double axialForce = thrust - CX * dynamicPressure * REFERENCE_AREA + FLUGravity[0] * mass;
+	double sideForce = CY * dynamicPressure * REFERENCE_AREA + FLUGravity[1] * mass;
+	double normalForce = CZ * dynamicPressure * REFERENCE_AREA + FLUGravity[2] * mass;
+
+	// Moments.
+	double rollMoment = CL * dynamicPressure * REFERENCE_AREA * REFERENCE_DIAMETER;
+	double pitchMoment = CM * dynamicPressure * REFERENCE_AREA * REFERENCE_DIAMETER;
+	double yawMoment = CN * dynamicPressure * REFERENCE_AREA * REFERENCE_DIAMETER;
+
+	// Specific force.
+	FLUAcceleration[0] = axialForce / mass - (bodyRate[1] * FLUVelocity[2] - bodyRate[2] * FLUVelocity[1]);
+	FLUAcceleration[1] = sideForce / mass - (bodyRate[2] * FLUVelocity[0] - bodyRate[0] * FLUVelocity[2]);
+	FLUAcceleration[2] = normalForce / mass - (bodyRate[0] * FLUVelocity[1] - bodyRate[1] * FLUVelocity[0]);
+
+	// Rotate FLU acceleration into ENU acceleration.
+	oneByThreeTimesThreeByThree(FLUAcceleration, missileENUToFLUMatrix, ENUAcceleration);
+
+	// Omega dot.
+	bodyRateDot[0] = rollMoment / axialMomentOfInertia;
+	bodyRateDot[1] = (1 / transverseMomentOfInertia) * ((transverseMomentOfInertia - axialMomentOfInertia) * bodyRate[0] * bodyRate[2] + pitchMoment);
+	bodyRateDot[2] = (1 / transverseMomentOfInertia) * ((axialMomentOfInertia - transverseMomentOfInertia) * bodyRate[0] * bodyRate[1] + yawMoment);
+
+	// Euler dot.
+	ENUEulerDot[0] = bodyRate[0] + (bodyRate[1] * sin(ENUEulerAngles[0]) + bodyRate[2] * cos(ENUEulerAngles[0])) * tan(ENUEulerAngles[1]);
+	ENUEulerDot[1] = bodyRate[1] * cos(ENUEulerAngles[0]) - bodyRate[2] * sin(ENUEulerAngles[0]);
+	ENUEulerDot[2] = -1 * (bodyRate[1] * sin(ENUEulerAngles[0]) + bodyRate[2] * cos(ENUEulerAngles[0])) / cos(ENUEulerAngles[1]);
+
+	// Integrate states.
+	if (INTEGRATION_METHOD == 0)
+	{
+		eulerIntegrateStates();
+	}
+	else if (INTEGRATION_METHOD == 1)
+	{
+		rk2IntegrateStates();
+	}
+	else if (INTEGRATION_METHOD == 2)
+	{
+		rk4IntegrateStates();
+	}
+
+	// Adjust local to body direction cosine matrix.
 	eulerAnglesToLocalOrientation(
 		ENUEulerAngles[0],
 		-ENUEulerAngles[1],
 		ENUEulerAngles[2],
 		missileENUToFLUMatrix
 	);
+
+	threeByThreeTimesThreeByOne(missileENUToFLUMatrix, ENUVelocity, FLUVelocity);
 
 }
 
@@ -1274,26 +1681,6 @@ void logData()
 
 }
 
-void fly()
-{
-
-	atmosphere();
-	seeker();
-	guidance();
-	control();
-	actuators();
-	aerodynamicAnglesAndConversions();
-	tableLookUps();
-	accelerationLimit();
-	propulsion();
-	aerodynamicIntegrationCoefficients();
-	aerodynamicFeedbackCoefficients();
-	eulerIntegrateStates();
-	performanceAndTerminationCheck();
-	logData();
-
-}
-
 int main ()
 {
 
@@ -1302,12 +1689,28 @@ int main ()
 	cout << "FLIGHT" << endl;
 	while (lethality == "FLYING")
 	{
-		fly();
-		auto print_it = static_cast<int>(round(timeOfFlight * 10000.0)) % 10000;
-		if (print_it == 0)
+		atmosphere();
+		seeker();
+		guidance();
+		control();
+		actuators();
+		aerodynamicAnglesAndConversions();
+		tableLookUps();
+		accelerationLimit();
+		propulsion();
+		aerodynamicIntegrationCoefficients();
+		aerodynamicFeedbackCoefficients();
+		missileMotion();
+		if (INTEGRATION_PASS == 0)
 		{
-			cout << setprecision(6) << timeOfFlight << " E " << ENUPosition[0] << " N " << ENUPosition[1] << " U " << ENUPosition[2] << " RANGE " << range << " MACH " << machSpeed << endl;
-			lastTime = timeOfFlight;
+			performanceAndTerminationCheck();
+			logData();
+			auto print_it = static_cast<int>(round(timeOfFlight * 10000.0)) % 10000;
+			if (print_it == 0)
+			{
+				cout << setprecision(6) << timeOfFlight << " E " << ENUPosition[0] << " N " << ENUPosition[1] << " U " << ENUPosition[2] << " RANGE " << range << " MACH " << machSpeed << endl;
+				lastTime = timeOfFlight;
+			}
 		}
 	}
 	cout << "\n" << endl;
