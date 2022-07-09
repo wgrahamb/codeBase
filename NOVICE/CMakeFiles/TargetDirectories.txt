@@ -1,0 +1,3 @@
+/home/graham/docs/codeBase/NOVICE/CMakeFiles/rebuild_cache.dir
+/home/graham/docs/codeBase/NOVICE/CMakeFiles/edit_cache.dir
+/home/graham/docs/codeBase/NOVICE/CMakeFiles/NOVICE.dir
