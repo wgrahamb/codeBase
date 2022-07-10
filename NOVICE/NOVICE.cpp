@@ -477,7 +477,7 @@ void lookUpTablesFormat (Missile &missile, string dataFile)
 void initUnLaunchedMissile(Missile &missile)
 {
 
-	// Intitialize and open input file.
+	// Initialize and open input file.
 	std::ifstream inPut;
 	inPut.open("input.txt");
 
@@ -2088,7 +2088,6 @@ int main ()
 	Missile Missile2 = Missile1; // Missile copies will need a specific init at some point, for containment and midcourse reevaluation.
 	flyout(Missile2, "log", true, true, 400.0, 0);
 
-	cout << "\n" << endl;
 	cout << "MISSION REPORT" << endl;
 	cout << setprecision(6) << "FINAL POSITION AT " << Missile2.timeOfFlight << " E " << Missile2.ENUPosition[0] << " N " << Missile2.ENUPosition[1] << " U " << Missile2.ENUPosition[2] << " RANGE " << Missile2.range << " MACH " << Missile2.machSpeed << endl;
 	cout << setprecision(6) << "MISS DISTANCE " << Missile2.missDistance << " FORWARD, LEFT, UP, MISS DISTANCE " << Missile2.FLUMissileToPipRelativePosition[0] << " " << Missile2.FLUMissileToPipRelativePosition[1] << " " << Missile2.FLUMissileToPipRelativePosition[2] << endl;
