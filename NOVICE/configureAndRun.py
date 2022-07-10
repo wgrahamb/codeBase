@@ -7,8 +7,9 @@ psi = 50.0 # YAW ANGLE IN LOCAL FRAME, ZERO POINTS TRUE EAST
 tgtE = 3000.0  # TARGET EAST
 tgtN = 0.0 # TARGET NORTH
 tgtU = 3000.0 # TARGET UP
+INTEGRATION_METHOD = 2 # 0 = Euler, 1 = rk2, 2 = rk4
 
-inPutString = f"{phi} {theta} {psi} {tgtE} {tgtN} {tgtU}"
+inPutString = f"{phi} {theta} {psi} {tgtE} {tgtN} {tgtU} {INTEGRATION_METHOD}"
 inPutFile = r"input.txt"
 with open(inPutFile, "w") as f:
 	f.writelines(inPutString)

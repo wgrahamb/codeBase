@@ -4,6 +4,12 @@
 		"iostream": "cpp",
 		"chrono": "cpp",
 		"random": "cpp",
-		"*.tcc": "cpp"
+		"*.tcc": "cpp",
+		"unordered_map": "cpp",
+		"fstream": "cpp",
+		"istream": "cpp",
+		"numeric": "cpp",
+		"ostream": "cpp",
+		"sstream": "cpp"
 	}
 }
