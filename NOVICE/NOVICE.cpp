@@ -21,6 +21,7 @@ using namespace std;
 // Scene loader.
 // Seeker on mode for missile.
 // Algorithm to scale line of attack with line of sight.
+// Algorithm to scale acceleration limit with energy.
 // Each missile should have a pip and target states.
 
 // Simulation control.
