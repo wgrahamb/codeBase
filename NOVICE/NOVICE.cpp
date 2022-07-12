@@ -303,8 +303,8 @@ struct Missile
 struct triple
 {
 
-	double value[3];
-	triple(double input[3]) : value{input[0], input[1], input[2]} {}
+	double triplet[3];
+	triple(double input[3]) : triplet{input[0], input[1], input[2]} {}
 
 };
 typedef pair<double, triple> trajectoryPoint; // Specific pair that defines a point on a trajectory. Contains a time of flight and a position. Used for propagations.
@@ -2111,7 +2111,7 @@ void flyout(Missile &missile, string flyOutID, bool writeData, bool consoleRepor
 	}
 	
 
-	missile.lethality = "FLYING"; // Reset lethality in the case that this missile is copied and needed again.
+	// missile.lethality = "FLYING"; // Reset lethality in the case that this missile is copied and needed again.
 	cout << "\n"; // For a better console report.
 
 }
@@ -2130,7 +2130,7 @@ trajectory propagateTarget(double targetENUPosition[3], double targetENUVelocity
 		double time = TIME_STEP * i;
 		double deltaPos[3];
 		multiplyVectorTimesScalar(TIME_STEP, targetENUVelocity, deltaPos);
-		addTwoVectors(initialTargetPosition.value, deltaPos, initialTargetPosition.value);
+		addTwoVectors(initialTargetPosition.triplet, deltaPos, initialTargetPosition.triplet);
 		targetTrajectory.push_back(make_pair(time, initialTargetPosition));
 
 	}
@@ -2155,7 +2155,7 @@ void pipSelection(Missile &missile, trajectory targetTrajectory, bool showProces
 		int biSectionGuess = (lowIndex + highIndex) / 2;
 		trajectoryPoint currentShot = targetTrajectory[biSectionGuess];
 		triple currentPip = currentShot.second;
-		setArrayEquivalentToReference(missileCopy.pip, currentPip.value);
+		setArrayEquivalentToReference(missileCopy.pip, currentPip.triplet);
 		initSeeker(missileCopy);
 		string id = "flyout" + to_string(loopCount);
 		flyout(missileCopy, id, true, false, 400.0, 0);
@@ -2176,14 +2176,19 @@ void pipSelection(Missile &missile, trajectory targetTrajectory, bool showProces
 		{
 			lowIndex = biSectionGuess;
 		}
-		else if (ratio < 0.99) // Too early.
+		else if (ratio < 0.99) // Too late.
 		{
 			highIndex = biSectionGuess;
 		}
 		else // Just right.
 		{
-			cout << "GOOD SHOT FOUND!\n";
-			goodShot = true;
+
+			if (missileCopy.lethality == "SUCCESSFUL_INTERCEPT")
+			{
+				cout << "GOOD SHOT FOUND!\n";
+				goodShot = true;
+			}
+
 		}
 
 	}
@@ -2201,7 +2206,7 @@ int main ()
 	initUnLaunchedMissile(Missile1, 0.0, 50.0, 50.0);
 
 	double targetENUPosition[3] = {3000.0, 0.0, 3000.0}; // Target starts at current pip.
-	double targetENUVelocity[3] = {0.0, 250.0, 0.0}; // Due north constant velocity at level altitude.
+	double targetENUVelocity[3] = {0.0, 450.0, 0.0}; // Due north constant velocity at level altitude.
 	trajectory targetTrajectory = propagateTarget(targetENUPosition, targetENUVelocity);
 	pipSelection(Missile1, targetTrajectory, true);
 

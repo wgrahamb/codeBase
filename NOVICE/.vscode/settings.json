@@ -11,6 +11,25 @@
 		"numeric": "cpp",
 		"ostream": "cpp",
 		"sstream": "cpp",
-		"array": "cpp"
+		"array": "cpp",
+		"atomic": "cpp",
+		"bit": "cpp",
+		"string": "cpp",
+		"algorithm": "cpp",
+		"functional": "cpp",
+		"memory": "cpp",
+		"memory_resource": "cpp",
+		"optional": "cpp",
+		"system_error": "cpp",
+		"tuple": "cpp",
+		"type_traits": "cpp",
+		"iomanip": "cpp",
+		"limits": "cpp",
+		"ratio": "cpp",
+		"stdexcept": "cpp",
+		"streambuf": "cpp",
+		"string_view": "cpp",
+		"utility": "cpp",
+		"typeinfo": "cpp"
 	}
 }
