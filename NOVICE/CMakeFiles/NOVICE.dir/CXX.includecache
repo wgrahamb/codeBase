@@ -6,7 +6,7 @@
 
 #IncludeRegexTransform: 
 
-/home/graham/docs/codeBase/NOVICE/NOVICE.cpp
+/home/graham/codeBase/NOVICE/NOVICE.cpp
 iostream
 -
 fstream
@@ -26,9 +26,9 @@ map
 algorithm
 -
 util.h
-/home/graham/docs/codeBase/NOVICE/util.h
+/home/graham/codeBase/NOVICE/util.h
 
-/home/graham/docs/codeBase/NOVICE/util.h
+/home/graham/codeBase/NOVICE/util.h
 vector
 -
 string

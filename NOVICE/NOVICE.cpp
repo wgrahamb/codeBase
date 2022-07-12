@@ -16,23 +16,19 @@
 using namespace std;
 
 /* To do */
-// Begin on NOVICE algorithms.
-// Typedef vector for target trajectory.
-// Bisection algorithm pip selection.
-// Seeker on mode for missile.
-// Each missile should have a pip and target states.
 // Structs for NOVICE players.
 // Scene generator.
 // Scene loader.
+// Seeker on mode for missile.
 // Algorithm to scale line of attack with line of sight.
+// Each missile should have a pip and target states.
 
 // Simulation control.
 auto wallClockStart = chrono::high_resolution_clock::now(); // Start tracking real time.
-const double TIME_STEP = 0.001; // Seconds. Common sense to have a uniform time step if can.
+const double TIME_STEP = 1 / 250.0; // Seconds. Common sense to have a uniform time step if can.
 const double HALF_TIME_STEP = TIME_STEP / 2.0; // Seconds. For rk2 and rk4 integration.
 
-//// Missile Model ////
-
+/* Missile Model */
 /*
 #
 # Author - Wilson Graham Beech.
@@ -95,6 +91,7 @@ const double ALPHA_PRIME_MAX = 40.0; // Degrees.
 const double SEA_LEVEL_PRESSURE = 101325; // Pascals.
 const double LAUNCH_CENTER_OF_GRAVITY_FROM_NOSE = 1.5357; // Meters.
 
+/* This struct fully represents a missile. Can be deep copied without need of defined copy constructor because there are no pointers. */
 struct Missile
 {
 
@@ -301,6 +298,57 @@ struct Missile
 
 };
 
+// Struct only for holding a triplet array. All my functions are designed for tripley arrays.
+struct triple
+{
+
+	double value[3];
+	triple(double input[3]) : value{input[0], input[1], input[2]} {}
+
+};
+typedef pair<double, triple> trajectoryPoint; // Specific pair that defines a point on a trajectory. Contains a time of flight and a position. Used for propagations.
+typedef vector<trajectoryPoint> trajectory; // Specific vector to hold trajectory points. Defines a full trajectory.
+
+// Defines an asset. A position that soldiers are trying to protect.
+struct asset
+{
+
+	string identity;
+	triple ENUPosition;
+	double simulationTime;
+	string status;
+
+};
+
+// Defines a launcher. Determines the launch orientation of the missile.
+struct launcher
+{
+
+	string identity;
+	triple ENUPosition;
+	double simulationTime;
+	string status;
+
+	double launcherAzimuth;
+	double launcherElevation;
+	vector<Missile> inventory;
+
+};
+
+// Defines a solder. This is an active interceptor.
+struct soldier
+{
+
+	string identity;
+	triple ENUPosition;
+	double simulationTime;
+	string status;
+
+	Missile interceptor;
+
+};
+
+// Parses text file with missile model tables. Should only be called once.
 void lookUpTablesFormat (Missile &missile, string dataFile)
 {
 	// LOOK UP DATA
@@ -468,30 +516,9 @@ void lookUpTablesFormat (Missile &missile, string dataFile)
 	}
 }
 
-// Works for now.
-// Needs to be refactored for fire control.
-// This will be done by the launcher, when the scenario is created.
-// When a missile packet is copied for flyouts, this does not have to be done.
-// Phi, theta, and psi will be input to this function.
-// Pip will come from elsewhere, most likely from the launch command.
-void initUnLaunchedMissile(Missile &missile)
+// Will be called by launcher when creating the scene.
+void initUnLaunchedMissile(Missile &missile, double phi, double theta, double psi)
 {
-
-	// Initialize and open input file.
-	std::ifstream inPut;
-	inPut.open("input.txt");
-
-	// Declare inputs.
-	double phi, theta, psi, tgtE, tgtN, tgtU;
-
-	// Populate inputs from file.
-	inPut >> phi >> theta >> psi >> tgtE >> tgtN >> tgtU >> missile.INTEGRATION_METHOD;
-
-	// Set pip.
-	// Will be changed for inputs.
-	missile.pip[0] = tgtE; // Meters.
-	missile.pip[1] = tgtN; // Meters.
-	missile.pip[2] = tgtU; // Meters.
 
 	phi *= degToRad;
 	theta *= degToRad;
@@ -517,7 +544,22 @@ void initUnLaunchedMissile(Missile &missile)
 	missile.FLUAcceleration[2] = 0.0;
 	magnitude(missile.ENUVelocity, missile.speed);
 
-	// Intialize seeker by pointing it directly at the target.
+	// Format data tables.
+	lookUpTablesFormat(missile, "shortRangeInterceptorTables.txt");
+
+	// Set missile lethality.
+	missile.lethality = "FLYING"; // STATUS
+
+	// Console output.
+	cout << "MODEL INITIATED" << endl;
+
+}
+
+// For the case of new flyouts as well as "seeker on."
+void initSeeker(Missile &missile)
+{
+
+	// Intialize seeker.
 	double relPos[3];
 	subtractTwoVectors(missile.ENUPosition, missile.pip, relPos);
 	double relPosU[3];
@@ -526,29 +568,14 @@ void initUnLaunchedMissile(Missile &missile)
 	threeByThreeTimesThreeByOne(missile.missileENUToFLUMatrix, relPosU, mslToInterceptU);
 	double mslToInterceptAz, mslToInterceptEl;
 	azAndElFromVector(mslToInterceptAz, mslToInterceptEl, mslToInterceptU);
-	missile.seekerPitch = mslToInterceptEl;
-	missile.seekerYaw = mslToInterceptAz;
-	double seekerAttitudeToLocalTM[3][3];
-	eulerAnglesToLocalOrientation(0.0, -missile.seekerPitch, missile.seekerYaw, seekerAttitudeToLocalTM);
-	threeByThreeTimesThreeByThree(seekerAttitudeToLocalTM, missile.missileENUToFLUMatrix, missile.seekerENUToFLUMatrix);
-	missile.seekerPitchError = 0.0;
-	missile.seekerYawError = 0.0;
+	missile.seekerPitchError = mslToInterceptEl;
+	missile.seekerYawError = mslToInterceptAz;
 	missile.seekerWLR = missile.seekerYaw;
 	missile.seekerWLQ = missile.seekerPitch;
 
-	// Format data tables.
-	lookUpTablesFormat(missile, "shortRangeInterceptorTables.txt");
-
-	// Set missile lethality.
-	missile.lethality = "FLYING"; // STATUS
-
-	// Console output.
-	cout << "\n" << endl;
-	cout << "MODEL INITIATED" << endl;
-	cout << "\n" << endl;
-
 }
 
+// Defines the atmosphere around the missile.
 void atmosphere(Missile &missile)
 {
 
@@ -2017,7 +2044,7 @@ void flyout(Missile &missile, string flyOutID, bool writeData, bool consoleRepor
 	if (writeData)
 	{
 
-		logFile.open(flyOutID + ".txt");
+		logFile.open("output/" + flyOutID + ".txt");
 		writeLogFileHeader(logFile);
 
 	}
@@ -2071,8 +2098,96 @@ void flyout(Missile &missile, string flyOutID, bool writeData, bool consoleRepor
 
 	}
 
+	if (consoleReport)
+	{
+
+		cout << "\n";
+		cout << "FLYOUT REPORT" << endl;
+		cout << setprecision(6) << "FINAL POSITION AT " << missile.timeOfFlight << " E " << missile.ENUPosition[0] << " N " << missile.ENUPosition[1] << " U " << missile.ENUPosition[2] << " RANGE " << missile.range << " MACH " << missile.machSpeed << endl;
+		cout << setprecision(6) << "MISS DISTANCE " << missile.missDistance << " FORWARD, LEFT, UP, MISS DISTANCE " << missile.FLUMissileToPipRelativePosition[0] << " " << missile.FLUMissileToPipRelativePosition[1] << " " << missile.FLUMissileToPipRelativePosition[2] << endl;
+		cout << "SIMULATION RESULT: " << missile.lethality << endl;
+
+	}
+	
+
 	missile.lethality = "FLYING"; // Reset lethality in the case that this missile is copied and needed again.
 	cout << "\n"; // For a better console report.
+
+}
+
+trajectory propagateTarget(double targetENUPosition[3], double targetENUVelocity[3])
+{
+
+	trajectory targetTrajectory; // 0 Place is time of flight. 1, 2, and 3 place is the target position.
+
+	triple initialTargetPosition(targetENUPosition);
+	targetTrajectory.push_back(make_pair(0.0, initialTargetPosition));
+
+	for (int i = 0; i < 100000; i++)
+	{
+
+		double time = TIME_STEP * i;
+		double deltaPos[3];
+		multiplyVectorTimesScalar(TIME_STEP, targetENUVelocity, deltaPos);
+		addTwoVectors(initialTargetPosition.value, deltaPos, initialTargetPosition.value);
+		targetTrajectory.push_back(make_pair(time, initialTargetPosition));
+
+	}
+
+	return targetTrajectory;
+
+}
+
+void pipSelection(Missile &missile, trajectory targetTrajectory, bool showProcess)
+{
+
+
+	bool goodShot = false;
+	int lowIndex = 0;
+	int highIndex = targetTrajectory.size();
+	int loopCount = 0;
+	while (not goodShot)
+	{
+
+		loopCount += 1;
+		Missile missileCopy = missile;
+		int biSectionGuess = (lowIndex + highIndex) / 2;
+		trajectoryPoint currentShot = targetTrajectory[biSectionGuess];
+		triple currentPip = currentShot.second;
+		setArrayEquivalentToReference(missileCopy.pip, currentPip.value);
+		initSeeker(missileCopy);
+		string id = "flyout" + to_string(loopCount);
+		flyout(missileCopy, id, true, false, 400.0, 0);
+		double ratio = missileCopy.timeOfFlight / currentShot.first;
+
+		if (showProcess)
+		{
+
+			cout << "FLYOUT " << loopCount << endl;
+			cout << "TARGET TIME OF FLIGHT " << currentShot.first << endl;
+			cout << "MISSILE TIME OF FLIGHT " << missileCopy.timeOfFlight << endl;
+			cout << "GOOD SHOT CHECK " << ratio << endl;
+			cout << "\n";
+
+		}
+
+		if (ratio > 1.0) // Too late.
+		{
+			lowIndex = biSectionGuess;
+		}
+		else if (ratio < 0.99) // Too early.
+		{
+			highIndex = biSectionGuess;
+		}
+		else // Just right.
+		{
+			cout << "GOOD SHOT FOUND!\n";
+			goodShot = true;
+		}
+
+	}
+
+	cout << "BREAK POINT\n" ;
 
 }
 
@@ -2082,19 +2197,16 @@ int main ()
 	double lastTime = 0;
 
 	Missile Missile1;
-	initUnLaunchedMissile(Missile1);
-	flyout(Missile1, "firstFiveSeconds", false, true, 5.0, 0);
+	initUnLaunchedMissile(Missile1, 0.0, 50.0, 50.0);
 
-	Missile Missile2 = Missile1; // Missile copies will need a specific init at some point, for containment and midcourse reevaluation.
-	flyout(Missile2, "log", true, true, 400.0, 0);
+	double targetENUPosition[3] = {3000.0, 0.0, 3000.0}; // Target starts at current pip.
+	double targetENUVelocity[3] = {0.0, 250.0, 0.0}; // Due north constant velocity at level altitude.
+	trajectory targetTrajectory = propagateTarget(targetENUPosition, targetENUVelocity);
+	pipSelection(Missile1, targetTrajectory, true);
 
-	cout << "MISSION REPORT" << endl;
-	cout << setprecision(6) << "FINAL POSITION AT " << Missile2.timeOfFlight << " E " << Missile2.ENUPosition[0] << " N " << Missile2.ENUPosition[1] << " U " << Missile2.ENUPosition[2] << " RANGE " << Missile2.range << " MACH " << Missile2.machSpeed << endl;
-	cout << setprecision(6) << "MISS DISTANCE " << Missile2.missDistance << " FORWARD, LEFT, UP, MISS DISTANCE " << Missile2.FLUMissileToPipRelativePosition[0] << " " << Missile2.FLUMissileToPipRelativePosition[1] << " " << Missile2.FLUMissileToPipRelativePosition[2] << endl;
-	cout << "SIMULATION RESULT: " << Missile2.lethality << endl;
 	auto wallClockEnd = chrono::high_resolution_clock::now();
 	auto simRealRunTime = chrono::duration_cast<chrono::milliseconds>(wallClockEnd - wallClockStart);
-	cout << "SIMULATION RUN TIME :" << simRealRunTime.count() << " MILLISECONDS" << endl;
+	cout << "SIMULATION RUN TIME : " << (simRealRunTime.count() / 1000.0) << " SECONDS" << endl;
 	cout << "\n" << endl;
 	return 0;
 

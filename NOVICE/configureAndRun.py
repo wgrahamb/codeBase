@@ -1,24 +1,17 @@
 import subprocess
 import shutil
+import os
 
-phi = 0.0 # ROLL IN LOCAL FRAME
-theta = 20.0 # PITCH ANGLE IN LOCAL FRAME
-psi = 50.0 # YAW ANGLE IN LOCAL FRAME, ZERO POINTS TRUE EAST
-tgtE = 3000.0  # TARGET EAST
-tgtN = 0.0 # TARGET NORTH
-tgtU = 3000.0 # TARGET UP
-INTEGRATION_METHOD = 2 # 0 = Euler, 1 = rk2, 2 = rk4
-
-inPutString = f"{phi} {theta} {psi} {tgtE} {tgtN} {tgtU} {INTEGRATION_METHOD}"
-inPutFile = r"input.txt"
-with open(inPutFile, "w") as f:
-	f.writelines(inPutString)
+for index, f in enumerate(os.listdir("output")):
+	os.remove(f"output/{f}")
 
 process = subprocess.Popen(["./NOVICE"])
 process.wait()
 
-
-shutil.copy(
-	"log.txt",
-	"/mnt/c/Users/graha/Documents/repo/pythonCode/CPP_NOVICE_Visuals"
+for index, f in enumerate(os.listdir("/mnt/c/Users/graha/Desktop/NOVICE_Visuals/output")):
+	os.remove(f"/mnt/c/Users/graha/Desktop/NOVICE_Visuals/output/{f}")
+shutil.rmtree("/mnt/c/Users/graha/Desktop/NOVICE_Visuals/output")
+shutil.copytree(
+	"/home/graham/codeBase/NOVICE/output",
+	"/mnt/c/Users/graha/Desktop/NOVICE_Visuals/output"
 )
