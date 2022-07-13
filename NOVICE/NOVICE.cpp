@@ -26,7 +26,7 @@ using namespace std;
 
 // Simulation control.
 auto wallClockStart = chrono::high_resolution_clock::now(); // Start tracking real time.
-const double TIME_STEP = 1 / 250.0; // Seconds. Common sense to have a uniform time step if can.
+const double TIME_STEP = 1 / 1000.0; // Seconds. Common sense to have a uniform time step if can.
 const double HALF_TIME_STEP = TIME_STEP / 2.0; // Seconds. For rk2 and rk4 integration.
 
 /* Missile Model */
@@ -1672,7 +1672,7 @@ void performanceAndTerminationCheck(Missile &missile, double maxTime)
 	{
 		missile.lethality = "SUCCESSFUL_INTERCEPT";
 	}
-	else if (missile.FLUMissileToPipRelativePosition[0] < 0.0)
+	else if (missile.FLUMissileToPipRelativePosition[0] < 0)
 	{
 		missile.lethality = "POINT_OF_CLOSEST_APPROACH_PASSED";
 	}
@@ -2109,9 +2109,7 @@ void flyout(Missile &missile, string flyOutID, bool writeData, bool consoleRepor
 		cout << "SIMULATION RESULT: " << missile.lethality << endl;
 
 	}
-	
 
-	// missile.lethality = "FLYING"; // Reset lethality in the case that this missile is copied and needed again.
 	cout << "\n"; // For a better console report.
 
 }
@@ -2168,32 +2166,41 @@ void pipSelection(Missile &missile, trajectory targetTrajectory, bool showProces
 			cout << "TARGET TIME OF FLIGHT " << currentShot.first << endl;
 			cout << "MISSILE TIME OF FLIGHT " << missileCopy.timeOfFlight << endl;
 			cout << "GOOD SHOT CHECK " << ratio << endl;
+			cout << "HIGH INDEX " << highIndex << " LOW INDEX " << lowIndex << endl;
+			cout << "SIMULATION RESULT " << missileCopy.lethality << endl;
 			cout << "\n";
 
 		}
 
-		if (ratio > 1.0) // Too late.
+		// We only care about good shots.
+		if (missileCopy.lethality == "SUCCESSFUL_INTERCEPT")
 		{
-			lowIndex = biSectionGuess;
-		}
-		else if (ratio < 0.99) // Too late.
-		{
-			highIndex = biSectionGuess;
-		}
-		else // Just right.
-		{
-
-			if (missileCopy.lethality == "SUCCESSFUL_INTERCEPT")
+			if (ratio > 1.0) // Too late. Move the target closer.
+			{
+				highIndex = biSectionGuess;
+			}
+			// The first time this condition is hit it means a good shot is found.
+			// Even if the interceptor arrives seconds early the launch will be scheduled.
+			// This way the interceptor arrives on time.
+			else
 			{
 				cout << "GOOD SHOT FOUND!\n";
 				goodShot = true;
 			}
+		}
+		else // Otherwise move the target closer.
+		{
+			highIndex = biSectionGuess;
+		}
 
+		if (loopCount > 10) // Any higher and most likely there is no good shot.
+		{
+			break;
 		}
 
 	}
 
-	cout << "BREAK POINT\n" ;
+	cout << "\n" ;
 
 }
 
@@ -2203,10 +2210,12 @@ int main ()
 	double lastTime = 0;
 
 	Missile Missile1;
-	initUnLaunchedMissile(Missile1, 0.0, 50.0, 50.0);
+	initUnLaunchedMissile(Missile1, 0.0, 50.0, 10.0);
 
-	double targetENUPosition[3] = {3000.0, 0.0, 3000.0}; // Target starts at current pip.
-	double targetENUVelocity[3] = {0.0, 450.0, 0.0}; // Due north constant velocity at level altitude.
+	// Only targets that move parallel or toward the scene.
+	// In classic military fashion, assume any target that is moving away is friendly or running.
+	double targetENUPosition[3] = {3000.0, -2000.0, 3000.0}; // Target starts at current pip.
+	double targetENUVelocity[3] = {0.0, 400.0, 0.0}; // Due north constant velocity at level altitude.
 	trajectory targetTrajectory = propagateTarget(targetENUPosition, targetENUVelocity);
 	pipSelection(Missile1, targetTrajectory, true);
 
