@@ -18,9 +18,9 @@ using namespace std;
 /* To do */
 // Pip selection algorithm needs work.
 	// Need to decide on some things.
-	// Should there be a distance limit? Such as, it cannot be a good shot if it is not within 10000 feet?
 	// I'm thinking a "radar" range of 20000.
-	// Or at least parallel?
+	// Pip selection works for targets that are moving toward or away from the launch site.
+	// Need a three dof model for pip selection.
 // Need to be able to feed a time step to flyout function for pip evaluation and ldc calculator.
 // Structs for NOVICE players.
 // Scene generator.
