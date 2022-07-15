@@ -1,1 +1,0 @@
-/usr/bin/c++  -g  -rdynamic CMakeFiles/NOVICE.dir/NOVICE.cpp.o CMakeFiles/NOVICE.dir/util.cpp.o  -o NOVICE 

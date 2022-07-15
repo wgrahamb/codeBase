@@ -2135,8 +2135,11 @@ trajectory propagateTarget(double targetENUPosition[3], double targetENUVelocity
 void pipSelection(Missile &missile, trajectory targetTrajectory, bool showProcess)
 {
 
-
+	// Determines return.
 	bool goodShot = false;
+
+	// Flyout time step.
+	double flyoutTimeStep = 1.0 / 200.0;
 
 	// Check to see if the target is moving away or toward the missile.
 	int lowIndex = 0;
@@ -2176,7 +2179,7 @@ void pipSelection(Missile &missile, trajectory targetTrajectory, bool showProces
 		setArrayEquivalentToReference(missileCopy.pip, currentPip.triplet);
 		initSeeker(missileCopy);
 		string id = "flyout" + to_string(loopCount);
-		flyout(missileCopy, id, true, true, (1.0 / 150.0), 400.0, 0);
+		flyout(missileCopy, id, true, true, flyoutTimeStep, 400.0, 0);
 		double ratio = missileCopy.timeOfFlight / currentShot.first;
 
 		if (showProcess)
