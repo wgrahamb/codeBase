@@ -16,18 +16,23 @@
 using namespace std;
 
 /* To do */
+// Pip selection algorithm needs work.
+	// Need to decide on some things.
+	// Should there be a distance limit? Such as, it cannot be a good shot if it is not within 10000 feet?
+	// I'm thinking a "radar" range of 20000.
+	// Or at least parallel?
+// Need to be able to feed a time step to flyout function for pip evaluation and ldc calculator.
 // Structs for NOVICE players.
 // Scene generator.
 // Scene loader.
 // Seeker on mode for missile.
-// Algorithm to scale line of attack with line of sight.
 // Algorithm to scale acceleration limit with energy.
 // Each missile should have a pip and target states.
 
 // Simulation control.
 auto wallClockStart = chrono::high_resolution_clock::now(); // Start tracking real time.
-const double TIME_STEP = 1 / 1000.0; // Seconds. Common sense to have a uniform time step if can.
-const double HALF_TIME_STEP = TIME_STEP / 2.0; // Seconds. For rk2 and rk4 integration.
+const double CONSTANT_TIME_STEP = 1 / 500.0; // Seconds. Common sense to have a uniform time step if can.
+const double CONSTANT_HALF_TIME_STEP = CONSTANT_TIME_STEP / 2.0; // Seconds. For rk2 and rk4 integration.
 
 /* Missile Model */
 /*
@@ -77,7 +82,7 @@ const double SEEKER_KF_G = 10.0; // Seeker Kalman filter gain. Per second.
 const double SEEKER_KF_ZETA = 0.9; // Seeker Kalman filter damping. Non dimensional.
 const double SEEKER_KF_WN = 60.0; // Seeker Kalman filter natural frequency. Radians per second.
 const double PROPORTIONAL_GUIDANCE_GAIN = 3.0; // Guidance homing gain. Non dimensional.
-const double LINE_OF_ATTACK_GUIDANCE_GAIN = 1.0; // Guidance midcourse gain. Non dimensional.
+const double LINE_OF_ATTACK_GUIDANCE_GAIN = 0.5; // Guidance midcourse gain. Non dimensional.
 const double MAXIMUM_ACCELERATION = 450.0; // Roughly 45 Gs. Meters per s^2.
 const double RATE_CONTROL_ZETA = 0.6; // Damping of constant rate control. Non dimensional.
 const double ROLL_CONTROL_WN = 20.0; // Natural frequency of roll closed loop complex pole. Radians per second.
@@ -103,6 +108,8 @@ struct Missile
 
 	// Missile state.
 	bool launch = true; // Launch command. True for now, will be needed for fire control.
+	double TIME_STEP = CONSTANT_TIME_STEP;
+	double HALF_TIME_STEP = CONSTANT_HALF_TIME_STEP;
 	double timeOfFlight = 0.0; // Seconds.
 	double missileENUToFLUMatrix[3][3]; // Non dimensional.
 	double ENUPosition[3]; // Meters.
@@ -613,34 +620,34 @@ void seeker(Missile &missile)
 
 	// Yaw channel.
 	double wlr1d_new = missile.seekerWLR2;
-	double wlr1_new = trapezoidIntegrate(wlr1d_new, missile.seekerWLR1D, missile.seekerWLR1, TIME_STEP);
+	double wlr1_new = trapezoidIntegrate(wlr1d_new, missile.seekerWLR1D, missile.seekerWLR1, missile.TIME_STEP);
 	missile.seekerWLR1 = wlr1_new;
 	missile.seekerWLR1D = wlr1d_new;
 	double wlr2d_new = gg * missile.seekerYawError - 2 * SEEKER_KF_ZETA * SEEKER_KF_WN * missile.seekerWLR1D - wsq * missile.seekerWLR1;
-	double wlr2_new = trapezoidIntegrate(wlr2d_new, missile.seekerWLR2D, missile.seekerWLR2, TIME_STEP);
+	double wlr2_new = trapezoidIntegrate(wlr2d_new, missile.seekerWLR2D, missile.seekerWLR2, missile.TIME_STEP);
 	missile.seekerWLR2 = wlr2_new;
 	missile.seekerWLR2D = wlr2d_new;
 
 	// Yaw control.
 	double wlrd_new = missile.seekerWLR1 - missile.bodyRate[2];
-	double wlr_new = trapezoidIntegrate(wlrd_new, missile.seekerWLRD, missile.seekerWLR, TIME_STEP);
+	double wlr_new = trapezoidIntegrate(wlrd_new, missile.seekerWLRD, missile.seekerWLR, missile.TIME_STEP);
 	missile.seekerWLR = wlr_new;
 	missile.seekerWLRD = wlrd_new;
 	missile.seekerYaw = missile.seekerWLR;
 
 	// Pitch channel.
 	double wlq1d_new = missile.seekerWLQ2;
-	double wlq1_new = trapezoidIntegrate(wlq1d_new, missile.seekerWLQ1D, missile.seekerWLQ1, TIME_STEP);
+	double wlq1_new = trapezoidIntegrate(wlq1d_new, missile.seekerWLQ1D, missile.seekerWLQ1, missile.TIME_STEP);
 	missile.seekerWLQ1 = wlq1_new;
 	missile.seekerWLQ1D = wlq1d_new;
 	double wlq2d_new = gg * missile.seekerPitchError - 2 * SEEKER_KF_ZETA * SEEKER_KF_WN * missile.seekerWLQ1D - wsq * missile.seekerWLQ1;
-	double wlq2_new = trapezoidIntegrate(wlq2d_new, missile.seekerWLQ2D, missile.seekerWLQ2, TIME_STEP);
+	double wlq2_new = trapezoidIntegrate(wlq2d_new, missile.seekerWLQ2D, missile.seekerWLQ2, missile.TIME_STEP);
 	missile.seekerWLQ2 = wlq2_new;
 	missile.seekerWLQ2D = wlq2d_new;
 
 	// Pitch control.
 	double wlqd_new = missile.seekerWLQ1 - missile.bodyRate[1];
-	double wlq_new = trapezoidIntegrate(wlqd_new, missile.seekerWLQD, missile.seekerWLQ, TIME_STEP);
+	double wlq_new = trapezoidIntegrate(wlqd_new, missile.seekerWLQD, missile.seekerWLQ, missile.TIME_STEP);
 	missile.seekerWLQ = wlq_new;
 	missile.seekerWLQD = wlqd_new;
 	missile.seekerPitch = missile.seekerWLQ;
@@ -672,43 +679,23 @@ void guidance(Missile &missile)
 	magnitude(missile.FLUMissileToPipRelativePosition, forwardLeftUpMissileToInterceptPositionMagnitude);
 	magnitude(forwardLeftUpMissileToInterceptLineOfSightVel, forwardLeftUpMissileToInterceptLineOfSightVelMagnitude);
 	timeToGo = forwardLeftUpMissileToInterceptPositionMagnitude / forwardLeftUpMissileToInterceptLineOfSightVelMagnitude;
-
-	if (timeToGo > -10000) // This means the missile is always using proportional guidance.
-	{
-
-		double closingVelocity[3];
-		multiplyVectorTimesScalar(-1.0, missile.FLUVelocity, closingVelocity);
-		double closingSpeed;
-		magnitude(closingVelocity, closingSpeed);
-		double TEMP1[3], TEMP2;
-		crossProductTwoVectors(missile.FLUMissileToPipRelativePosition, closingVelocity, TEMP1);
-		dotProductTwoVectors(missile.FLUMissileToPipRelativePosition, missile.FLUMissileToPipRelativePosition, TEMP2);
-		double lineOfSightRate[3];
-		divideVectorByScalar(TEMP2, TEMP1, lineOfSightRate);
-		double TEMP3, TEMP4[3];
-		double proportionalGuidanceGain = 3.0;
-		TEMP3 = -1 * proportionalGuidanceGain * closingSpeed;
-		multiplyVectorTimesScalar(TEMP3, forwardLeftUpMissileToInterceptPositionUnitVector, TEMP4);
-		double COMMAND[3];
-		crossProductTwoVectors(TEMP4, lineOfSightRate, COMMAND);
-		missile.guidanceNormalCommand = COMMAND[2];
-		missile.guidanceSideCommand = COMMAND[1];
-
-	}
-	else // Otherwise use trajectory shaping. Need an algorithm for line of attack scheduling. This missile likes pro nav.
-	{
-
-		double lineOfAttack[3];
-		lineOfAttack[0] = 0.2;
-		lineOfAttack[1] = 0.2;
-		lineOfAttack[2] = 0.2;
-		double forwardLeftUpMissileToInterceptLineOfAttackVel[3];
-		vectorProjection(lineOfAttack, missile.FLUVelocity, forwardLeftUpMissileToInterceptLineOfAttackVel);
-		double G = 1 - exp(-0.001 * forwardLeftUpMissileToInterceptPositionMagnitude);
-		missile.guidanceNormalCommand = LINE_OF_ATTACK_GUIDANCE_GAIN * (forwardLeftUpMissileToInterceptLineOfSightVel[2] + G * forwardLeftUpMissileToInterceptLineOfAttackVel[2]);
-		missile.guidanceSideCommand = LINE_OF_ATTACK_GUIDANCE_GAIN * (forwardLeftUpMissileToInterceptLineOfSightVel[1] + G * forwardLeftUpMissileToInterceptLineOfAttackVel[1]);
-
-	}
+	double closingVelocity[3];
+	multiplyVectorTimesScalar(-1.0, missile.FLUVelocity, closingVelocity);
+	double closingSpeed;
+	magnitude(closingVelocity, closingSpeed);
+	double TEMP1[3], TEMP2;
+	crossProductTwoVectors(missile.FLUMissileToPipRelativePosition, closingVelocity, TEMP1);
+	dotProductTwoVectors(missile.FLUMissileToPipRelativePosition, missile.FLUMissileToPipRelativePosition, TEMP2);
+	double lineOfSightRate[3];
+	divideVectorByScalar(TEMP2, TEMP1, lineOfSightRate);
+	double TEMP3, TEMP4[3];
+	double proportionalGuidanceGain = 3.0;
+	TEMP3 = -1 * proportionalGuidanceGain * closingSpeed;
+	multiplyVectorTimesScalar(TEMP3, forwardLeftUpMissileToInterceptPositionUnitVector, TEMP4);
+	double COMMAND[3];
+	crossProductTwoVectors(TEMP4, lineOfSightRate, COMMAND);
+	missile.guidanceNormalCommand = COMMAND[2];
+	missile.guidanceSideCommand = COMMAND[1];
 
 }
 
@@ -754,7 +741,7 @@ void control(Missile &missile)
 			zzdNew,
 			missile.pitchControlFeedForwardDerivative,
 			missile.pitchControlFeedForwardIntegration,
-			TIME_STEP
+			missile.TIME_STEP
 		);
 		missile.pitchControlFeedForwardIntegration = zzNew;
 		missile.pitchControlFeedForwardDerivative = zzdNew;
@@ -778,7 +765,7 @@ void control(Missile &missile)
 			yydNew,
 			missile.yawControlFeedForwardDerivative,
 			missile.yawControlFeedForwardIntegration,
-			TIME_STEP
+			missile.TIME_STEP
 		);
 		missile.yawControlFeedForwardIntegration = yyNew;
 		missile.yawControlFeedForwardDerivative = yydNew;
@@ -885,12 +872,12 @@ void actuators(Missile &missile)
 		}
 	}
 	double DEL1D_NEW = missile.FIN1DEFL_DOT;
-	double DEL1_NEW = trapezoidIntegrate(DEL1D_NEW, missile.FIN1DEFL_D, missile.FIN1DEFL, TIME_STEP);
+	double DEL1_NEW = trapezoidIntegrate(DEL1D_NEW, missile.FIN1DEFL_D, missile.FIN1DEFL, missile.TIME_STEP);
 	missile.FIN1DEFL = DEL1_NEW;
 	missile.FIN1DEFL_D = DEL1D_NEW;
 	double EDX1 = DEL1C - missile.FIN1DEFL;
 	double DEL1DOTDOT_NEW = FIN_CONTROL_WN * FIN_CONTROL_WN * EDX1 - 2 * FIN_CONTROL_ZETA * FIN_CONTROL_WN * missile.FIN1DEFL_D;
-	double DEL1DOT_NEW = trapezoidIntegrate(DEL1DOTDOT_NEW, missile.FIN1DEFL_DOTDOT, missile.FIN1DEFL_DOT, TIME_STEP);
+	double DEL1DOT_NEW = trapezoidIntegrate(DEL1DOTDOT_NEW, missile.FIN1DEFL_DOTDOT, missile.FIN1DEFL_DOT, missile.TIME_STEP);
 	missile.FIN1DEFL_DOT = DEL1DOT_NEW;
 	missile.FIN1DEFL_DOTDOT = DEL1DOTDOT_NEW;
 	if (flag == 1 and (missile.FIN1DEFL_DOT * missile.FIN1DEFL_DOTDOT) > 0)
@@ -928,12 +915,12 @@ void actuators(Missile &missile)
 		}
 	}
 	double DEL2D_NEW = missile.FIN2DEFL_DOT;
-	double DEL2_NEW = trapezoidIntegrate(DEL2D_NEW, missile.FIN2DEFL_D, missile.FIN2DEFL, TIME_STEP);
+	double DEL2_NEW = trapezoidIntegrate(DEL2D_NEW, missile.FIN2DEFL_D, missile.FIN2DEFL, missile.TIME_STEP);
 	missile.FIN2DEFL = DEL2_NEW;
 	missile.FIN2DEFL_D = DEL2D_NEW;
 	double EDX2 = DEL2C - missile.FIN2DEFL;
 	double DEL2DOTDOT_NEW = FIN_CONTROL_WN * FIN_CONTROL_WN * EDX2 - 2 * FIN_CONTROL_ZETA * FIN_CONTROL_WN * missile.FIN2DEFL_D;
-	double DEL2DOT_NEW = trapezoidIntegrate(DEL2DOTDOT_NEW, missile.FIN2DEFL_DOTDOT, missile.FIN2DEFL_DOT, TIME_STEP);
+	double DEL2DOT_NEW = trapezoidIntegrate(DEL2DOTDOT_NEW, missile.FIN2DEFL_DOTDOT, missile.FIN2DEFL_DOT, missile.TIME_STEP);
 	missile.FIN2DEFL_DOT = DEL2DOT_NEW;
 	missile.FIN2DEFL_DOTDOT = DEL2DOTDOT_NEW;
 	if (flag == 1 and (missile.FIN2DEFL_DOT * missile.FIN2DEFL_DOTDOT) > 0)
@@ -971,12 +958,12 @@ void actuators(Missile &missile)
 		}
 	}
 	double DEL3D_NEW = missile.FIN3DEFL_DOT;
-	double DEL3_NEW = trapezoidIntegrate(DEL3D_NEW, missile.FIN3DEFL_D, missile.FIN3DEFL, TIME_STEP);
+	double DEL3_NEW = trapezoidIntegrate(DEL3D_NEW, missile.FIN3DEFL_D, missile.FIN3DEFL, missile.TIME_STEP);
 	missile.FIN3DEFL = DEL3_NEW;
 	missile.FIN3DEFL_D = DEL3D_NEW;
 	double EDX3 = DEL3C - missile.FIN3DEFL;
 	double DEL3DOTDOT_NEW = FIN_CONTROL_WN * FIN_CONTROL_WN * EDX3 - 2 * FIN_CONTROL_ZETA * FIN_CONTROL_WN * missile.FIN3DEFL_D;
-	double DEL3DOT_NEW = trapezoidIntegrate(DEL3DOTDOT_NEW, missile.FIN3DEFL_DOTDOT, missile.FIN3DEFL_DOT, TIME_STEP);
+	double DEL3DOT_NEW = trapezoidIntegrate(DEL3DOTDOT_NEW, missile.FIN3DEFL_DOTDOT, missile.FIN3DEFL_DOT, missile.TIME_STEP);
 	missile.FIN3DEFL_DOT = DEL3DOT_NEW;
 	missile.FIN3DEFL_DOTDOT = DEL3DOTDOT_NEW;
 	if (flag == 1 and (missile.FIN3DEFL_DOT * missile.FIN3DEFL_DOTDOT) > 0)
@@ -1014,12 +1001,12 @@ void actuators(Missile &missile)
 		}
 	}
 	double DEL4D_NEW = missile.FIN4DEFL_DOT;
-	double DEL4_NEW = trapezoidIntegrate(DEL4D_NEW, missile.FIN4DEFL_D, missile.FIN4DEFL, TIME_STEP);
+	double DEL4_NEW = trapezoidIntegrate(DEL4D_NEW, missile.FIN4DEFL_D, missile.FIN4DEFL, missile.TIME_STEP);
 	missile.FIN4DEFL = DEL4_NEW;
 	missile.FIN4DEFL_D = DEL4D_NEW;
 	double EDX4 = DEL4C - missile.FIN4DEFL;
 	double DEL4DOTDOT_NEW = FIN_CONTROL_WN * FIN_CONTROL_WN * EDX4 - 2 * FIN_CONTROL_ZETA * FIN_CONTROL_WN * missile.FIN4DEFL_D;
-	double DEL4DOT_NEW = trapezoidIntegrate(DEL4DOTDOT_NEW, missile.FIN4DEFL_DOTDOT, missile.FIN4DEFL_DOT, TIME_STEP);
+	double DEL4DOT_NEW = trapezoidIntegrate(DEL4DOTDOT_NEW, missile.FIN4DEFL_DOTDOT, missile.FIN4DEFL_DOT, missile.TIME_STEP);
 	missile.FIN4DEFL_DOT = DEL4DOT_NEW;
 	missile.FIN4DEFL_DOTDOT = DEL4DOTDOT_NEW;
 	if (flag == 1 and (missile.FIN4DEFL_DOT * missile.FIN4DEFL_DOTDOT) > 0)
@@ -1249,7 +1236,7 @@ void eulerIntegrateStates(Missile &missile)
 	setArrayEquivalentToReference(missile.ED1, missile.ENUEulerDot);
 
 	double deltaPos[3];
-	multiplyVectorTimesScalar(TIME_STEP, missile.V0, deltaPos);
+	multiplyVectorTimesScalar(missile.TIME_STEP, missile.V0, deltaPos);
 	addTwoVectors(missile.P0, deltaPos, missile.P1);
 
 	double distanceTravelled;
@@ -1257,15 +1244,15 @@ void eulerIntegrateStates(Missile &missile)
 	missile.range += distanceTravelled;
 
 	double deltaVel[3];
-	multiplyVectorTimesScalar(TIME_STEP, missile.A1, deltaVel);
+	multiplyVectorTimesScalar(missile.TIME_STEP, missile.A1, deltaVel);
 	addTwoVectors(missile.V0, deltaVel, missile.V1);
 
 	double deltaOmega[3];
-	multiplyVectorTimesScalar(TIME_STEP, missile.WD1, deltaOmega);
+	multiplyVectorTimesScalar(missile.TIME_STEP, missile.WD1, deltaOmega);
 	addTwoVectors(missile.W0, deltaOmega, missile.W1);
 
 	double deltaEuler[3];
-	multiplyVectorTimesScalar(TIME_STEP, missile.ED1, deltaEuler);
+	multiplyVectorTimesScalar(missile.TIME_STEP, missile.ED1, deltaEuler);
 	addTwoVectors(missile.E0, deltaEuler, missile.E1);
 
 	setArrayEquivalentToReference(missile.ENUPosition, missile.P1);
@@ -1275,7 +1262,7 @@ void eulerIntegrateStates(Missile &missile)
 
 	if (missile.launch)
 	{
-		missile.timeOfFlight += TIME_STEP;
+		missile.timeOfFlight += missile.TIME_STEP;
 	}
 
 	setArrayEquivalentToZero(missile.P0);
@@ -1312,19 +1299,19 @@ void rk2IntegrateStates(Missile &missile)
 		setArrayEquivalentToReference(missile.ED1, missile.ENUEulerDot);
 
 		double deltaPos[3];
-		multiplyVectorTimesScalar(HALF_TIME_STEP, missile.V0, deltaPos);
+		multiplyVectorTimesScalar(missile.HALF_TIME_STEP, missile.V0, deltaPos);
 		addTwoVectors(missile.P0, deltaPos, missile.P1);
 
 		double deltaVel[3];
-		multiplyVectorTimesScalar(HALF_TIME_STEP, missile.A1, deltaVel);
+		multiplyVectorTimesScalar(missile.HALF_TIME_STEP, missile.A1, deltaVel);
 		addTwoVectors(missile.V0, deltaVel, missile.V1);
 
 		double deltaOmega[3];
-		multiplyVectorTimesScalar(HALF_TIME_STEP, missile.WD1, deltaOmega);
+		multiplyVectorTimesScalar(missile.HALF_TIME_STEP, missile.WD1, deltaOmega);
 		addTwoVectors(missile.W0, deltaOmega, missile.W1);
 
 		double deltaEuler[3];
-		multiplyVectorTimesScalar(HALF_TIME_STEP, missile.ED1, deltaEuler);
+		multiplyVectorTimesScalar(missile.HALF_TIME_STEP, missile.ED1, deltaEuler);
 		addTwoVectors(missile.E0, deltaEuler, missile.E1);
 
 		setArrayEquivalentToReference(missile.ENUPosition, missile.P1);
@@ -1334,7 +1321,7 @@ void rk2IntegrateStates(Missile &missile)
 
 		if (missile.launch)
 		{
-			missile.timeOfFlight += HALF_TIME_STEP;
+			missile.timeOfFlight += missile.HALF_TIME_STEP;
 		}
 
 	}
@@ -1348,7 +1335,7 @@ void rk2IntegrateStates(Missile &missile)
 		setArrayEquivalentToReference(missile.ED2, missile.ENUEulerDot);
 
 		double deltaPos[3];
-		multiplyVectorTimesScalar(TIME_STEP, missile.V1, deltaPos);
+		multiplyVectorTimesScalar(missile.TIME_STEP, missile.V1, deltaPos);
 		addTwoVectors(missile.P0, deltaPos, missile.P2);
 
 		double distanceTravelled;
@@ -1356,15 +1343,15 @@ void rk2IntegrateStates(Missile &missile)
 		missile.range += distanceTravelled;
 
 		double deltaVel[3];
-		multiplyVectorTimesScalar(TIME_STEP, missile.A2, deltaVel);
+		multiplyVectorTimesScalar(missile.TIME_STEP, missile.A2, deltaVel);
 		addTwoVectors(missile.V0, deltaVel, missile.V2);
 
 		double deltaOmega[3];
-		multiplyVectorTimesScalar(TIME_STEP, missile.WD2, deltaOmega);
+		multiplyVectorTimesScalar(missile.TIME_STEP, missile.WD2, deltaOmega);
 		addTwoVectors(missile.W0, deltaOmega, missile.W2);
 
 		double deltaEuler[3];
-		multiplyVectorTimesScalar(TIME_STEP, missile.ED2, deltaEuler);
+		multiplyVectorTimesScalar(missile.TIME_STEP, missile.ED2, deltaEuler);
 		addTwoVectors(missile.E0, deltaEuler, missile.E2);
 
 		setArrayEquivalentToReference(missile.ENUPosition, missile.P2);
@@ -1374,7 +1361,7 @@ void rk2IntegrateStates(Missile &missile)
 
 		if (missile.launch)
 		{
-			missile.timeOfFlight += HALF_TIME_STEP;
+			missile.timeOfFlight += missile.HALF_TIME_STEP;
 		}
 
 		setArrayEquivalentToZero(missile.P0);
@@ -1422,19 +1409,19 @@ void rk4IntegrateStates(Missile &missile)
 		setArrayEquivalentToReference(missile.ED1, missile.ENUEulerDot);
 
 		double deltaPos[3];
-		multiplyVectorTimesScalar(HALF_TIME_STEP, missile.V0, deltaPos);
+		multiplyVectorTimesScalar(missile.HALF_TIME_STEP, missile.V0, deltaPos);
 		addTwoVectors(missile.P0, deltaPos, missile.P1);
 
 		double deltaVel[3];
-		multiplyVectorTimesScalar(HALF_TIME_STEP, missile.A1, deltaVel);
+		multiplyVectorTimesScalar(missile.HALF_TIME_STEP, missile.A1, deltaVel);
 		addTwoVectors(missile.V0, deltaVel, missile.V1);
 
 		double deltaOmega[3];
-		multiplyVectorTimesScalar(HALF_TIME_STEP, missile.WD1, deltaOmega);
+		multiplyVectorTimesScalar(missile.HALF_TIME_STEP, missile.WD1, deltaOmega);
 		addTwoVectors(missile.W0, deltaOmega, missile.W1);
 
 		double deltaEuler[3];
-		multiplyVectorTimesScalar(HALF_TIME_STEP, missile.ED1, deltaEuler);
+		multiplyVectorTimesScalar(missile.HALF_TIME_STEP, missile.ED1, deltaEuler);
 		addTwoVectors(missile.E0, deltaEuler, missile.E1);
 
 		setArrayEquivalentToReference(missile.ENUPosition, missile.P1);
@@ -1444,7 +1431,7 @@ void rk4IntegrateStates(Missile &missile)
 
 		if (missile.launch)
 		{
-			missile.timeOfFlight += HALF_TIME_STEP;
+			missile.timeOfFlight += missile.HALF_TIME_STEP;
 		}
 
 	}
@@ -1458,19 +1445,19 @@ void rk4IntegrateStates(Missile &missile)
 		setArrayEquivalentToReference(missile.ED2, missile.ENUEulerDot);
 
 		double deltaPos[3];
-		multiplyVectorTimesScalar(HALF_TIME_STEP, missile.V1, deltaPos);
+		multiplyVectorTimesScalar(missile.HALF_TIME_STEP, missile.V1, deltaPos);
 		addTwoVectors(missile.P0, deltaPos, missile.P2);
 
 		double deltaVel[3];
-		multiplyVectorTimesScalar(HALF_TIME_STEP, missile.A2, deltaVel);
+		multiplyVectorTimesScalar(missile.HALF_TIME_STEP, missile.A2, deltaVel);
 		addTwoVectors(missile.V0, deltaVel, missile.V2);
 
 		double deltaOmega[3];
-		multiplyVectorTimesScalar(HALF_TIME_STEP, missile.WD2, deltaOmega);
+		multiplyVectorTimesScalar(missile.HALF_TIME_STEP, missile.WD2, deltaOmega);
 		addTwoVectors(missile.W0, deltaOmega, missile.W2);
 
 		double deltaEuler[3];
-		multiplyVectorTimesScalar(HALF_TIME_STEP, missile.ED2, deltaEuler);
+		multiplyVectorTimesScalar(missile.HALF_TIME_STEP, missile.ED2, deltaEuler);
 		addTwoVectors(missile.E0, deltaEuler, missile.E2);
 
 		setArrayEquivalentToReference(missile.ENUPosition, missile.P2);
@@ -1489,19 +1476,19 @@ void rk4IntegrateStates(Missile &missile)
 		setArrayEquivalentToReference(missile.ED3, missile.ENUEulerDot);
 
 		double deltaPos[3];
-		multiplyVectorTimesScalar(TIME_STEP, missile.V2, deltaPos);
+		multiplyVectorTimesScalar(missile.TIME_STEP, missile.V2, deltaPos);
 		addTwoVectors(missile.P0, deltaPos, missile.P3);
 
 		double deltaVel[3];
-		multiplyVectorTimesScalar(TIME_STEP, missile.A3, deltaVel);
+		multiplyVectorTimesScalar(missile.TIME_STEP, missile.A3, deltaVel);
 		addTwoVectors(missile.V0, deltaVel, missile.V3);
 
 		double deltaOmega[3];
-		multiplyVectorTimesScalar(TIME_STEP, missile.WD3, deltaOmega);
+		multiplyVectorTimesScalar(missile.TIME_STEP, missile.WD3, deltaOmega);
 		addTwoVectors(missile.W0, deltaOmega, missile.W3);
 
 		double deltaEuler[3];
-		multiplyVectorTimesScalar(TIME_STEP, missile.ED3, deltaEuler);
+		multiplyVectorTimesScalar(missile.TIME_STEP, missile.ED3, deltaEuler);
 		addTwoVectors(missile.E0, deltaEuler, missile.E3);
 
 		setArrayEquivalentToReference(missile.ENUPosition, missile.P3);
@@ -1511,7 +1498,7 @@ void rk4IntegrateStates(Missile &missile)
 
 		if (missile.launch)
 		{
-			missile.timeOfFlight += HALF_TIME_STEP;
+			missile.timeOfFlight += missile.HALF_TIME_STEP;
 		}
 
 	}
@@ -1525,9 +1512,9 @@ void rk4IntegrateStates(Missile &missile)
 		setArrayEquivalentToReference(missile.ED4, missile.ENUEulerDot);
 
 		double deltaPos[3];
-		deltaPos[0] = (missile.V0[0] + missile.V1[0] * 2 + missile.V2[0] * 2 + missile.V3[0]) * (TIME_STEP / 6.0);
-		deltaPos[1] = (missile.V0[1] + missile.V1[1] * 2 + missile.V2[1] * 2 + missile.V3[1]) * (TIME_STEP / 6.0);
-		deltaPos[2] = (missile.V0[2] + missile.V1[2] * 2 + missile.V2[2] * 2 + missile.V3[2]) * (TIME_STEP / 6.0);
+		deltaPos[0] = (missile.V0[0] + missile.V1[0] * 2 + missile.V2[0] * 2 + missile.V3[0]) * (missile.TIME_STEP / 6.0);
+		deltaPos[1] = (missile.V0[1] + missile.V1[1] * 2 + missile.V2[1] * 2 + missile.V3[1]) * (missile.TIME_STEP / 6.0);
+		deltaPos[2] = (missile.V0[2] + missile.V1[2] * 2 + missile.V2[2] * 2 + missile.V3[2]) * (missile.TIME_STEP / 6.0);
 		addTwoVectors(missile.P0, deltaPos, missile.P4);
 
 		double distanceTravelled;
@@ -1535,21 +1522,21 @@ void rk4IntegrateStates(Missile &missile)
 		missile.range += distanceTravelled;
 
 		double deltaVel[3];
-		deltaVel[0] = (missile.A1[0] + missile.A2[0] * 2 + missile.A3[0] * 2 + missile.A4[0]) * (TIME_STEP / 6.0);
-		deltaVel[1] = (missile.A1[1] + missile.A2[1] * 2 + missile.A3[1] * 2 + missile.A4[1]) * (TIME_STEP / 6.0);
-		deltaVel[2] = (missile.A1[2] + missile.A2[2] * 2 + missile.A3[2] * 2 + missile.A4[2]) * (TIME_STEP / 6.0);
+		deltaVel[0] = (missile.A1[0] + missile.A2[0] * 2 + missile.A3[0] * 2 + missile.A4[0]) * (missile.TIME_STEP / 6.0);
+		deltaVel[1] = (missile.A1[1] + missile.A2[1] * 2 + missile.A3[1] * 2 + missile.A4[1]) * (missile.TIME_STEP / 6.0);
+		deltaVel[2] = (missile.A1[2] + missile.A2[2] * 2 + missile.A3[2] * 2 + missile.A4[2]) * (missile.TIME_STEP / 6.0);
 		addTwoVectors(missile.V0, deltaVel, missile.V4);
 
 		double deltaOmega[3];
-		deltaOmega[0] = (missile.WD1[0] + missile.WD2[0] * 2 + missile.WD3[0] * 2 + missile.WD4[0]) * (TIME_STEP / 6.0);
-		deltaOmega[1] = (missile.WD1[1] + missile.WD2[1] * 2 + missile.WD3[1] * 2 + missile.WD4[1]) * (TIME_STEP / 6.0);
-		deltaOmega[2] = (missile.WD1[2] + missile.WD2[2] * 2 + missile.WD3[2] * 2 + missile.WD4[2]) * (TIME_STEP / 6.0);
+		deltaOmega[0] = (missile.WD1[0] + missile.WD2[0] * 2 + missile.WD3[0] * 2 + missile.WD4[0]) * (missile.TIME_STEP / 6.0);
+		deltaOmega[1] = (missile.WD1[1] + missile.WD2[1] * 2 + missile.WD3[1] * 2 + missile.WD4[1]) * (missile.TIME_STEP / 6.0);
+		deltaOmega[2] = (missile.WD1[2] + missile.WD2[2] * 2 + missile.WD3[2] * 2 + missile.WD4[2]) * (missile.TIME_STEP / 6.0);
 		addTwoVectors(missile.W0, deltaOmega, missile.W4);
 
 		double deltaEuler[3];
-		deltaEuler[0] = (missile.ED1[0] + missile.ED2[0] * 2 + missile.ED3[0] * 2 + missile.ED4[0]) * (TIME_STEP / 6.0);
-		deltaEuler[1] = (missile.ED1[1] + missile.ED2[1] * 2 + missile.ED3[1] * 2 + missile.ED4[1]) * (TIME_STEP / 6.0);
-		deltaEuler[2] = (missile.ED1[2] + missile.ED2[2] * 2 + missile.ED3[2] * 2 + missile.ED4[2]) * (TIME_STEP / 6.0);
+		deltaEuler[0] = (missile.ED1[0] + missile.ED2[0] * 2 + missile.ED3[0] * 2 + missile.ED4[0]) * (missile.TIME_STEP / 6.0);
+		deltaEuler[1] = (missile.ED1[1] + missile.ED2[1] * 2 + missile.ED3[1] * 2 + missile.ED4[1]) * (missile.TIME_STEP / 6.0);
+		deltaEuler[2] = (missile.ED1[2] + missile.ED2[2] * 2 + missile.ED3[2] * 2 + missile.ED4[2]) * (missile.TIME_STEP / 6.0);
 		addTwoVectors(missile.E0, deltaEuler, missile.E4);
 
 		setArrayEquivalentToReference(missile.ENUPosition, missile.P4);
@@ -1668,7 +1655,7 @@ void performanceAndTerminationCheck(Missile &missile, double maxTime)
 	{
 		missile.lethality = "GROUND_COLLISION";
 	}
-	else if (missile.missDistance < 2.0)
+	else if (missile.missDistance < 5.0)
 	{
 		missile.lethality = "SUCCESSFUL_INTERCEPT";
 	}
@@ -2030,11 +2017,15 @@ void logData(Missile &missile, ofstream &logFile)
 
 }
 
-void flyout(Missile &missile, string flyOutID, bool writeData, bool consoleReport, double maxTime, int INTEGRATION_METHOD)
+void flyout(Missile &missile, string flyOutID, bool writeData, bool consoleReport, double timeStep, double maxTime, int INTEGRATION_METHOD)
 {
 
 	// Change missile integration method to the requested flyout integration method.
 	missile.INTEGRATION_METHOD = INTEGRATION_METHOD;
+
+	// Change missile time step to the requested flyout time step.
+	missile.TIME_STEP = timeStep;
+	missile.HALF_TIME_STEP = (timeStep / 2.0);
 
 	// For console report if requested.
 	double lastTime = missile.timeOfFlight;
@@ -2125,11 +2116,15 @@ trajectory propagateTarget(double targetENUPosition[3], double targetENUVelocity
 	for (int i = 0; i < 100000; i++)
 	{
 
-		double time = TIME_STEP * i;
+		double time = CONSTANT_TIME_STEP * i;
 		double deltaPos[3];
-		multiplyVectorTimesScalar(TIME_STEP, targetENUVelocity, deltaPos);
+		multiplyVectorTimesScalar(CONSTANT_TIME_STEP, targetENUVelocity, deltaPos);
 		addTwoVectors(initialTargetPosition.triplet, deltaPos, initialTargetPosition.triplet);
 		targetTrajectory.push_back(make_pair(time, initialTargetPosition));
+		if (initialTargetPosition.triplet[2] < 0.0) // Below ground.
+		{
+			break;
+		}
 
 	}
 
@@ -2142,21 +2137,46 @@ void pipSelection(Missile &missile, trajectory targetTrajectory, bool showProces
 
 
 	bool goodShot = false;
+
+	// Check to see if the target is moving away or toward the missile.
 	int lowIndex = 0;
-	int highIndex = targetTrajectory.size();
+	int highIndex = targetTrajectory.size() - 1;
+	trajectoryPoint firstTrajPoint = targetTrajectory[lowIndex];
+	double firstTrajPointDistance, firstTrajPointRelPos[3];
+	subtractTwoVectors(firstTrajPoint.second.triplet, missile.ENUPosition, firstTrajPointRelPos);
+	magnitude(firstTrajPointRelPos, firstTrajPointDistance);
+	trajectoryPoint lastTrajPoint = targetTrajectory[highIndex];
+	double lastTrajPointDistance, lastTrajPointRelPos[3];
+	subtractTwoVectors(lastTrajPoint.second.triplet, missile.ENUPosition, lastTrajPointRelPos);
+	magnitude(lastTrajPointRelPos, lastTrajPointDistance);
+
+	// The way it looks for a good shot depends on whether it is moving away or toward the launcher.
+	int increment;
+	int firstShotCheckIndex;
+	if (lastTrajPointDistance > firstTrajPointDistance) // Moving away.
+	{
+		increment = (1 / CONSTANT_TIME_STEP);
+		firstShotCheckIndex = lowIndex;
+	}
+	else // Moving toward you.
+	{
+		increment = -1.0 * (1 / CONSTANT_TIME_STEP);
+		firstShotCheckIndex = highIndex;
+	}
+
+	// Find a good shot.
 	int loopCount = 0;
 	while (not goodShot)
 	{
 
 		loopCount += 1;
 		Missile missileCopy = missile;
-		int biSectionGuess = (lowIndex + highIndex) / 2;
-		trajectoryPoint currentShot = targetTrajectory[biSectionGuess];
+		trajectoryPoint currentShot = targetTrajectory[firstShotCheckIndex];
 		triple currentPip = currentShot.second;
 		setArrayEquivalentToReference(missileCopy.pip, currentPip.triplet);
 		initSeeker(missileCopy);
 		string id = "flyout" + to_string(loopCount);
-		flyout(missileCopy, id, true, false, 400.0, 0);
+		flyout(missileCopy, id, true, true, (1.0 / 150.0), 400.0, 0);
 		double ratio = missileCopy.timeOfFlight / currentShot.first;
 
 		if (showProcess)
@@ -2166,18 +2186,18 @@ void pipSelection(Missile &missile, trajectory targetTrajectory, bool showProces
 			cout << "TARGET TIME OF FLIGHT " << currentShot.first << endl;
 			cout << "MISSILE TIME OF FLIGHT " << missileCopy.timeOfFlight << endl;
 			cout << "GOOD SHOT CHECK " << ratio << endl;
-			cout << "HIGH INDEX " << highIndex << " LOW INDEX " << lowIndex << endl;
+			cout << "INDEX " << firstShotCheckIndex << endl;
 			cout << "SIMULATION RESULT " << missileCopy.lethality << endl;
 			cout << "\n";
 
 		}
 
-		// We only care about good shots.
+		// We only care about intercepts.
 		if (missileCopy.lethality == "SUCCESSFUL_INTERCEPT")
 		{
 			if (ratio > 1.0) // Too late. Move the target closer.
 			{
-				highIndex = biSectionGuess;
+				firstShotCheckIndex += increment;
 			}
 			// The first time this condition is hit it means a good shot is found.
 			// Even if the interceptor arrives seconds early the launch will be scheduled.
@@ -2190,10 +2210,10 @@ void pipSelection(Missile &missile, trajectory targetTrajectory, bool showProces
 		}
 		else // Otherwise move the target closer.
 		{
-			highIndex = biSectionGuess;
+			firstShotCheckIndex += increment;
 		}
 
-		if (loopCount > 10) // Any higher and most likely there is no good shot.
+		if (loopCount > 30) // Any higher and most likely there is no good shot.
 		{
 			break;
 		}
@@ -2210,14 +2230,23 @@ int main ()
 	double lastTime = 0;
 
 	Missile Missile1;
-	initUnLaunchedMissile(Missile1, 0.0, 50.0, 10.0);
+	initUnLaunchedMissile(Missile1, 0.0, 50.0, -20.0);
+	Missile Missile2 = Missile1;
 
-	// Only targets that move parallel or toward the scene.
-	// In classic military fashion, assume any target that is moving away is friendly or running.
-	double targetENUPosition[3] = {3000.0, -2000.0, 3000.0}; // Target starts at current pip.
-	double targetENUVelocity[3] = {0.0, 400.0, 0.0}; // Due north constant velocity at level altitude.
-	trajectory targetTrajectory = propagateTarget(targetENUPosition, targetENUVelocity);
-	pipSelection(Missile1, targetTrajectory, true);
+	// Missile1.pip[0] = 3000.0;
+	// Missile1.pip[1] = 1000.0;
+	// Missile1.pip[2] = 3000.0;
+
+	// flyout(Missile1, "log", true, true, Missile1.TIME_STEP, 400.0, 0);
+
+	// double targetENUVelocity[3] = {-400.0, 0.0, -450.0};
+	// double targetENUPosition[3] = {10000.0, 0.0, 10000.0};
+	double targetENUVelocity[3] = {500.0, 0.0, 0.0};
+	double targetENUPosition[3] = {-5000.0, 0.0, 3000.0};
+	// double targetENUVelocity[3] = {-800.0, 0.0, 0.0};
+	// double targetENUPosition[3] = {20000.0, 0.0, 3000.0};
+	trajectory target = propagateTarget(targetENUPosition, targetENUVelocity);
+	pipSelection(Missile2, target, true);
 
 	auto wallClockEnd = chrono::high_resolution_clock::now();
 	auto simRealRunTime = chrono::duration_cast<chrono::milliseconds>(wallClockEnd - wallClockStart);
