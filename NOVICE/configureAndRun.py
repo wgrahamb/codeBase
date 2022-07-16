@@ -8,10 +8,12 @@ for index, f in enumerate(os.listdir("output")):
 process = subprocess.Popen(["./build/NOVICE"])
 process.wait()
 
-# for index, f in enumerate(os.listdir("/mnt/c/Users/graha/iCloudDrive/windowsCode/NOVICE_Visuals/output")):
-# 	os.remove(f"/mnt/c/Users/graha/iCloudDrive/windowsCode/NOVICE_Visuals/output/{f}")
-# shutil.rmtree("/mnt/c/Users/graha/iCloudDrive/windowsCode/NOVICE_Visuals/output")
-# shutil.copytree(
-# 	"/home/graham/codeBase/NOVICE/output",
-# 	"/mnt/c/Users/graha/iCloudDrive/windowsCode/NOVICE_Visuals/output"
-# )
+moveToPath = "/mnt/c/Users/graha/Desktop/NOVICE_Visuals/output"
+
+for index, f in enumerate(os.listdir(moveToPath)):
+	os.remove(f"{moveToPath}/{f}")
+shutil.rmtree(f"{moveToPath}")
+shutil.copytree(
+	"/home/graham/codeBase/NOVICE/output",
+	moveToPath
+)

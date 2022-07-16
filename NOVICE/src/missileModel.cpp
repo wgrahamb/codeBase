@@ -12,27 +12,11 @@
 // Utility.
 #include "util.h"
 
+// Missile model.
+#include "missileModel.h"
+
 // Namespace.
 using namespace std;
-
-/* To do */
-// Pip selection algorithm needs work.
-	// Need to decide on some things.
-	// I'm thinking a "radar" range of 20000.
-	// Pip selection works for targets that are moving toward or away from the launch site.
-	// Need a three dof model for pip selection.
-// Need to be able to feed a time step to flyout function for pip evaluation and ldc calculator.
-// Structs for NOVICE players.
-// Scene generator.
-// Scene loader.
-// Seeker on mode for missile.
-// Algorithm to scale acceleration limit with energy.
-// Each missile should have a pip and target states.
-
-// Simulation control.
-auto wallClockStart = chrono::high_resolution_clock::now(); // Start tracking real time.
-const double CONSTANT_TIME_STEP = 1 / 500.0; // Seconds. Common sense to have a uniform time step if can.
-const double CONSTANT_HALF_TIME_STEP = CONSTANT_TIME_STEP / 2.0; // Seconds. For rk2 and rk4 integration.
 
 /* Missile Model */
 /*
@@ -72,289 +56,6 @@ const double CONSTANT_HALF_TIME_STEP = CONSTANT_TIME_STEP / 2.0; // Seconds. For
 #		Fin 3	Fin 2
 #
 */
-
-/* Missile constants. */
-const double REFERENCE_AREA = 0.01824; // Meters^2.
-const double REFERENCE_DIAMETER = 0.1524; // Meters.
-const double THRUST_EXIT_AREA = 0.0125; // Meters^2.
-const double ROCKET_BURN_OUT_TIME = 2.421; // Seconds.
-const double SEEKER_KF_G = 10.0; // Seeker Kalman filter gain. Per second.
-const double SEEKER_KF_ZETA = 0.9; // Seeker Kalman filter damping. Non dimensional.
-const double SEEKER_KF_WN = 60.0; // Seeker Kalman filter natural frequency. Radians per second.
-const double PROPORTIONAL_GUIDANCE_GAIN = 3.0; // Guidance homing gain. Non dimensional.
-const double LINE_OF_ATTACK_GUIDANCE_GAIN = 0.5; // Guidance midcourse gain. Non dimensional.
-const double MAXIMUM_ACCELERATION = 450.0; // Roughly 45 Gs. Meters per s^2.
-const double RATE_CONTROL_ZETA = 0.6; // Damping of constant rate control. Non dimensional.
-const double ROLL_CONTROL_WN = 20.0; // Natural frequency of roll closed loop complex pole. Radians per second.
-const double ROLL_CONTROL_ZETA = 0.9; // Damping of roll closed loop complex pole. Non dimensional.
-const double FIN_CONTROL_WN = 100.0; // Natural frequency of roll closed loop complex pole. Radians per second.
-const double FIN_CONTROL_ZETA = 0.7; // Damping of roll closed loop complex pole. Non dimensional.
-const double FIN_CONTROL_MAX_DEFLECTION_DEGREES = 28.0; // Degrees.
-const double FIN_CONTROL_MAX_DEFLECTION_RADIANS = 0.4887; // Radians.
-const double FIN_RATE_LIMIT_RADIANS = 10.472; // Radians per second.
-const double ROLL_ANGLE_COMMAND = 0.0; // Radians.
-const double ALPHA_PRIME_MAX = 40.0; // Degrees.
-const double SEA_LEVEL_PRESSURE = 101325; // Pascals.
-const double LAUNCH_CENTER_OF_GRAVITY_FROM_NOSE = 1.5357; // Meters.
-
-/* This struct fully represents a missile. Can be deep copied without need of defined copy constructor because there are no pointers. */
-struct Missile
-{
-
-	/* Variables */
-
-	// Target.
-	double pip[3]; // Predicted Intercept Point. Meters.
-
-	// Missile state.
-	bool launch = true; // Launch command. True for now, will be needed for fire control.
-	double TIME_STEP = CONSTANT_TIME_STEP;
-	double HALF_TIME_STEP = CONSTANT_HALF_TIME_STEP;
-	double timeOfFlight = 0.0; // Seconds.
-	double missileENUToFLUMatrix[3][3]; // Non dimensional.
-	double ENUPosition[3]; // Meters.
-	double range = 0.0; // Meters.
-	double ENUVelocity[3]; // Meters per second.
-	double FLUVelocity[3]; // Meters per second.
-	double speed; // Meters per second.
-	double machSpeed = 0.0; // Non dimensional.
-	double ENUAcceleration[3]; // Meters per second^2.
-	double FLUAcceleration[3]; // Meters per second^2.
-	double alphaRadians = 0.0; // Radians.
-	double betaRadians = 0.0; // Radians.
-	double alphaDegrees = 0.0; // Degrees.
-	double betaDegrees = 0.0; // Degrees.
-	double ENUEulerAngles[3]; // Radians.
-	double ENUEulerDot[3] = {0.0, 0.0, 0.0}; // Radians per second.
-	double bodyRate[3] = {0.0, 0.0, 0.0}; // Radians per second.
-	double bodyRateDot[3] = {0.0, 0.0, 0.0}; // Radians per second^2.
-
-	// Atmosphere.
-	double grav = 0.0; // Meters per second^2.
-	double FLUGravity[3] = {0.0, 0.0, 0.0}; // Meters per second^2.
-	double pressure = 0.0; // Pascals.
-	double dynamicPressure = 0.0; // Pascals.
-
-	// Seeker.
-	double seekerPitch; // Radians.
-	double seekerYaw; // Radians.
-	double seekerENUToFLUMatrix[3][3]; // Non dimensional.
-	double seekerPitchError; // Seeker boresight vertical offset from target. Radians.
-	double seekerYawError; // Seeker boresight horizontal offset from target. Radians.
-	double seekerWLR; // Pointing yaw rate. Radians per second.
-	double seekerWLRD = 0.0; // Derivative of pointing yaw rate. Radians per second^2.
-	double seekerWLR1 = 0.0; // Yaw sight line spin rate. Radians per second.
-	double seekerWLR1D = 0.0; // Derivative of yaw sight line spin rate. Radians per second^2.
-	double seekerWLR2 = 0.0; // Second state variable in yawing kalman filter. Radians per second^2.
-	double seekerWLR2D = 0.0; // Derivative of second state variable in yawing kalman filter. Radians per second^3.
-	double seekerWLQ; // Pointing pitch rate. Radians per second.
-	double seekerWLQD = 0.0; // Derivative of pointing pitch rate. Radians per second^2.
-	double seekerWLQ1 = 0.0; // Pitch sight line spin rate. Radians per second.
-	double seekerWLQ1D = 0.0; // Derivative of pitch sight line spin rate. Radians per second^2.
-	double seekerWLQ2 = 0.0; // Second state variable in pitching kalman filter. Radians per second^2.
-	double seekerWLQ2D = 0.0; // Derivative of second state variable in pitching kalman filter. Radians per second^3.
-
-	// Guidance.
-	double FLUMissileToPipRelativePosition[3] = {0.0, 0.0, 0.0}; // Meters.
-	double guidanceNormalCommand = 0.0; // Meters per second^2.
-	double guidanceSideCommand = 0.0; // Meters per second^2.
-	double maneuveringLimit = MAXIMUM_ACCELERATION; // Meters per second^2.
-
-	// Control
-	double yawControlFeedForwardIntegration = 0.0; // Yaw feed forward integration. Meters per second.
-	double yawControlFeedForwardDerivative = 0.0; // Yaw feed forward derivative. Meters per second.
-	double pitchControlFeedForwardIntegration = 0.0; // Pitch feed forward integration. Meters per second.
-	double pitchControlFeedForwardDerivative = 0.0; // Pitch feed forward derivative. Meters per second.
-	double pitchFinCommand = 0.0; // Radians.
-	double yawFinCommand = 0.0; // Radians.
-	double rollFinCommand = 0.0; // Radians.
-
-	// Actuators.
-	double FIN1DEFL = 0.0; // Fin deflection. Radians.
-	double FIN1DEFL_D = 0.0; // Fin deflection derived. Radians.
-	double FIN1DEFL_DOT = 0.0; // Fin rate. Radians per second.
-	double FIN1DEFL_DOTDOT = 0.0; // Fin rate derived. Radians per second^2.
-	double FIN2DEFL = 0.0; // Fin deflection. Radians.
-	double FIN2DEFL_D = 0.0; // Fin deflection derived. Radians.
-	double FIN2DEFL_DOT = 0.0; // Fin rate. Radians per second.
-	double FIN2DEFL_DOTDOT = 0.0; // Fin rate derived. Radians per second^2.
-	double FIN3DEFL = 0.0; // Fin deflection. Radians.
-	double FIN3DEFL_D = 0.0; // Fin deflection derived. Radians.
-	double FIN3DEFL_DOT = 0.0; // Fin rate. Radians per second.
-	double FIN3DEFL_DOTDOT = 0.0; // Fin rate derived. Radians per second^2.
-	double FIN4DEFL = 0.0; // Fin deflection. Radians.
-	double FIN4DEFL_D = 0.0; // Fin deflection derived. Radians.
-	double FIN4DEFL_DOT = 0.0; // Fin rate. Radians per second.
-	double FIN4DEFL_DOTDOT = 0.0; // Fin rate derived. Radians per second^2.
-	double pitchFinDeflection = 0.0; // Radians.
-	double yawFinDeflection = 0.0; // Radians.
-	double rollFinDeflection = 0.0; // Radians.
-
-	// Aerodynamic angles and conversions.
-	double alphaPrimeRadians = 0.0; // Radians.
-	double alphaPrimeDegrees = 0.0; // Degrees.
-	double sinPhiPrime = 0.0; // Non dimensional.
-	double cosPhiPrime = 0.0; // Non dimensional.
-	double pitchAeroBallisticFinDeflectionDegrees = 0.0; // Degrees.
-	double yawAeroBallisticFinDeflectionDegrees = 0.0; // Degrees.
-	double rollFinDeflectionDegrees = 0.0; // Degrees.
-	double totalFinDeflectionDegrees = 0.0; // Degrees.
-	double pitchAeroBallisticBodyRateDegrees = 0.0; // Degrees per second.
-	double yawAeroBallisticBodyRateDegrees = 0.0; // Degrees per second
-	double rollRateDegrees = 0.0; // Degrees per second.
-	double sinOfFourTimesPhiPrime = 0.0; // Non dimensional.
-	double squaredSinOfTwoTimesPhiPrime = 0.0; // Non dimensional.
-
-	// Table look ups.
-	map<string, int> tableNameIndexPairs;
-	vector<vector<vector<double>>> tables;
-	double CA0 = 0.0; // Axial force coefficient. Non dimensional.
-	double CAA = 0.0; // Axial force derivative of alpha prime. Per degree.
-	double CAD = 0.0; // Axial force derivative of control fin deflection. Per degree^2.
-	double CAOFF = 0.0; // Power off correction term for axial force coefficient. Non dimensional.
-	double CYP = 0.0; // Side force coefficient correction term for when phi is non zero. Non dimensional.
-	double CYDR = 0.0; // Side force derivative of elevator. Per degree.
-	double CN0 = 0.0; // Normal force coefficient. Non dimensional.
-	double CNP = 0.0; // Correction to normal force coefficient term for when phi is non zero. Non dimensional.
-	double CNDQ = 0.0; // Normal force derivative of elevator. Per degree.
-	double CLLAP = 0.0; // Roll moment derivative for (alpha prime^2) for when phi is non zero. Per degree^2
-	double CLLP = 0.0; // Roll moment damping derivative. Degrees.
-	double CLLDP = 0.0; // Roll moment derivative of aileron. Per degree.
-	double CLM0 = 0.0; // Pitching moment coefficient at launch center of gravity. Non dimensional.
-	double CLMP = 0.0; // Correction to pitching moment coefficient for when phi is non zero. Non dimensional.
-	double CLMQ = 0.0; // Pitching moment damping derivative. Per degree.
-	double CLMDQ = 0.0; // Pitching moment derivative of elevator. Per degree.
-	double CLNP = 0.0; // Yaw moment coefficient correction for when phi is non zero. Non dimensional.
-	double mass = 0.0; // Kilograms.
-	double unadjustedThrust = 0.0; // Newtons.
-	double transverseMomentOfInertia = 0.0; // Kilograms * meters^2.
-	double axialMomentOfInertia = 0.0; // Kilograms * meters^2.
-	double centerOfGravityFromNose = 0.0; // Meters.
-
-	// Propulsion.
-	double thrust = 0.0; // Newtons.
-
-	// Aerodynamic integration coefficients.
-	double CX = 0.0; // Non dimensional.
-	double CY = 0.0; // Non dimensional.
-	double CZ = 0.0; // Non dimensional.
-	double CL = 0.0; // Non dimensional.
-	double CM = 0.0; // Non dimensional.
-	double CN = 0.0; // Non dimensional.
-
-	// Aerodynamic feedback coefficients.
-	double CNA = 0.0; // Per degree.
-	double CMA = 0.0; // Per degree.
-	double CND = 0.0; // Per degree.
-	double CMD = 0.0; // Per degree.
-	double CMQ = 0.0; // Per degree.
-	double CLP = 0.0; // Per degree.
-	double CLD = 0.0; // Per degree.
-	double staticMargin = 0.0; // Non dimensional.
-
-	// Performance and termination check.
-	double missDistance = 0.0; // Meters.
-	string lethality;
-
-	// Integration states.
-	// P = ENUPosition
-	// V = ENUVelocity
-	// A = ENUAcceleration
-	// E = ENUEulerAngles
-	// ED = ENUEulerDot
-	// W = BodyRate
-	// WD = BodyRateDot.
-	int INTEGRATION_METHOD = 2;
-	int INTEGRATION_PASS = 0;
-
-	double P0[3] = {0.0, 0.0, 0.0};
-	double V0[3] = {0.0, 0.0, 0.0};
-	double E0[3] = {0.0, 0.0, 0.0};
-	double W0[3] = {0.0, 0.0, 0.0};
-
-	double P1[3] = {0.0, 0.0, 0.0};
-	double V1[3] = {0.0, 0.0, 0.0};
-	double A1[3] = {0.0, 0.0, 0.0};
-	double E1[3] = {0.0, 0.0, 0.0};
-	double ED1[3] = {0.0, 0.0, 0.0};
-	double W1[3] = {0.0, 0.0, 0.0};
-	double WD1[3] = {0.0, 0.0, 0.0};
-
-	double P2[3] = {0.0, 0.0, 0.0};
-	double V2[3] = {0.0, 0.0, 0.0};
-	double A2[3] = {0.0, 0.0, 0.0};
-	double E2[3] = {0.0, 0.0, 0.0};
-	double ED2[3] = {0.0, 0.0, 0.0};
-	double W2[3] = {0.0, 0.0, 0.0};
-	double WD2[3] = {0.0, 0.0, 0.0};
-
-	double P3[3] = {0.0, 0.0, 0.0};
-	double V3[3] = {0.0, 0.0, 0.0};
-	double A3[3] = {0.0, 0.0, 0.0};
-	double E3[3] = {0.0, 0.0, 0.0};
-	double ED3[3] = {0.0, 0.0, 0.0};
-	double W3[3] = {0.0, 0.0, 0.0};
-	double WD3[3] = {0.0, 0.0, 0.0};
-
-	double P4[3] = {0.0, 0.0, 0.0};
-	double V4[3] = {0.0, 0.0, 0.0};
-	double A4[3] = {0.0, 0.0, 0.0};
-	double E4[3] = {0.0, 0.0, 0.0};
-	double ED4[3] = {0.0, 0.0, 0.0};
-	double W4[3] = {0.0, 0.0, 0.0};
-	double WD4[3] = {0.0, 0.0, 0.0};
-
-};
-
-// Struct only for holding a triplet array. All my functions are designed for tripley arrays.
-struct triple
-{
-
-	double triplet[3];
-	triple(double input[3]) : triplet{input[0], input[1], input[2]} {}
-
-};
-typedef pair<double, triple> trajectoryPoint; // Specific pair that defines a point on a trajectory. Contains a time of flight and a position. Used for propagations.
-typedef vector<trajectoryPoint> trajectory; // Specific vector to hold trajectory points. Defines a full trajectory.
-
-// Defines an asset. A position that soldiers are trying to protect.
-struct asset
-{
-
-	string identity;
-	triple ENUPosition;
-	double simulationTime;
-	string status;
-
-};
-
-// Defines a launcher. Determines the launch orientation of the missile.
-struct launcher
-{
-
-	string identity;
-	triple ENUPosition;
-	double simulationTime;
-	string status;
-
-	double launcherAzimuth;
-	double launcherElevation;
-	vector<Missile> inventory;
-
-};
-
-// Defines a solder. This is an active interceptor.
-struct soldier
-{
-
-	string identity;
-	triple ENUPosition;
-	double simulationTime;
-	string status;
-
-	Missile interceptor;
-
-};
 
 // Parses text file with missile model tables. Should only be called once.
 void lookUpTablesFormat (Missile &missile, string dataFile)
@@ -553,17 +254,14 @@ void initUnLaunchedMissile(Missile &missile, double phi, double theta, double ps
 	magnitude(missile.ENUVelocity, missile.speed);
 
 	// Format data tables.
-	lookUpTablesFormat(missile, "shortRangeInterceptorTables.txt");
+	lookUpTablesFormat(missile, "input/shortRangeInterceptorTables.txt");
 
 	// Set missile lethality.
 	missile.lethality = "FLYING"; // STATUS
 
-	// Console output.
-	cout << "MODEL INITIATED" << endl;
-
 }
 
-// For the case of new flyouts as well as "seeker on."
+// For the case of new flyouts as well as "seeker on." Must have a pip or target state to initialize.
 void initSeeker(Missile &missile)
 {
 
@@ -578,6 +276,8 @@ void initSeeker(Missile &missile)
 	azAndElFromVector(mslToInterceptAz, mslToInterceptEl, mslToInterceptU);
 	missile.seekerPitchError = mslToInterceptEl;
 	missile.seekerYawError = mslToInterceptAz;
+	missile.seekerPitch = 0.0;
+	missile.seekerYaw = 0.0;
 	missile.seekerWLR = missile.seekerYaw;
 	missile.seekerWLQ = missile.seekerPitch;
 
@@ -689,8 +389,7 @@ void guidance(Missile &missile)
 	double lineOfSightRate[3];
 	divideVectorByScalar(TEMP2, TEMP1, lineOfSightRate);
 	double TEMP3, TEMP4[3];
-	double proportionalGuidanceGain = 3.0;
-	TEMP3 = -1 * proportionalGuidanceGain * closingSpeed;
+	TEMP3 = -1 * PROPORTIONAL_GUIDANCE_GAIN * closingSpeed;
 	multiplyVectorTimesScalar(TEMP3, forwardLeftUpMissileToInterceptPositionUnitVector, TEMP4);
 	double COMMAND[3];
 	crossProductTwoVectors(TEMP4, lineOfSightRate, COMMAND);
@@ -2017,15 +1716,8 @@ void logData(Missile &missile, ofstream &logFile)
 
 }
 
-void flyout(Missile &missile, string flyOutID, bool writeData, bool consoleReport, double timeStep, double maxTime, int INTEGRATION_METHOD)
+void sixDofFly(Missile &missile, string flyOutID, bool writeData, bool consoleReport, double maxTime)
 {
-
-	// Change missile integration method to the requested flyout integration method.
-	missile.INTEGRATION_METHOD = INTEGRATION_METHOD;
-
-	// Change missile time step to the requested flyout time step.
-	missile.TIME_STEP = timeStep;
-	missile.HALF_TIME_STEP = (timeStep / 2.0);
 
 	// For console report if requested.
 	double lastTime = missile.timeOfFlight;
@@ -2036,7 +1728,7 @@ void flyout(Missile &missile, string flyOutID, bool writeData, bool consoleRepor
 	if (writeData)
 	{
 
-		logFile.open("output/" + flyOutID + ".txt");
+		logFile.open("output/" + flyOutID + "_6DOF.txt");
 		writeLogFileHeader(logFile);
 
 	}
@@ -2044,7 +1736,8 @@ void flyout(Missile &missile, string flyOutID, bool writeData, bool consoleRepor
 	if (consoleReport)
 	{
 
-		cout << "FLIGHT" << endl;
+		cout << "\n6DOF " + flyOutID + "\n";
+		cout << "\n";
 
 	}
 
@@ -2094,167 +1787,272 @@ void flyout(Missile &missile, string flyOutID, bool writeData, bool consoleRepor
 	{
 
 		cout << "\n";
-		cout << "FLYOUT REPORT" << endl;
+		cout << "6DOF " + flyOutID + " REPORT" << endl;
 		cout << setprecision(6) << "FINAL POSITION AT " << missile.timeOfFlight << " E " << missile.ENUPosition[0] << " N " << missile.ENUPosition[1] << " U " << missile.ENUPosition[2] << " RANGE " << missile.range << " MACH " << missile.machSpeed << endl;
 		cout << setprecision(6) << "MISS DISTANCE " << missile.missDistance << " FORWARD, LEFT, UP, MISS DISTANCE " << missile.FLUMissileToPipRelativePosition[0] << " " << missile.FLUMissileToPipRelativePosition[1] << " " << missile.FLUMissileToPipRelativePosition[2] << endl;
 		cout << "SIMULATION RESULT: " << missile.lethality << endl;
 
 	}
 
-	cout << "\n"; // For a better console report.
-
 }
 
-trajectory propagateTarget(double targetENUPosition[3], double targetENUVelocity[3])
+void threeDofFly(Missile &missile, string flyOutID, bool writeData, bool consoleReport, double maxTime)
 {
 
-	trajectory targetTrajectory; // 0 Place is time of flight. 1, 2, and 3 place is the target position.
+	const double TIME_STEP = 0.01; // Seconds.
 
-	triple initialTargetPosition(targetENUPosition);
-	targetTrajectory.push_back(make_pair(0.0, initialTargetPosition));
+	double missileAzimuth = missile.ENUEulerAngles[2];
+	double missileElevation = missile.ENUEulerAngles[1];
 
-	for (int i = 0; i < 100000; i++)
+	ofstream logFile;
+
+	if (writeData)
+	{
+		logFile.open("output/" + flyOutID + "_3DOF.txt");
+		logFile << fixed << setprecision(10) << "tof posE posN posU tgtE tgtN tgtU alpha beta lethality" << endl;
+	}
+
+	if (consoleReport)
+	{
+		cout << "\n3DOF " + flyOutID + "\n";
+		cout << "\n";
+	}
+	
+	double lastTime = 0.0;
+
+	while (missile.lethality == "FLYING")
 	{
 
-		double time = CONSTANT_TIME_STEP * i;
+		// Used throughout;
+		int index;
+		double TEMP;
+
+		// Time of flight.
+		missile.timeOfFlight += TIME_STEP;
+
+		// Orientation.
+		azAndElFromVector(missileAzimuth, missileElevation, missile.ENUVelocity);
+		flightPathAnglesToLocalOrientation(missileAzimuth, -1.0 * missileElevation, missile.missileENUToFLUMatrix);
+
+		// Atmosphere.
+		double altitude = missile.ENUPosition[2] * mToKm;
+		index = missile.tableNameIndexPairs["RHO"];
+		double rho = linearInterpolationWithBoundedEnds(missile.tables[index], altitude);
+		index = missile.tableNameIndexPairs["GRAVITY"];
+		missile.grav = linearInterpolationWithBoundedEnds(missile.tables[index], altitude);
+		double gravityENU[3] = {0.0, 0.0, -1.0 * missile.grav};
+		threeByThreeTimesThreeByOne(missile.missileENUToFLUMatrix, gravityENU, missile.FLUGravity);
+		index = missile.tableNameIndexPairs["PRESSURE"];
+		missile.pressure = linearInterpolationWithBoundedEnds(missile.tables[index], altitude);
+		index = missile.tableNameIndexPairs["SPEED_OF_SOUND"];
+		double a = linearInterpolationWithBoundedEnds(missile.tables[index], altitude);
+		magnitude(missile.ENUVelocity, missile.speed);
+		missile.machSpeed = missile.speed / a;
+		missile.dynamicPressure = 0.5 * rho * missile.speed * missile.speed;
+
+		// Aero ballistic angles.
+		missile.alphaPrimeRadians = acos(cos(missile.alphaRadians) * cos(missile.betaRadians));
+		missile.alphaPrimeDegrees = missile.alphaPrimeRadians * radToDeg;
+		double phiPrimeRadians = atan2_0(tan(missile.betaRadians), sin(missile.alphaRadians));
+		double phiPrimeDegrees = phiPrimeRadians * radToDeg;
+		missile.alphaDegrees = missile.alphaRadians * radToDeg;
+		missile.betaDegrees = missile.betaRadians * radToDeg;
+		missile.sinOfFourTimesPhiPrime = sin(4 * phiPrimeRadians);
+		TEMP = sin(2 * phiPrimeRadians);
+		missile.squaredSinOfTwoTimesPhiPrime = TEMP * TEMP;
+		missile.cosPhiPrime = cos(phiPrimeRadians);
+		missile.sinPhiPrime = sin(phiPrimeRadians);
+
+		// Mass and thrust look up.
+		index = missile.tableNameIndexPairs["MASS"];
+		missile.mass = linearInterpolationWithBoundedEnds(missile.tables[index], missile.timeOfFlight);
+		index = missile.tableNameIndexPairs["THRUST"];
+		missile.unadjustedThrust = linearInterpolationWithBoundedEnds(missile.tables[index], missile.timeOfFlight);
+
+		// Propulsion.
+		if (missile.timeOfFlight <= ROCKET_BURN_OUT_TIME)
+		{
+			missile.thrust = missile.unadjustedThrust + (SEA_LEVEL_PRESSURE - missile.pressure) * THRUST_EXIT_AREA;
+		}
+		else
+		{
+			missile.thrust = 0.0;
+		}
+
+		// Axial coefficient look ups.
+		index = missile.tableNameIndexPairs["CA0"];
+		missile.CA0 = linearInterpolationWithBoundedEnds(missile.tables[index], missile.machSpeed);
+		index = missile.tableNameIndexPairs["CAA"];
+		missile.CAA = linearInterpolationWithBoundedEnds(missile.tables[index], missile.machSpeed);
+		if (missile.timeOfFlight <= ROCKET_BURN_OUT_TIME)
+		{
+			missile.CAOFF = 0.0;
+		}
+		else
+		{
+			index = missile.tableNameIndexPairs["CAOFF"];
+			missile.CAOFF = linearInterpolationWithBoundedEnds(missile.tables[index], missile.machSpeed);
+		}
+
+		// Side coefficient look ups.
+		index = missile.tableNameIndexPairs["CYP"];
+		missile.CYP = biLinearInterpolationWithBoundedBorders(missile.tables[index], missile.machSpeed, missile.alphaPrimeDegrees);
+		double CYP_Max = biLinearInterpolationWithBoundedBorders(missile.tables[index], missile.machSpeed, ALPHA_PRIME_MAX);
+
+		// Normal coefficient look ups.
+		index = missile.tableNameIndexPairs["CN0"];
+		missile.CN0 = biLinearInterpolationWithBoundedBorders(missile.tables[index], missile.machSpeed, missile.alphaPrimeDegrees);
+		double CN0_Max = biLinearInterpolationWithBoundedBorders(missile.tables[index], missile.machSpeed, ALPHA_PRIME_MAX);
+		index = missile.tableNameIndexPairs["CNP"];
+		missile.CNP = biLinearInterpolationWithBoundedBorders(missile.tables[index], missile.machSpeed, missile.alphaPrimeDegrees);
+		double CNP_Max = biLinearInterpolationWithBoundedBorders(missile.tables[index], missile.machSpeed, ALPHA_PRIME_MAX);
+
+		// Axial coefficients.
+		missile.CX = missile.CA0 + missile.CAA * missile.alphaPrimeDegrees + missile.CAOFF;
+
+		// Side and normal coefficients.
+		double CYAERO_Actual = missile.CYP * missile.sinOfFourTimesPhiPrime;
+		double CYAERO_Max = CYP_Max * missile.sinOfFourTimesPhiPrime;
+		double CZAERO_Actual = missile.CN0 + missile.CNP * missile.squaredSinOfTwoTimesPhiPrime;
+		double CZAERO_Max = CN0_Max + CNP_Max * missile.squaredSinOfTwoTimesPhiPrime;
+		missile.CY = CYAERO_Actual * missile.cosPhiPrime - CZAERO_Actual * missile.sinPhiPrime;
+		double CY_Max = CYAERO_Max * missile.cosPhiPrime - CZAERO_Max * missile.sinPhiPrime;
+		missile.CZ = CYAERO_Actual * missile.sinPhiPrime + CZAERO_Actual * missile.cosPhiPrime;
+		double CZ_Max = CYAERO_Max * missile.sinPhiPrime + CZAERO_Max * missile.cosPhiPrime;
+
+		// Limit guidance commands.
+		double maxNormalAccelerationAllowed = abs((CZ_Max * missile.dynamicPressure * REFERENCE_AREA) / missile.mass);
+		double maxSideAccelerationAllowed = abs((CY_Max * missile.dynamicPressure * REFERENCE_AREA) / missile.mass);
+
+		// Guidance.
+		double ENUMissileToInterceptRelativePosition[3];
+		subtractTwoVectors(missile.ENUPosition, missile.pip, ENUMissileToInterceptRelativePosition);
+		threeByThreeTimesThreeByOne(missile.missileENUToFLUMatrix, ENUMissileToInterceptRelativePosition, missile.FLUMissileToPipRelativePosition);
+		double forwardLeftUpMissileToInterceptPositionUnitVector[3];
+		unitVec(missile.FLUMissileToPipRelativePosition, forwardLeftUpMissileToInterceptPositionUnitVector);
+		double forwardLeftUpMissileToInterceptLineOfSightVel[3];
+		vectorProjection(forwardLeftUpMissileToInterceptPositionUnitVector, missile.FLUVelocity, forwardLeftUpMissileToInterceptLineOfSightVel);
+		double timeToGo, forwardLeftUpMissileToInterceptPositionMagnitude, forwardLeftUpMissileToInterceptLineOfSightVelMagnitude;
+		magnitude(missile.FLUMissileToPipRelativePosition, forwardLeftUpMissileToInterceptPositionMagnitude);
+		magnitude(forwardLeftUpMissileToInterceptLineOfSightVel, forwardLeftUpMissileToInterceptLineOfSightVelMagnitude);
+		timeToGo = forwardLeftUpMissileToInterceptPositionMagnitude / forwardLeftUpMissileToInterceptLineOfSightVelMagnitude;
+		double closingVelocity[3];
+		multiplyVectorTimesScalar(-1.0, missile.FLUVelocity, closingVelocity);
+		double closingSpeed;
+		magnitude(closingVelocity, closingSpeed);
+		double TEMP1[3], TEMP2;
+		crossProductTwoVectors(missile.FLUMissileToPipRelativePosition, closingVelocity, TEMP1);
+		dotProductTwoVectors(missile.FLUMissileToPipRelativePosition, missile.FLUMissileToPipRelativePosition, TEMP2);
+		double lineOfSightRate[3];
+		divideVectorByScalar(TEMP2, TEMP1, lineOfSightRate);
+		double TEMP3, TEMP4[3];
+		TEMP3 = -1 * PROPORTIONAL_GUIDANCE_GAIN * closingSpeed;
+		multiplyVectorTimesScalar(TEMP3, forwardLeftUpMissileToInterceptPositionUnitVector, TEMP4);
+		double COMMAND[3];
+		crossProductTwoVectors(TEMP4, lineOfSightRate, COMMAND);
+		missile.guidanceNormalCommand = COMMAND[2];
+		double sign;
+		sign = signum(missile.guidanceNormalCommand);
+		if (abs(missile.guidanceNormalCommand) > maxNormalAccelerationAllowed)
+		{
+			missile.guidanceNormalCommand = maxNormalAccelerationAllowed * sign;
+		}
+		missile.guidanceSideCommand = COMMAND[1];
+		sign = signum(missile.guidanceSideCommand);
+		if (abs(missile.guidanceSideCommand) > maxSideAccelerationAllowed)
+		{
+			missile.guidanceSideCommand = maxSideAccelerationAllowed * sign;
+		}
+
+		// Forces
+		double axialForce = missile.thrust - missile.CX * missile.dynamicPressure * REFERENCE_AREA + missile.FLUGravity[0] * missile.mass;
+		double sideForce = missile.CY * missile.dynamicPressure * REFERENCE_AREA + missile.FLUGravity[1] * missile.mass;
+		double normalForce = missile.CZ * missile.dynamicPressure * REFERENCE_AREA + missile.FLUGravity[2] * missile.mass;
+
+		// Specific force.
+		missile.FLUAcceleration[0] = axialForce / missile.mass;
+		missile.FLUAcceleration[1] = sideForce / missile.mass + missile.guidanceSideCommand;
+		missile.FLUAcceleration[2] = normalForce / missile.mass + missile.guidanceNormalCommand;
+		oneByThreeTimesThreeByThree(missile.FLUAcceleration, missile.missileENUToFLUMatrix, missile.ENUAcceleration);
+
+		// Motion integration.
 		double deltaPos[3];
-		multiplyVectorTimesScalar(CONSTANT_TIME_STEP, targetENUVelocity, deltaPos);
-		addTwoVectors(initialTargetPosition.triplet, deltaPos, initialTargetPosition.triplet);
-		targetTrajectory.push_back(make_pair(time, initialTargetPosition));
-		if (initialTargetPosition.triplet[2] < 0.0) // Below ground.
+		multiplyVectorTimesScalar(TIME_STEP, missile.ENUVelocity, deltaPos);
+		double newMissileENUPosition[3];
+		addTwoVectors(missile.ENUPosition, deltaPos, newMissileENUPosition);
+		setArrayEquivalentToReference(missile.ENUPosition, newMissileENUPosition);
+
+		double deltaVel[3];
+		multiplyVectorTimesScalar(TIME_STEP, missile.ENUAcceleration, deltaVel);
+		double newMissileENUVelocity[3];
+		addTwoVectors(missile.ENUVelocity, deltaVel, newMissileENUVelocity);
+		setArrayEquivalentToReference(missile.ENUVelocity, newMissileENUVelocity);
+
+		// Alpha and beta.
+		threeByThreeTimesThreeByOne(missile.missileENUToFLUMatrix, missile.ENUVelocity, missile.FLUVelocity);
+		missile.alphaRadians = -1.0 * atan2_0(missile.FLUVelocity[2], missile.FLUVelocity[0]);
+		missile.betaRadians = atan2_0(missile.FLUVelocity[1], missile.FLUVelocity[0]);
+
+		// Performance and termination check.
+		magnitude(missile.FLUMissileToPipRelativePosition, missile.missDistance);
+
+		if (missile.ENUPosition[2] < 0)
 		{
-			break;
+			missile.lethality = "GROUND_COLLISION";
+		}
+		else if (missile.missDistance < 5.0)
+		{
+			missile.lethality = "SUCCESSFUL_INTERCEPT";
+		}
+		else if (missile.FLUMissileToPipRelativePosition[0] < 0)
+		{
+			missile.lethality = "POINT_OF_CLOSEST_APPROACH_PASSED";
+		}
+		else if (isnan(missile.ENUPosition[0]))
+		{
+			missile.lethality = "NOT_A_NUMBER";
+		}
+		else if (missile.timeOfFlight > maxTime)
+		{
+			missile.lethality = "MAX_TIME_EXCEEDED";
 		}
 
-	}
-
-	return targetTrajectory;
-
-}
-
-void pipSelection(Missile &missile, trajectory targetTrajectory, bool showProcess)
-{
-
-	// Determines return.
-	bool goodShot = false;
-
-	// Flyout time step.
-	double flyoutTimeStep = 1.0 / 200.0;
-
-	// Check to see if the target is moving away or toward the missile.
-	int lowIndex = 0;
-	int highIndex = targetTrajectory.size() - 1;
-	trajectoryPoint firstTrajPoint = targetTrajectory[lowIndex];
-	double firstTrajPointDistance, firstTrajPointRelPos[3];
-	subtractTwoVectors(firstTrajPoint.second.triplet, missile.ENUPosition, firstTrajPointRelPos);
-	magnitude(firstTrajPointRelPos, firstTrajPointDistance);
-	trajectoryPoint lastTrajPoint = targetTrajectory[highIndex];
-	double lastTrajPointDistance, lastTrajPointRelPos[3];
-	subtractTwoVectors(lastTrajPoint.second.triplet, missile.ENUPosition, lastTrajPointRelPos);
-	magnitude(lastTrajPointRelPos, lastTrajPointDistance);
-
-	// The way it looks for a good shot depends on whether it is moving away or toward the launcher.
-	int increment;
-	int firstShotCheckIndex;
-	if (lastTrajPointDistance > firstTrajPointDistance) // Moving away.
-	{
-		increment = (1 / CONSTANT_TIME_STEP);
-		firstShotCheckIndex = lowIndex;
-	}
-	else // Moving toward you.
-	{
-		increment = -1.0 * (1 / CONSTANT_TIME_STEP);
-		firstShotCheckIndex = highIndex;
-	}
-
-	// Find a good shot.
-	int loopCount = 0;
-	while (not goodShot)
-	{
-
-		loopCount += 1;
-		Missile missileCopy = missile;
-		trajectoryPoint currentShot = targetTrajectory[firstShotCheckIndex];
-		triple currentPip = currentShot.second;
-		setArrayEquivalentToReference(missileCopy.pip, currentPip.triplet);
-		initSeeker(missileCopy);
-		string id = "flyout" + to_string(loopCount);
-		flyout(missileCopy, id, true, true, flyoutTimeStep, 400.0, 0);
-		double ratio = missileCopy.timeOfFlight / currentShot.first;
-
-		if (showProcess)
+		// Log data.
+		if (writeData)
 		{
-
-			cout << "FLYOUT " << loopCount << endl;
-			cout << "TARGET TIME OF FLIGHT " << currentShot.first << endl;
-			cout << "MISSILE TIME OF FLIGHT " << missileCopy.timeOfFlight << endl;
-			cout << "GOOD SHOT CHECK " << ratio << endl;
-			cout << "INDEX " << firstShotCheckIndex << endl;
-			cout << "SIMULATION RESULT " << missileCopy.lethality << endl;
-			cout << "\n";
-
+			logFile << fixed << setprecision(10) <<
+			missile.timeOfFlight << " " <<
+			missile.ENUPosition[0] << " " <<
+			missile.ENUPosition[1] << " " <<
+			missile.ENUPosition[2] << " " <<
+			missile.pip[0] << " " <<
+			missile.pip[1] << " " <<
+			missile.pip[2] << " " <<
+			missile.alphaRadians << " " <<
+			missile.betaRadians << " " <<
+			missile.lethality << endl;
 		}
-
-		// We only care about intercepts.
-		if (missileCopy.lethality == "SUCCESSFUL_INTERCEPT")
+		
+		if (consoleReport)
 		{
-			if (ratio > 1.0) // Too late. Move the target closer.
+			auto print_it = static_cast<int>(round(missile.timeOfFlight * 10000.0)) % 10000;
+			if (print_it == 0)
 			{
-				firstShotCheckIndex += increment;
-			}
-			// The first time this condition is hit it means a good shot is found.
-			// Even if the interceptor arrives seconds early the launch will be scheduled.
-			// This way the interceptor arrives on time.
-			else
-			{
-				cout << "GOOD SHOT FOUND!\n";
-				goodShot = true;
+				cout << setprecision(6) << "STATUS AT " << missile.timeOfFlight << " E " << missile.ENUPosition[0] << " N " << missile.ENUPosition[1] << " U " << missile.ENUPosition[2] << " MACH " << missile.machSpeed << endl;
+				lastTime = missile.timeOfFlight;
 			}
 		}
-		else // Otherwise move the target closer.
-		{
-			firstShotCheckIndex += increment;
-		}
-
-		if (loopCount > 30) // Any higher and most likely there is no good shot.
-		{
-			break;
-		}
 
 	}
 
-	cout << "\n" ;
-
-}
-
-int main ()
-{
-
-	double lastTime = 0;
-
-	Missile Missile1;
-	initUnLaunchedMissile(Missile1, 0.0, 50.0, -20.0);
-	Missile Missile2 = Missile1;
-
-	// Missile1.pip[0] = 3000.0;
-	// Missile1.pip[1] = 1000.0;
-	// Missile1.pip[2] = 3000.0;
-
-	// flyout(Missile1, "log", true, true, Missile1.TIME_STEP, 400.0, 0);
-
-	// double targetENUVelocity[3] = {-400.0, 0.0, -450.0};
-	// double targetENUPosition[3] = {10000.0, 0.0, 10000.0};
-	double targetENUVelocity[3] = {500.0, 0.0, 0.0};
-	double targetENUPosition[3] = {-5000.0, 0.0, 3000.0};
-	// double targetENUVelocity[3] = {-800.0, 0.0, 0.0};
-	// double targetENUPosition[3] = {20000.0, 0.0, 3000.0};
-	trajectory target = propagateTarget(targetENUPosition, targetENUVelocity);
-	pipSelection(Missile2, target, true);
-
-	auto wallClockEnd = chrono::high_resolution_clock::now();
-	auto simRealRunTime = chrono::duration_cast<chrono::milliseconds>(wallClockEnd - wallClockStart);
-	cout << "SIMULATION RUN TIME : " << (simRealRunTime.count() / 1000.0) << " SECONDS" << endl;
-	cout << "\n" << endl;
-	return 0;
+	if (consoleReport)
+	{
+		cout << "\n";
+		cout << "3DOF " + flyOutID + " REPORT" << endl;
+		cout << setprecision(6) << "FINAL POSITION AT " << missile.timeOfFlight << " E " << missile.ENUPosition[0] << " N " << missile.ENUPosition[1] << " U " << missile.ENUPosition[2] << " MACH " << missile.machSpeed << endl;
+		cout << setprecision(6) << "MISS DISTANCE " << missile.missDistance << " FORWARD, LEFT, UP, MISS DISTANCE " << missile.FLUMissileToPipRelativePosition[0] << " " << missile.FLUMissileToPipRelativePosition[1] << " " << missile.FLUMissileToPipRelativePosition[2] << endl;
+		cout << "SIMULATION RESULT: " << missile.lethality << endl;
+		cout << "\n";
+	}
 
 }
