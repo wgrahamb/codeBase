@@ -75,12 +75,12 @@ class sixDofSim:
 		self.maxTime = 400 # SECONDS
 
 		# TARGETED INTERCEPT POINT
-		self.tgtPos = npa([7000.0, 7000.0, 1000.0])
-		self.tgtVel = npa([0.0, 0.0, 0.0])
+		self.tgtPos = npa([7000.0, 7000.0, 7000.0])
+		self.tgtVel = npa([-400.0, -400.0, -300.0])
 
 		### MSL PACKET ###
 		self.mslTof = 0.0 # SECONDS
-		self.mslAz = np.radians(30) # RADIANS >>> ONLY POSITIVE NUMBERS 0-360, MEASURED COUNTER CLOCKWISE FROM TRUE EAST
+		self.mslAz = np.radians(45) # RADIANS >>> ONLY POSITIVE NUMBERS 0-360, MEASURED COUNTER CLOCKWISE FROM TRUE EAST
 		self.mslEl = np.radians(60) # RADIANS
 		self.mslLocalOrient = FLIGHTPATH_TO_LOCAL_TM(self.mslAz, -self.mslEl) # ND
 		self.mslPos = np.zeros(3)# METERS

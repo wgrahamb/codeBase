@@ -249,7 +249,7 @@ struct Missile
 
 // Functions.
 void lookUpTablesFormat (Missile &missile, string dataFile);
-void initUnLaunchedMissile(Missile &missile, double phi, double theta, double psi);
+void initUnLaunchedMissile(Missile &missile, double phi, double theta, double psi, double ENUPosition[3]);
 void initSeeker(Missile &missile);
 void atmosphere(Missile &missile);
 void seeker(Missile &missile);

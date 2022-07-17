@@ -226,21 +226,17 @@ void lookUpTablesFormat (Missile &missile, string dataFile)
 }
 
 // Will be called by launcher when creating the scene.
-void initUnLaunchedMissile(Missile &missile, double phi, double theta, double psi)
+void initUnLaunchedMissile(Missile &missile, double phiRads, double thetaRads, double psiRads, double ENUPosition[3])
 {
 
-	phi *= degToRad;
-	theta *= degToRad;
-	psi *= degToRad;
-
 	// Missile.
-	missile.ENUEulerAngles[0] = phi;
-	missile.ENUEulerAngles[1] = theta;
-	missile.ENUEulerAngles[2] = psi;
-	eulerAnglesToLocalOrientation(phi, -theta, psi, missile.missileENUToFLUMatrix);
-	missile.ENUPosition[0] = 0.0;
-	missile.ENUPosition[1] = 0.0;
-	missile.ENUPosition[2] = 0.0;
+	missile.ENUEulerAngles[0] = phiRads;
+	missile.ENUEulerAngles[1] = thetaRads;
+	missile.ENUEulerAngles[2] = psiRads;
+	eulerAnglesToLocalOrientation(phiRads, -thetaRads, psiRads, missile.missileENUToFLUMatrix);
+	missile.ENUPosition[0] = ENUPosition[0];
+	missile.ENUPosition[1] = ENUPosition[1];
+	missile.ENUPosition[2] = ENUPosition[2];
 	missile.ENUVelocity[0] = missile.missileENUToFLUMatrix[0][0];
 	missile.ENUVelocity[1] = missile.missileENUToFLUMatrix[0][1];
 	missile.ENUVelocity[2] = missile.missileENUToFLUMatrix[0][2];
@@ -257,7 +253,7 @@ void initUnLaunchedMissile(Missile &missile, double phi, double theta, double ps
 	lookUpTablesFormat(missile, "input/shortRangeInterceptorTables.txt");
 
 	// Set missile lethality.
-	missile.lethality = "FLYING"; // STATUS
+	missile.lethality = "LOITERING"; // STATUS
 
 }
 
