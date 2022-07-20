@@ -1,3 +1,0 @@
-/home/graham/codeBase/junkDrawer/lowerFidelityNOVICEInterceptor/build/CMakeFiles/rebuild_cache.dir
-/home/graham/codeBase/junkDrawer/lowerFidelityNOVICEInterceptor/build/CMakeFiles/edit_cache.dir
-/home/graham/codeBase/junkDrawer/lowerFidelityNOVICEInterceptor/build/CMakeFiles/interceptor.dir

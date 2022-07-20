@@ -1,1 +1,0 @@
-/usr/bin/c++  -g  -rdynamic CMakeFiles/interceptor.dir/interceptor.cpp.o CMakeFiles/interceptor.dir/util.cpp.o  -o interceptor 
