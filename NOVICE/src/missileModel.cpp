@@ -18,6 +18,11 @@
 // Namespace.
 using namespace std;
 
+/* To do. */
+// Set each function as inputs and outputs.
+// Function to handle input and output.
+// Input and output structs for each function.
+
 /* Missile Model */
 /*
 #
@@ -1752,6 +1757,7 @@ void sixDofFly(Missile &missile, string flyOutID, bool writeData, bool consoleRe
 		aerodynamicIntegrationCoefficients(missile);
 		aerodynamicFeedbackCoefficients(missile);
 		missileMotion(missile);
+
 		if (missile.INTEGRATION_PASS == 0)
 		{
 			performanceAndTerminationCheck(missile, maxTime);
