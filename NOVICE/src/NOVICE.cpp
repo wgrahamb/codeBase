@@ -222,15 +222,15 @@ int main ()
 	int nThreats = 1;
 	NOVICE sceneTest = generate_scene(nAssets, nInterceptors, nThreats);
 
-	// Missile msl;
-	// double initPos[3] = {0.0, 0.0, 0.0};
-	// initUnLaunchedMissile(msl, 0.0, (45 * degToRad), (45.0 * degToRad), initPos);
-	// msl.pip[0] = 3000.0;
-	// msl.pip[1] = 1000.0;
-	// msl.pip[2] = 3000.0;
-	// initSeeker(msl);
-	// msl.lethality = "FLYING";
-	// sixDofFly(msl, "test", true, true, 200.0);
+	Missile msl;
+	double initPos[3] = {0.0, 0.0, 0.0};
+	initUnLaunchedMissile(msl, 0.0, (45 * degToRad), (45.0 * degToRad), initPos);
+	msl.pip[0] = 3000.0;
+	msl.pip[1] = 1000.0;
+	msl.pip[2] = 3000.0;
+	initSeeker(msl);
+	msl.lethality = "FLYING";
+	sixDofFly(msl, "test", true, true, 200.0);
 
 	auto wallClockEnd = chrono::high_resolution_clock::now();
 	auto simRealRunTime = chrono::duration_cast<chrono::milliseconds>(wallClockEnd - wallClockStart);
