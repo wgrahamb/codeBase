@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
-f1 = r"output\test_6DOF.txt"
+f1 = r"output/test_6DOF.txt"
 
 viewFile = f1
 
@@ -14,7 +14,7 @@ for index, header in enumerate(df.columns):
 startIndex = 1
 stopIndex = -1
 
-fig = plt.figure()
+fig = plt.figure(figsize=(20, 20))
 
 # Trajectory
 trajectory = fig.add_subplot(331, projection="3d")

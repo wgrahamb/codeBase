@@ -1,0 +1,14 @@
+
+Install XServer.
+https://sourceforge.net/projects/vcxsrv/
+
+When using XServer.
+Select Multiple Windows.
+Make Sure and Tick Disable Access Control.
+
+Firewall and Network Protection.
+Allow an app through firewall.
+Enable VcXsrv windows xserver, make private and public.
+
+Add this to the end of ~./bashrc
+export DISPLAY=`grep -oP "(?<=nameserver ).+" /etc/resolv.conf`:0.0

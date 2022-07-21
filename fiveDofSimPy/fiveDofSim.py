@@ -63,7 +63,7 @@ class fiveDofInterceptor:
 		self.aeroDynamicAngleMaxDegrees = 35.0 # DEGREES
 
 		# LOOK UP DATA
-		self.lookUps = lp("lookUps.pickle") # AERODYNAMIC AND PROPULSION LOOKUPS
+		self.lookUps = lp("fiveDofSimPy/lookUps.pickle") # AERODYNAMIC AND PROPULSION LOOKUPS
 
 		# INTERCEPTOR ATTITUDE >>> THIS IS A FIVE DEGREE OF FREEDOM SIMULATION. NO AERODYNAMIC BANK ANGLE.
 		self.alpha = 0.0 # RADIANS >>> POSITIVE ALPHA INDICATES NOSE BELOW FREE STREAM VELOCITY

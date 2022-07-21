@@ -24,7 +24,7 @@ with open("input.txt", "w") as file:
 process = subprocess.Popen(["./threeDofTestBed"])
 process.wait()
 
-shutil.copy(
-	"/home/graham/codeBase/cppThreeDofTestBedRK4/output.txt",
-	"/mnt/c/Users/graha/Documents/pythonRepo/pythonRepo/junkDrawer/threeDofRK4Integration.txt"
-)
+# shutil.copy(
+# 	"/home/graham/codeBase/cppThreeDofTestBedRK4/output.txt",
+# 	"/mnt/c/Users/graha/Documents/pythonRepo/pythonRepo/junkDrawer/threeDofRK4Integration.txt"
+# )

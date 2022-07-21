@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+import matplotlib
 import matplotlib.pyplot as plt
 from numpy import array as npa
 from unitVector import unitvector
@@ -51,7 +52,7 @@ targetPos = npa([30000.0, 2000.0])
 targetVel = npa([-800.0, 0.0])
 
 # Simulation control.
-timeStep = 0.005
+timeStep = 0.001
 go = True
 simData = {"TOF": [], "X": [], "Y": [], "TX": [], "TY": [], "COMMAND": [], "ACHIEVED": []}
 e = 0

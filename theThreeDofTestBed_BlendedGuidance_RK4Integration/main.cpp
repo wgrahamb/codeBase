@@ -69,7 +69,7 @@ void init()
 	magnitude(wayPoint, missDistance);
 
 	outPut.open("output.txt");
-	outPut << "TOF EAST NORTH UP EAST_V NORTH_V UP_V EAST_A NORTH_A UP_A" << endl;
+	outPut << "TOF EAST NORTH UP EAST_V NORTH_V UP_V EAST_A NORTH_A UP_A tgtE tgtN tgtU" << endl;
 	outPut << missileTimeOfFlight << " " << missileLocalPosition[0] << " " << missileLocalPosition[1] << " " << missileLocalPosition[2] << " " << missileLocalVelocity[0] << " " << missileLocalVelocity[1] << " " << missileLocalVelocity[2] << " " << missileLocalAcceleration[0] << " " << missileLocalAcceleration[1] << " " << missileLocalAcceleration[2] << endl;
 
 }
@@ -329,7 +329,7 @@ void logData()
 
 	if (PASS == 0)
 	{
-		outPut << missileTimeOfFlight << " " << missileLocalPosition[0] << " " << missileLocalPosition[1] << " " << missileLocalPosition[2] << " " << missileLocalVelocity[0] << " " << missileLocalVelocity[1] << " " << missileLocalVelocity[2] << " " << missileLocalAcceleration[0] << " " << missileLocalAcceleration[1] << " " << missileLocalAcceleration[2] << endl;
+		outPut << missileTimeOfFlight << " " << missileLocalPosition[0] << " " << missileLocalPosition[1] << " " << missileLocalPosition[2] << " " << missileLocalVelocity[0] << " " << missileLocalVelocity[1] << " " << missileLocalVelocity[2] << " " << missileLocalAcceleration[0] << " " << missileLocalAcceleration[1] << " " << missileLocalAcceleration[2] << " " << wayPoint[0] << " " << wayPoint[1] << " " << wayPoint[2] << endl;
 	}
 
 }
