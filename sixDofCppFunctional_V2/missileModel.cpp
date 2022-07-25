@@ -23,6 +23,7 @@ using namespace std;
 // Function to handle input and output.
 // Input and output structs for each function.
 // Make this missile fly ballistically because I believe that it does.
+// Need to be able to fly both six dof and three dof function ballistically, easily.
 
 /* Missile Model */
 /*
@@ -256,7 +257,7 @@ void initUnLaunchedMissile(Missile &missile, double phiRads, double thetaRads, d
 	magnitude(missile.ENUVelocity, missile.speed);
 
 	// Format data tables.
-	lookUpTablesFormat(missile, "input/shortRangeInterceptorTables.txt");
+	lookUpTablesFormat(missile, "shortRangeInterceptorTables.txt");
 
 	// Set missile lethality.
 	missile.lethality = "LOITERING"; // STATUS
@@ -398,6 +399,17 @@ void guidance(Missile &missile)
 	missile.guidanceNormalCommand = COMMAND[2];
 	missile.guidanceSideCommand = COMMAND[1];
 
+	double accelerationMagnitude = sqrt(missile.guidanceSideCommand * missile.guidanceSideCommand + missile.guidanceNormalCommand * missile.guidanceNormalCommand);
+	double trigonometricRatio = atan2(missile.guidanceNormalCommand, missile.guidanceSideCommand);
+	if (accelerationMagnitude > missile.maneuveringLimit)
+	{
+
+		accelerationMagnitude = missile.maneuveringLimit;
+
+	}
+	missile.guidanceNormalCommand = accelerationMagnitude * sin(trigonometricRatio);
+	missile.guidanceSideCommand = accelerationMagnitude * cos(trigonometricRatio);
+
 }
 
 void control(Missile &missile)
@@ -446,7 +458,7 @@ void control(Missile &missile)
 		);
 		missile.pitchControlFeedForwardIntegration = zzNew;
 		missile.pitchControlFeedForwardDerivative = zzdNew;
-		double deflPitch = -1 * GAINFB1 * missile.FLUAcceleration[2] - GAINFB2 * missile.bodyRate[1] + GAINFB3 * missile.pitchControlFeedForwardIntegration;
+		double deflPitch = GAINFB1 * missile.FLUAcceleration[2] - GAINFB2 * missile.bodyRate[1] + GAINFB3 * missile.pitchControlFeedForwardIntegration;
 		if (abs(deflPitch) > FIN_CONTROL_MAX_DEFLECTION_DEGREES)
 		{
 			if (deflPitch > 0)
@@ -461,7 +473,7 @@ void control(Missile &missile)
 		missile.pitchFinCommand = deflPitch * degToRad;
 
 		// Yaw control.
-		double yydNew = missile.FLUAcceleration[1] - missile.guidanceSideCommand;
+		double yydNew = missile.guidanceSideCommand - missile.FLUAcceleration[1];
 		double yyNew = trapezoidIntegrate(
 			yydNew,
 			missile.yawControlFeedForwardDerivative,
@@ -470,7 +482,7 @@ void control(Missile &missile)
 		);
 		missile.yawControlFeedForwardIntegration = yyNew;
 		missile.yawControlFeedForwardDerivative = yydNew;
-		double deflYaw = GAINFB1 * missile.FLUAcceleration[1] - GAINFB2 * missile.bodyRate[2] + GAINFB3 * missile.yawControlFeedForwardIntegration;
+		double deflYaw = -1.0 * GAINFB1 * missile.FLUAcceleration[1] - GAINFB2 * missile.bodyRate[2] + GAINFB3 * missile.yawControlFeedForwardIntegration;
 		if (abs(deflYaw) > FIN_CONTROL_MAX_DEFLECTION_DEGREES)
 		{
 			if (deflYaw > 0)
@@ -530,9 +542,9 @@ void control(Missile &missile)
 
 	}
 
-	missile.rollFinCommand = 0.0;
-	missile.pitchFinCommand = 0.0;
-	missile.yawFinCommand = 0.0;
+	// missile.rollFinCommand = 0.0;
+	// missile.pitchFinCommand = 0.0;
+	// missile.yawFinCommand = 0.0;
 
 }
 
@@ -1308,9 +1320,9 @@ void missileMotion(Missile &missile)
 	double yawMoment = missile.CN * missile.dynamicPressure * REFERENCE_AREA * REFERENCE_DIAMETER;
 
 	// Specific force.
-	missile.FLUAcceleration[0] = axialForce / missile.mass - (missile.bodyRate[1] * missile.FLUVelocity[2] - missile.bodyRate[2] * missile.FLUVelocity[1]);
-	missile.FLUAcceleration[1] = sideForce / missile.mass - (missile.bodyRate[2] * missile.FLUVelocity[0] - missile.bodyRate[0] * missile.FLUVelocity[2]);
-	missile.FLUAcceleration[2] = normalForce / missile.mass - (missile.bodyRate[0] * missile.FLUVelocity[1] - missile.bodyRate[1] * missile.FLUVelocity[0]);
+	missile.FLUAcceleration[0] = axialForce / missile.mass;
+	missile.FLUAcceleration[1] = sideForce / missile.mass;
+	missile.FLUAcceleration[2] = normalForce / missile.mass;
 
 	// Rotate FLU acceleration into ENU acceleration.
 	oneByThreeTimesThreeByThree(missile.FLUAcceleration, missile.missileENUToFLUMatrix, missile.ENUAcceleration);
@@ -1323,7 +1335,7 @@ void missileMotion(Missile &missile)
 	// Euler dot.
 	missile.ENUEulerDot[0] = missile.bodyRate[0] + (missile.bodyRate[1] * sin(missile.ENUEulerAngles[0]) + missile.bodyRate[2] * cos(missile.ENUEulerAngles[0])) * tan(missile.ENUEulerAngles[1]);
 	missile.ENUEulerDot[1] = missile.bodyRate[1] * cos(missile.ENUEulerAngles[0]) - missile.bodyRate[2] * sin(missile.ENUEulerAngles[0]);
-	missile.ENUEulerDot[2] = -1 * (missile.bodyRate[1] * sin(missile.ENUEulerAngles[0]) + missile.bodyRate[2] * cos(missile.ENUEulerAngles[0])) / cos(missile.ENUEulerAngles[1]);
+	missile.ENUEulerDot[2] = (missile.bodyRate[1] * sin(missile.ENUEulerAngles[0]) + missile.bodyRate[2] * cos(missile.ENUEulerAngles[0])) / cos(missile.ENUEulerAngles[1]);
 
 	// Integrate states.
 	if (missile.INTEGRATION_METHOD == 0)
@@ -1971,6 +1983,9 @@ void threeDofFly(Missile &missile, string flyOutID, bool writeData, bool console
 			missile.guidanceSideCommand = maxSideAccelerationAllowed * sign;
 		}
 
+		// missile.guidanceNormalCommand = 0;
+		// missile.guidanceSideCommand = 0;
+
 		// Forces
 		double axialForce = missile.thrust - missile.CX * missile.dynamicPressure * REFERENCE_AREA + missile.FLUGravity[0] * missile.mass;
 		double sideForce = missile.CY * missile.dynamicPressure * REFERENCE_AREA + missile.FLUGravity[1] * missile.mass;
@@ -2061,5 +2076,30 @@ void threeDofFly(Missile &missile, string flyOutID, bool writeData, bool console
 		cout << "SIMULATION RESULT: " << missile.lethality << endl;
 		cout << "\n";
 	}
+
+}
+
+int main()
+{
+
+	Missile missile;
+	double phiRads = 0 * degToRad;
+	double thetaRads = 60.0 * degToRad;
+	double psiRads = 20.0 * degToRad;
+	double launchPosition[3] = {0.0, 0.0, 0.0};
+	initUnLaunchedMissile(missile, phiRads, thetaRads, psiRads, launchPosition);
+	double pip[3] = {3000.0, 0.0, 3000.0};
+	setArrayEquivalentToReference(missile.pip, pip);
+	initSeeker(missile);
+	missile.lethality = "FLYING";
+
+	Missile missile1 = missile;
+	sixDofFly(missile1, "missile", true, true, 400.0);
+
+	Missile missile2 = missile;
+	threeDofFly(missile2, "missile", true, true, 400.0);
+
+	cout << "HOWDY WORLD\n";
+	return 0;
 
 }
