@@ -1,0 +1,200 @@
+void SidewinderDynamicsDriver::update(const MissileState &missileState, bool launch, shared_ptr<Atmos> Atmosphere, shared_ptr<actuators> Actuators)
+{
+
+	// Set up.
+	Vec LTFEulerAngles(missileState.missileLTFEulerAngles_.x, 1.0 * missileState.missileLTFEulerAngles_.y, missileState.missileLTFEulerAngles_.z);
+	Mat missileNavigationDCM = LTFEulerAngles.getDCM();
+	Vec missileBodyVelocity = missileNavigationDCM * missileState.missileLTFVelocity_;
+	double speed = missileBodyVelocity.mag();
+
+	double finOneDeflectionDegrees = Actuators->defl1;
+	double finTwoDeflectionDegrees = Actuators->defl2;
+	double finThreeDeflectionDegrees = Actuators->defl3;
+	double finFourDeflectionDegrees = Actuators->defl4;
+
+	double rollFinDeflectionRadians = dtr * (finOneDeflectionDegrees + finTwoDeflectionDegrees + finThreeDeflectionDegrees + finFourDeflectionDegrees) / 4.0;
+	double pitchFinDeflectionRadians = dtr * (-finOneDeflectionDegrees - finTwoDeflectionDegrees + finThreeDeflectionDegrees + finFourDeflectionDegrees) / 4.0;
+	double yawFinDeflectionRadians = dtr * (finOneDeflectionDegrees - finTwoDeflectionDegrees - finThreeDeflectionDegrees + finFourDeflectionDegrees) / 4.0;
+
+	// aerodynamicAnglesAndConversions
+	double alphaRadians;
+	double betaRadians;
+	if (missileBodyVelocity.z == 0.0 && missileBodyVelocity.x == 0.0)
+	{
+		alphaRadians = 0.0;
+	}
+	else
+	{
+		alphaRadians = atan2(missileBodyVelocity.z, missileBodyVelocity.x);
+	}
+
+	if(missileBodyVelocity.mag() == 0.0)
+	{
+		betaRadians = 0.0;
+	}
+	else
+	{
+		betaRadians = asin(missileBodyVelocity.y / missileBodyVelocity.mag());
+	}
+	alphaDegrees = alphaRadians * rtd;
+	betaDegrees = betaRadians * rtd;
+	alphaPrimeRadians = acos(cos(alphaRadians) * cos(betaRadians));
+	alphaPrimeDegrees = rtd * alphaPrimeRadians;
+	double phiPrime = atan2(tan(betaRadians), sin(alphaRadians));
+	sinPhiPrime = sin(phiPrime);
+	cosPhiPrime = cos(phiPrime);
+	double pitchDeflAeroFrame = pitchFinDeflectionRadians * cosPhiPrime - yawFinDeflectionRadians * sinPhiPrime;
+	pitchAeroBallisticFinDeflectionDegrees = rtd * pitchDeflAeroFrame;
+	double yawDeflAeroFrame = pitchFinDeflectionRadians * sinPhiPrime + yawFinDeflectionRadians * cosPhiPrime;
+	yawAeroBallisticFinDeflectionDegrees = rtd * yawDeflAeroFrame;
+	rollFinDeflectionDegrees = rtd * rollFinDeflectionRadians;
+	totalFinDeflectionDegrees = (abs(pitchAeroBallisticFinDeflectionDegrees) + abs(yawAeroBallisticFinDeflectionDegrees)) / 2;
+	double pitchRateAeroFrame = missileState.missileBodyRate_.y * cosPhiPrime - missileState.missileBodyRate_.z * sinPhiPrime;
+	pitchAeroBallisticBodyRateDegrees = rtd * pitchRateAeroFrame;
+	double yawRateAeroFrame = missileState.missileBodyRate_.y * sinPhiPrime + missileState.missileBodyRate_.z * cosPhiPrime;
+	yawAeroBallisticBodyRateDegrees = rtd * yawRateAeroFrame;
+	rollRateDegrees = rtd * missileState.missileBodyRate_.x;
+	sinOfFourTimesPhiPrime = sin(4 * phiPrime);
+	squaredSinOfTwoTimesPhiPrime = pow((sin(2 * phiPrime)), 2);
+
+	// Table look ups.
+	int index;
+
+	index = tableNameIndexPairs["CA0"];
+	CA0 = linearInterpolationWithBoundedEnds(tables[index], Atmosphere->amach);
+
+	index = tableNameIndexPairs["CAA"];
+	CAA = linearInterpolationWithBoundedEnds(tables[index], Atmosphere->amach);
+
+	index = tableNameIndexPairs["CAD"];
+	CAD = linearInterpolationWithBoundedEnds(tables[index], Atmosphere->amach);
+
+	index = tableNameIndexPairs["CAOFF"];
+	double ROCKET_BURN_OUT_TIME = 2.421;
+	if (missileState.missileTimeOfFlight_ <= ROCKET_BURN_OUT_TIME)
+	{
+		CAOFF = 0.0;
+	}
+	else
+	{
+		CAOFF = linearInterpolationWithBoundedEnds(tables[index], Atmosphere->amach);
+	}
+
+	index = tableNameIndexPairs["CYP"];
+	CYP = biLinearInterpolationWithBoundedBorders(tables[index], Atmosphere->amach, alphaPrimeDegrees);
+
+	index = tableNameIndexPairs["CYDR"];
+	CYDR = biLinearInterpolationWithBoundedBorders(tables[index], Atmosphere->amach, alphaPrimeDegrees);
+
+	index = tableNameIndexPairs["CN0"];
+	CN0 = biLinearInterpolationWithBoundedBorders(tables[index], Atmosphere->amach, alphaPrimeDegrees);
+
+	index = tableNameIndexPairs["CNP"];
+	CNP = biLinearInterpolationWithBoundedBorders(tables[index], Atmosphere->amach, alphaPrimeDegrees);
+
+	index = tableNameIndexPairs["CNDQ"];
+	CNDQ = biLinearInterpolationWithBoundedBorders(tables[index], Atmosphere->amach, alphaPrimeDegrees);
+
+	index = tableNameIndexPairs["CLLAP"];
+	CLLAP = biLinearInterpolationWithBoundedBorders(tables[index], Atmosphere->amach, alphaPrimeDegrees);
+
+	index = tableNameIndexPairs["CLLP"];
+	CLLP = biLinearInterpolationWithBoundedBorders(tables[index], Atmosphere->amach, alphaPrimeDegrees);
+
+	index = tableNameIndexPairs["CLLDP"];
+	CLLDP = biLinearInterpolationWithBoundedBorders(tables[index], Atmosphere->amach, alphaPrimeDegrees);
+
+	index = tableNameIndexPairs["CLM0"];
+	CLM0 = biLinearInterpolationWithBoundedBorders(tables[index], Atmosphere->amach, alphaPrimeDegrees);
+
+	index = tableNameIndexPairs["CLMP"];
+	CLMP = biLinearInterpolationWithBoundedBorders(tables[index], Atmosphere->amach, alphaPrimeDegrees);
+
+	index = tableNameIndexPairs["CLMQ"];
+	CLMQ = linearInterpolationWithBoundedEnds(tables[index], Atmosphere->amach);
+
+	index = tableNameIndexPairs["CLMDQ"];
+	CLMDQ = biLinearInterpolationWithBoundedBorders(tables[index], Atmosphere->amach, alphaPrimeDegrees);
+
+	index = tableNameIndexPairs["CLNP"];
+	CLNP = biLinearInterpolationWithBoundedBorders(tables[index], Atmosphere->amach, alphaPrimeDegrees);
+
+	index = tableNameIndexPairs["MASS"];
+	mass = linearInterpolationWithBoundedEnds(tables[index], missileState.missileTimeOfFlight_);
+
+	index = tableNameIndexPairs["THRUST"];
+	unadjustedThrust = linearInterpolationWithBoundedEnds(tables[index], missileState.missileTimeOfFlight_);
+
+	index = tableNameIndexPairs["TMOI"];
+	transverseMomentOfInertia = linearInterpolationWithBoundedEnds(tables[index], missileState.missileTimeOfFlight_);
+
+	index = tableNameIndexPairs["AMOI"];
+	axialMomentOfInertia = linearInterpolationWithBoundedEnds(tables[index], missileState.missileTimeOfFlight_);
+
+	index = tableNameIndexPairs["CG"];
+	centerOfGravityFromNose = linearInterpolationWithBoundedEnds(tables[index], missileState.missileTimeOfFlight_);
+
+	// Propulsion.
+	double SEA_LEVEL_PRESSURE = 101325;
+	double THRUST_EXIT_AREA = 0.0125;
+	if (missileState.missileTimeOfFlight_ >= ROCKET_BURN_OUT_TIME)
+	{
+		thrust = 0.0;
+	}
+	else
+	{
+		thrust = unadjustedThrust + (SEA_LEVEL_PRESSURE - Atmosphere->p) * THRUST_EXIT_AREA;
+	}
+
+	// Aerodynamic coefficients.
+	double REFERENCE_AREA = 0.01824; // Meters^2.
+	double REFERENCE_DIAMETER = 0.1524; // Meters.
+	double LAUNCH_CENTER_OF_GRAVITY_FROM_NOSE = 1.5357; // Meters.
+	CX = CA0 + CAA * alphaPrimeDegrees + CAD * (totalFinDeflectionDegrees * totalFinDeflectionDegrees) + CAOFF;
+	double CYAERO = CYP * sinOfFourTimesPhiPrime + CYDR * yawAeroBallisticFinDeflectionDegrees;
+	double CZAERO = CN0 + CNP * squaredSinOfTwoTimesPhiPrime + CNDQ * pitchAeroBallisticFinDeflectionDegrees;
+	CL = CLLAP * alphaPrimeDegrees * alphaPrimeDegrees * sinOfFourTimesPhiPrime + CLLP * rollRateDegrees * REFERENCE_DIAMETER / (2 * speed) + CLLDP * rollFinDeflectionDegrees;
+	double CNAEROREF = CLNP * sinOfFourTimesPhiPrime + CLMQ * yawAeroBallisticBodyRateDegrees * REFERENCE_DIAMETER / (2 * speed) + CLMDQ * yawAeroBallisticFinDeflectionDegrees;
+	double CNAERO = CNAEROREF - CYAERO * (LAUNCH_CENTER_OF_GRAVITY_FROM_NOSE - centerOfGravityFromNose) / REFERENCE_DIAMETER;
+	double CMAEROREF = CLM0 + CLMP * squaredSinOfTwoTimesPhiPrime + CLMQ * pitchAeroBallisticBodyRateDegrees * REFERENCE_DIAMETER / (2 * speed) + CLMDQ * pitchAeroBallisticFinDeflectionDegrees;
+	double CMAERO = CMAEROREF - CZAERO * (LAUNCH_CENTER_OF_GRAVITY_FROM_NOSE - centerOfGravityFromNose) / REFERENCE_DIAMETER;
+	CY = CYAERO * cosPhiPrime - CZAERO * sinPhiPrime;
+	CZ = CYAERO * sinPhiPrime + CZAERO * cosPhiPrime;
+	CN = -1.0 * CMAERO * sinPhiPrime + CNAERO * cosPhiPrime;
+	CM = CMAERO * cosPhiPrime + CNAERO * sinPhiPrime;
+
+	// Rocket force and moment.
+	rocketForce.x = thrust;
+	rocketForce.y = 0.0;
+	rocketForce.z = 0.0;
+	rocketMoment.x = 0.0;
+	rocketMoment.y = 0.0;
+	rocketMoment.z = 0.0;
+
+	// Forces.
+	aerodynamicForce.x = -1.0 * CX * Atmosphere->q * REFERENCE_AREA;
+	aerodynamicForce.y = CY * Atmosphere->q * REFERENCE_AREA;
+	aerodynamicForce.z = -1.0 * CZ * Atmosphere->q * REFERENCE_AREA;
+
+	// Moments.
+	aerodynamicMoment.x = CL * Atmosphere->q * REFERENCE_AREA * REFERENCE_DIAMETER;
+	aerodynamicMoment.y = CM * Atmosphere->q * REFERENCE_AREA * REFERENCE_DIAMETER;
+	aerodynamicMoment.z = CN * Atmosphere->q * REFERENCE_AREA * REFERENCE_DIAMETER;
+	// aerodynamicMoment.x = 0.0;
+	// aerodynamicMoment.y = 0.0;
+	// aerodynamicMoment.z = 0.0;
+
+	// Mass properties.
+	missileMass = mass;
+	axialCenterOfGravity = centerOfGravityFromNose;
+	inertiaTensor[0][0] = axialMomentOfInertia;
+	inertiaTensor[0][1] = 0.0;
+	inertiaTensor[0][2] = 0.0;
+	inertiaTensor[1][0] = 0.0;
+	inertiaTensor[1][1] = transverseMomentOfInertia;
+	inertiaTensor[1][2] = 0.0;
+	inertiaTensor[2][0] = 0.0;
+	inertiaTensor[2][1] = 0.0;
+	inertiaTensor[2][2] = transverseMomentOfInertia;
+
+}
