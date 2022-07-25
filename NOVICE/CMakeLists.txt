@@ -1,8 +1,0 @@
-cmake_minimum_required (VERSION 2.8.11)
-project (NOVICE)
-set(CMAKE_BUILD_TYPE Debug)
-include_directories(
-	include
-)
-file(GLOB all_SRCS "src/*.cpp")
-add_executable(NOVICE ${all_SRCS})

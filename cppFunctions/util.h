@@ -1,5 +1,17 @@
+// Standard.
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <iomanip>
+#include <chrono>
+#include <math.h>
 #include <vector>
+#include <map>
+#include <algorithm>
 #include <string>
+
+// Namespace.
+using namespace std;
 
 #ifndef UTILITY_H
 #define UTILITY_H
@@ -8,7 +20,8 @@ const double degToRad = 0.0174532925199432;
 const double radToDeg = 57.2957795130823;
 const double mToKm = 1 / 1000;
 const double pi = 3.14159265358979323846;
-const double grav = 9.81;
+const double twoTimesPi = 2 * pi;
+const double gravity = 9.81;
 
 double signum(double x);
 double atan2_0(double y, double x);
@@ -37,6 +50,7 @@ void multiplyVectorTimesScalar(double scalar, double vec[3], double out[3]);
 void divideVectorByScalar(double scalar, double vec[3], double out[3]);
 void setArrayEquivalentToReference(double arrayToBeChanged[3], double reference[3]);
 void setArrayEquivalentToZero(double array[3]);
+void consolePrintArray(string id, double array[3]);
 double linearInterpolationWithBoundedEnds(std::vector<std::vector<double>> table, double tableInput);
 double biLinearInterpolationWithBoundedBorders(std::vector<std::vector<double>> table, double tableRowInput, double tableColumnInput);
 

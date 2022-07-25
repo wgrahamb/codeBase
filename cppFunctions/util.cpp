@@ -1,5 +1,17 @@
+// Standard.
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <iomanip>
+#include <chrono>
 #include <math.h>
 #include <vector>
+#include <map>
+#include <algorithm>
+#include <string>
+
+// Namespace.
+using namespace std;
 
 #include "util.h"
 
@@ -357,6 +369,12 @@ void setArrayEquivalentToZero(double array[3])
 	array[0] = 0.0;
 	array[1] = 0.0;
 	array[2] = 0.0;
+}
+
+// Graham Beech.
+void consolePrintArray(string id, double array[3])
+{
+	cout << id << " " << array[0] << " " << array[1] << " " << array[2] << "\n";
 }
 
 // GRAHAM BEECH
