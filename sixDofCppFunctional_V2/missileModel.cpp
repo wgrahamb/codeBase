@@ -23,6 +23,7 @@ using namespace std;
 // Function to handle input and output.
 // Input and output structs for each function.
 // Make this missile fly ballistically because I believe that it does.
+// Made it fly ballistically but now it won't fly guided. Going to try and write a controller.
 // Need to be able to fly both six dof and three dof function ballistically, easily.
 
 /* Missile Model */
