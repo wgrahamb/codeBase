@@ -22,9 +22,9 @@ using namespace std;
 // Set each function as inputs and outputs.
 // Function to handle input and output.
 // Input and output structs for each function.
-// Make this missile fly ballistically because I believe that it does.
-// Made it fly ballistically but now it won't fly guided. Going to try and write a controller.
+// Proportional controller works. Add a derivative term.
 // Need to be able to fly both six dof and three dof function ballistically, easily.
+// Three dof needs work to work more easily with existing functions.
 
 /* Missile Model */
 /*
@@ -416,132 +416,42 @@ void guidance(Missile &missile)
 void control(Missile &missile)
 {
 
-	if (missile.machSpeed > 0.6)
+	// Roll autopilot.
+	double rollAngleGain = 1.0;
+	double rollRateGain = 0.005;
+	double phiAngleError = ROLL_ANGLE_COMMAND - missile.ENUEulerAngles[0]; // Radians.
+	double rollRateCommand = rollAngleGain * phiAngleError; // Radians per second.
+	double signOfRollRateCommand = signum(rollRateCommand); // Non dimensional.
+	if (abs(rollRateCommand) > rollAngleGain) // Limit rate command.
 	{
-
-		// Aerodynamic feedback.
-		double DNA = missile.CNA * (missile.dynamicPressure * REFERENCE_AREA / missile.mass);
-		double DMA = missile.CMA * (missile.dynamicPressure * REFERENCE_AREA * REFERENCE_DIAMETER / missile.transverseMomentOfInertia);
-		double DMD = missile.CMD * (missile.dynamicPressure * REFERENCE_AREA * REFERENCE_DIAMETER / missile.transverseMomentOfInertia);
-		double DMQ = missile.CMQ * (REFERENCE_DIAMETER / (2 * missile.speed)) * (missile.dynamicPressure * REFERENCE_AREA * REFERENCE_DIAMETER / missile.transverseMomentOfInertia);
-		double DLP = missile.CLP * (REFERENCE_DIAMETER / (2 * missile.speed)) * (missile.dynamicPressure * REFERENCE_AREA * REFERENCE_DIAMETER / missile.axialMomentOfInertia);
-		double DLD = missile.CLD * (missile.dynamicPressure * REFERENCE_AREA * REFERENCE_DIAMETER / missile.axialMomentOfInertia);
-
-		// Natural frequency and damping scheduling.
-		double WACL = 0.013 * sqrt(missile.dynamicPressure) + 7.1;
-		double ZACL = 0.000559 * sqrt(missile.dynamicPressure) + 0.232;
-		double PACL = 14;
-
-		// Feedback gain scheduling.
-		double GAINFB3 = WACL * WACL * PACL / (DNA * DMD);
-		double GAINFB2 = (2 * ZACL * WACL + PACL + DMQ - DNA / missile.speed) / DMD;
-		double GAINFB1 = (
-			WACL * WACL +
-			2 * ZACL * WACL * PACL +
-			DMA +
-			DMQ * DNA / missile.speed -
-			GAINFB2 * DMD * DNA / missile.speed
-		) / (DNA * DMD);
-
-		// Roll control.
-		double GKP = (2 * ROLL_CONTROL_WN * ROLL_CONTROL_ZETA + DLP) / DLD;
-		double GKPHI = ROLL_CONTROL_WN * ROLL_CONTROL_WN / DLD;
-		double EPHI = GKPHI * (ROLL_ANGLE_COMMAND - missile.ENUEulerAngles[0]);
-		missile.rollFinCommand = EPHI - GKP * missile.bodyRate[0];
-
-		// Pitch control.
-		double zzdNew = missile.guidanceNormalCommand - missile.FLUAcceleration[2];
-		double zzNew = trapezoidIntegrate(
-			zzdNew,
-			missile.pitchControlFeedForwardDerivative,
-			missile.pitchControlFeedForwardIntegration,
-			missile.TIME_STEP
-		);
-		missile.pitchControlFeedForwardIntegration = zzNew;
-		missile.pitchControlFeedForwardDerivative = zzdNew;
-		double deflPitch = GAINFB1 * missile.FLUAcceleration[2] - GAINFB2 * missile.bodyRate[1] + GAINFB3 * missile.pitchControlFeedForwardIntegration;
-		if (abs(deflPitch) > FIN_CONTROL_MAX_DEFLECTION_DEGREES)
-		{
-			if (deflPitch > 0)
-			{
-				deflPitch = FIN_CONTROL_MAX_DEFLECTION_DEGREES;
-			}
-			else if (deflPitch < 0)
-			{
-				deflPitch = -1 * FIN_CONTROL_MAX_DEFLECTION_DEGREES;
-			}
-		}
-		missile.pitchFinCommand = deflPitch * degToRad;
-
-		// Yaw control.
-		double yydNew = missile.guidanceSideCommand - missile.FLUAcceleration[1];
-		double yyNew = trapezoidIntegrate(
-			yydNew,
-			missile.yawControlFeedForwardDerivative,
-			missile.yawControlFeedForwardIntegration,
-			missile.TIME_STEP
-		);
-		missile.yawControlFeedForwardIntegration = yyNew;
-		missile.yawControlFeedForwardDerivative = yydNew;
-		double deflYaw = -1.0 * GAINFB1 * missile.FLUAcceleration[1] - GAINFB2 * missile.bodyRate[2] + GAINFB3 * missile.yawControlFeedForwardIntegration;
-		if (abs(deflYaw) > FIN_CONTROL_MAX_DEFLECTION_DEGREES)
-		{
-			if (deflYaw > 0)
-			{
-				deflYaw = FIN_CONTROL_MAX_DEFLECTION_DEGREES;
-			}
-			else if (deflYaw < 0)
-			{
-				deflYaw = -1 * FIN_CONTROL_MAX_DEFLECTION_DEGREES;
-			}
-		}
-		missile.yawFinCommand = deflYaw * degToRad;
-
+		rollRateCommand = rollAngleGain * signOfRollRateCommand;
 	}
+	double rollRateError = rollRateCommand - missile.bodyRate[0]; // Radians per second.
+	missile.rollFinCommand = rollRateGain * rollRateError; // Radians.
 
-	else if (missile.machSpeed > 0.01)
+	// Pitch autopilot.
+	double pitchRateCommandLimit = 10;
+	double pitchRateGain = 0.1;
+	double guidancePitchRateCommand = -missile.guidanceNormalCommand * 4 / missile.speed;
+	double signOfPitchRateCommand = signum(guidancePitchRateCommand);
+	if (abs(guidancePitchRateCommand) > pitchRateCommandLimit)
 	{
-
-		// Aerodynamic feedback.
-		double DNA = missile.CNA * (missile.dynamicPressure * REFERENCE_AREA / missile.mass);
-		double DND = missile.CND * (missile.dynamicPressure * REFERENCE_AREA / missile.mass);
-		double DMA = missile.CMA * (missile.dynamicPressure * REFERENCE_AREA * REFERENCE_DIAMETER / missile.transverseMomentOfInertia);
-		double DMD = missile.CMD * (missile.dynamicPressure * REFERENCE_AREA * REFERENCE_DIAMETER / missile.transverseMomentOfInertia);
-		double DMQ = missile.CMQ * (REFERENCE_DIAMETER / (2 * missile.speed)) * (missile.dynamicPressure * REFERENCE_AREA * REFERENCE_DIAMETER / missile.transverseMomentOfInertia);
-		double DLP = missile.CLP * (REFERENCE_DIAMETER / (2 * missile.speed)) * (missile.dynamicPressure * REFERENCE_AREA * REFERENCE_DIAMETER / missile.axialMomentOfInertia);
-		double DLD = missile.CLD * (missile.dynamicPressure * REFERENCE_AREA * REFERENCE_DIAMETER / missile.axialMomentOfInertia);
-
-		// Roll control.
-		double GKP = (2 * ROLL_CONTROL_WN * ROLL_CONTROL_ZETA + DLP) / DLD;
-		double GKPHI = ROLL_CONTROL_WN * ROLL_CONTROL_WN / DLD;
-		double EPHI = GKPHI * (ROLL_ANGLE_COMMAND - missile.ENUEulerAngles[0]);
-		missile.rollFinCommand = EPHI - GKP * missile.bodyRate[0];
-
-		// Rate control.
-		double ZRATE = DNA / missile.speed - DMA * DND / (missile.speed * DMD);
-		double AA = DNA / missile.speed - DMQ;
-		double BB = -1 * DMA - DMQ * DNA / missile.speed;
-		double TEMP1 = AA - 2 * RATE_CONTROL_ZETA * RATE_CONTROL_ZETA * ZRATE;
-		double TEMP2 = AA * AA - 4 * RATE_CONTROL_ZETA * RATE_CONTROL_ZETA * BB;
-		double RADIX = TEMP1 * TEMP1 - TEMP2;
-		double GRATE = (-1 * TEMP1 + sqrt(RADIX)) / (-1 * DMD);
-
-		// Pitch control.
-		missile.pitchFinCommand = GRATE * missile.bodyRate[1]; // Radians.
-
-		// Yaw control.
-		missile.yawFinCommand = GRATE * missile.bodyRate[2]; // Radians.
-
+		guidancePitchRateCommand = signOfPitchRateCommand * pitchRateCommandLimit;
 	}
-	
-	else
+	double pitchRateError = guidancePitchRateCommand + missile.bodyRate[1];
+	missile.pitchFinCommand = pitchRateGain * pitchRateError;
+
+	// Yaw autopilot.
+	double yawRateCommandLimit = 10;
+	double yawRateGain = 0.1;
+	double guidanceYawRateCommand = -missile.guidanceSideCommand * 4 / missile.speed;
+	double signOfYawRateCommand = signum(guidanceYawRateCommand);
+	if (abs(guidanceYawRateCommand) > yawRateCommandLimit)
 	{
-
-		missile.rollFinCommand = 0.0;
-		missile.pitchFinCommand = 0.0;
-		missile.yawFinCommand = 0.0;
-
+		guidanceYawRateCommand = signOfYawRateCommand * yawRateCommandLimit;
 	}
+	double yawRateError = guidanceYawRateCommand + missile.bodyRate[2];
+	missile.yawFinCommand = yawRateGain * yawRateError;
 
 	// missile.rollFinCommand = 0.0;
 	// missile.pitchFinCommand = 0.0;
@@ -2084,12 +1994,13 @@ int main()
 {
 
 	Missile missile;
-	double phiRads = 0 * degToRad;
-	double thetaRads = 60.0 * degToRad;
-	double psiRads = 20.0 * degToRad;
+	missile.INTEGRATION_METHOD = 0;
+	double phiRads = 7 * degToRad; // Ballistically, loses flight stability with a starting perturbed roll angle of 8 degrees. AKA no more than 7 degree starting roll angle.
+	double thetaRads = 50.0 * degToRad;
+	double psiRads = 35.0 * degToRad;
 	double launchPosition[3] = {0.0, 0.0, 0.0};
 	initUnLaunchedMissile(missile, phiRads, thetaRads, psiRads, launchPosition);
-	double pip[3] = {3000.0, 0.0, 3000.0};
+	double pip[3] = {6000.0, 0.0, 3000.0};
 	setArrayEquivalentToReference(missile.pip, pip);
 	initSeeker(missile);
 	missile.lethality = "FLYING";
@@ -2097,10 +2008,137 @@ int main()
 	Missile missile1 = missile;
 	sixDofFly(missile1, "missile", true, true, 400.0);
 
-	Missile missile2 = missile;
-	threeDofFly(missile2, "missile", true, true, 400.0);
+	// Missile missile2 = missile;
+	// threeDofFly(missile2, "missile", true, true, 400.0);
 
-	cout << "HOWDY WORLD\n";
+	cout << "\n";
 	return 0;
 
 }
+
+// if (missile.machSpeed > 0.6)
+// {
+
+// 	// Aerodynamic feedback.
+// 	double DNA = missile.CNA * (missile.dynamicPressure * REFERENCE_AREA / missile.mass);
+// 	double DMA = missile.CMA * (missile.dynamicPressure * REFERENCE_AREA * REFERENCE_DIAMETER / missile.transverseMomentOfInertia);
+// 	double DMD = missile.CMD * (missile.dynamicPressure * REFERENCE_AREA * REFERENCE_DIAMETER / missile.transverseMomentOfInertia);
+// 	double DMQ = missile.CMQ * (REFERENCE_DIAMETER / (2 * missile.speed)) * (missile.dynamicPressure * REFERENCE_AREA * REFERENCE_DIAMETER / missile.transverseMomentOfInertia);
+// 	double DLP = missile.CLP * (REFERENCE_DIAMETER / (2 * missile.speed)) * (missile.dynamicPressure * REFERENCE_AREA * REFERENCE_DIAMETER / missile.axialMomentOfInertia);
+// 	double DLD = missile.CLD * (missile.dynamicPressure * REFERENCE_AREA * REFERENCE_DIAMETER / missile.axialMomentOfInertia);
+
+// 	// Natural frequency and damping scheduling.
+// 	double WACL = 0.013 * sqrt(missile.dynamicPressure) + 7.1;
+// 	double ZACL = 0.000559 * sqrt(missile.dynamicPressure) + 0.232;
+// 	double PACL = 14;
+
+// 	// Feedback gain scheduling.
+// 	double GAINFB3 = WACL * WACL * PACL / (DNA * DMD);
+// 	double GAINFB2 = (2 * ZACL * WACL + PACL + DMQ - DNA / missile.speed) / DMD;
+// 	double GAINFB1 = (
+// 		WACL * WACL +
+// 		2 * ZACL * WACL * PACL +
+// 		DMA +
+// 		DMQ * DNA / missile.speed -
+// 		GAINFB2 * DMD * DNA / missile.speed
+// 	) / (DNA * DMD);
+
+// 	// Roll control.
+// 	double GKP = (2 * ROLL_CONTROL_WN * ROLL_CONTROL_ZETA + DLP) / DLD;
+// 	double GKPHI = ROLL_CONTROL_WN * ROLL_CONTROL_WN / DLD;
+// 	double EPHI = GKPHI * (ROLL_ANGLE_COMMAND - missile.ENUEulerAngles[0]);
+// 	missile.rollFinCommand = EPHI - GKP * missile.bodyRate[0];
+
+// 	// Pitch control.
+// 	double zzdNew = missile.guidanceNormalCommand - missile.FLUAcceleration[2];
+// 	double zzNew = trapezoidIntegrate(
+// 		zzdNew,
+// 		missile.pitchControlFeedForwardDerivative,
+// 		missile.pitchControlFeedForwardIntegration,
+// 		missile.TIME_STEP
+// 	);
+// 	missile.pitchControlFeedForwardIntegration = zzNew;
+// 	missile.pitchControlFeedForwardDerivative = zzdNew;
+// 	double deflPitch = GAINFB1 * missile.FLUAcceleration[2] - GAINFB2 * missile.bodyRate[1] + GAINFB3 * missile.pitchControlFeedForwardIntegration;
+// 	if (abs(deflPitch) > FIN_CONTROL_MAX_DEFLECTION_DEGREES)
+// 	{
+// 		if (deflPitch > 0)
+// 		{
+// 			deflPitch = FIN_CONTROL_MAX_DEFLECTION_DEGREES;
+// 		}
+// 		else if (deflPitch < 0)
+// 		{
+// 			deflPitch = -1 * FIN_CONTROL_MAX_DEFLECTION_DEGREES;
+// 		}
+// 	}
+// 	missile.pitchFinCommand = deflPitch * degToRad;
+
+// 	// Yaw control.
+// 	double yydNew = missile.guidanceSideCommand - missile.FLUAcceleration[1];
+// 	double yyNew = trapezoidIntegrate(
+// 		yydNew,
+// 		missile.yawControlFeedForwardDerivative,
+// 		missile.yawControlFeedForwardIntegration,
+// 		missile.TIME_STEP
+// 	);
+// 	missile.yawControlFeedForwardIntegration = yyNew;
+// 	missile.yawControlFeedForwardDerivative = yydNew;
+// 	double deflYaw = -1.0 * GAINFB1 * missile.FLUAcceleration[1] - GAINFB2 * missile.bodyRate[2] + GAINFB3 * missile.yawControlFeedForwardIntegration;
+// 	if (abs(deflYaw) > FIN_CONTROL_MAX_DEFLECTION_DEGREES)
+// 	{
+// 		if (deflYaw > 0)
+// 		{
+// 			deflYaw = FIN_CONTROL_MAX_DEFLECTION_DEGREES;
+// 		}
+// 		else if (deflYaw < 0)
+// 		{
+// 			deflYaw = -1 * FIN_CONTROL_MAX_DEFLECTION_DEGREES;
+// 		}
+// 	}
+// 	missile.yawFinCommand = deflYaw * degToRad;
+
+// }
+
+// else if (missile.machSpeed > 0.01)
+// {
+
+// 	// Aerodynamic feedback.
+// 	double DNA = missile.CNA * (missile.dynamicPressure * REFERENCE_AREA / missile.mass);
+// 	double DND = missile.CND * (missile.dynamicPressure * REFERENCE_AREA / missile.mass);
+// 	double DMA = missile.CMA * (missile.dynamicPressure * REFERENCE_AREA * REFERENCE_DIAMETER / missile.transverseMomentOfInertia);
+// 	double DMD = missile.CMD * (missile.dynamicPressure * REFERENCE_AREA * REFERENCE_DIAMETER / missile.transverseMomentOfInertia);
+// 	double DMQ = missile.CMQ * (REFERENCE_DIAMETER / (2 * missile.speed)) * (missile.dynamicPressure * REFERENCE_AREA * REFERENCE_DIAMETER / missile.transverseMomentOfInertia);
+// 	double DLP = missile.CLP * (REFERENCE_DIAMETER / (2 * missile.speed)) * (missile.dynamicPressure * REFERENCE_AREA * REFERENCE_DIAMETER / missile.axialMomentOfInertia);
+// 	double DLD = missile.CLD * (missile.dynamicPressure * REFERENCE_AREA * REFERENCE_DIAMETER / missile.axialMomentOfInertia);
+
+// 	// Roll control.
+// 	double GKP = (2 * ROLL_CONTROL_WN * ROLL_CONTROL_ZETA + DLP) / DLD;
+// 	double GKPHI = ROLL_CONTROL_WN * ROLL_CONTROL_WN / DLD;
+// 	double EPHI = GKPHI * (ROLL_ANGLE_COMMAND - missile.ENUEulerAngles[0]);
+// 	missile.rollFinCommand = EPHI - GKP * missile.bodyRate[0];
+
+// 	// Rate control.
+// 	double ZRATE = DNA / missile.speed - DMA * DND / (missile.speed * DMD);
+// 	double AA = DNA / missile.speed - DMQ;
+// 	double BB = -1 * DMA - DMQ * DNA / missile.speed;
+// 	double TEMP1 = AA - 2 * RATE_CONTROL_ZETA * RATE_CONTROL_ZETA * ZRATE;
+// 	double TEMP2 = AA * AA - 4 * RATE_CONTROL_ZETA * RATE_CONTROL_ZETA * BB;
+// 	double RADIX = TEMP1 * TEMP1 - TEMP2;
+// 	double GRATE = (-1 * TEMP1 + sqrt(RADIX)) / (-1 * DMD);
+
+// 	// Pitch control.
+// 	missile.pitchFinCommand = GRATE * missile.bodyRate[1]; // Radians.
+
+// 	// Yaw control.
+// 	missile.yawFinCommand = GRATE * missile.bodyRate[2]; // Radians.
+
+// }
+
+// else
+// {
+
+// 	missile.rollFinCommand = 0.0;
+// 	missile.pitchFinCommand = 0.0;
+// 	missile.yawFinCommand = 0.0;
+
+// }

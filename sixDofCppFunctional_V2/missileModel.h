@@ -106,8 +106,8 @@ struct Missile
 	double yawControlFeedForwardDerivative = 0.0; // Yaw feed forward derivative. Meters per second.
 	double pitchControlFeedForwardIntegration = 0.0; // Pitch feed forward integration. Meters per second.
 	double pitchControlFeedForwardDerivative = 0.0; // Pitch feed forward derivative. Meters per second.
-	double pitchFinCommand = 0.0; // Radians.
 	double yawFinCommand = 0.0; // Radians.
+	double pitchFinCommand = 0.0; // Radians.
 	double rollFinCommand = 0.0; // Radians.
 
 	// Actuators.
