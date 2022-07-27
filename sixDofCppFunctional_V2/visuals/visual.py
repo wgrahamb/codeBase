@@ -52,6 +52,7 @@ roll.plot(df.iloc[startIndex:stopIndex]["tof"], df.iloc[startIndex:stopIndex]["p
 roll.plot(df.iloc[startIndex:stopIndex]["tof"], df.iloc[startIndex:stopIndex]["phiDot"], color="r", label="Phi Dot Radians per Second", alpha=0.5)
 roll.plot(df.iloc[startIndex:stopIndex]["tof"], df.iloc[startIndex:stopIndex]["p"], color="g", label="Roll Rate Radians per Second", alpha=0.5)
 roll.plot(df.iloc[startIndex:stopIndex]["tof"], df.iloc[startIndex:stopIndex]["pdot"], color="cyan", label="Roll Rate Dot Radians per Second^2", alpha=0.5)
+roll.plot(df.iloc[startIndex:stopIndex]["tof"], df.iloc[startIndex:stopIndex]["rollRateError"], color="orange", label="Roll Rate Error", alpha=0.5)
 roll.legend(fontsize="xx-small")
 
 # Pitch
@@ -62,6 +63,7 @@ pitch.plot(df.iloc[startIndex:stopIndex]["tof"], df.iloc[startIndex:stopIndex]["
 pitch.plot(df.iloc[startIndex:stopIndex]["tof"], df.iloc[startIndex:stopIndex]["thetaDot"], color="r", label="Theta Dot Radians per Second")
 pitch.plot(df.iloc[startIndex:stopIndex]["tof"], df.iloc[startIndex:stopIndex]["q"], color="g", label="Pitch Rate Radians per Second")
 pitch.plot(df.iloc[startIndex:stopIndex]["tof"], df.iloc[startIndex:stopIndex]["qdot"], color="cyan", label="Pitch Rate Dot Radians per Second^2", alpha=0.5)
+pitch.plot(df.iloc[startIndex:stopIndex]["tof"], df.iloc[startIndex:stopIndex]["pitchRateError"], color="orange", label="Pitch Rate Error", alpha=0.5)
 pitch.legend(fontsize="xx-small")
 
 # Yaw
@@ -73,6 +75,7 @@ yaw.plot(df.iloc[startIndex:stopIndex]["tof"], df.iloc[startIndex:stopIndex]["be
 yaw.plot(df.iloc[startIndex:stopIndex]["tof"], df.iloc[startIndex:stopIndex]["psiDot"], color="r", label="Psi Dot Radians per Second")
 yaw.plot(df.iloc[startIndex:stopIndex]["tof"], df.iloc[startIndex:stopIndex]["r"], color="g", label="Yaw Rate Radians per Second")
 yaw.plot(df.iloc[startIndex:stopIndex]["tof"], df.iloc[startIndex:stopIndex]["rdot"], color="cyan", label="Yaw Rate Dot Radians per Second^2", alpha=0.5)
+yaw.plot(df.iloc[startIndex:stopIndex]["tof"], df.iloc[startIndex:stopIndex]["yawRateError"], color="orange", label="Yaw Rate Error", alpha=0.5)
 yaw.legend(fontsize="xx-small")
 
 # Fins
@@ -80,8 +83,8 @@ fins = fig.add_subplot(245)
 fins.set_title("Fins")
 fins.set_xlabel("Time of Flight")
 fins.set_ylabel("Radians")
-# fins.plot(df.iloc[startIndex:stopIndex]["tof"], df.iloc[startIndex:stopIndex]["rollFinCommand"], color="b", label="Roll Fin Command")
-# fins.plot(df.iloc[startIndex:stopIndex]["tof"], df.iloc[startIndex:stopIndex]["rollFinDeflection"], color="r", label="Roll Fin Deflection")
+fins.plot(df.iloc[startIndex:stopIndex]["tof"], df.iloc[startIndex:stopIndex]["rollFinCommand"], color="b", label="Roll Fin Command")
+fins.plot(df.iloc[startIndex:stopIndex]["tof"], df.iloc[startIndex:stopIndex]["rollFinDeflection"], color="r", label="Roll Fin Deflection")
 fins.plot(df.iloc[startIndex:stopIndex]["tof"], df.iloc[startIndex:stopIndex]["pitchFinCommand"], color="g", label="Pitch Fin Command")
 fins.plot(df.iloc[startIndex:stopIndex]["tof"], df.iloc[startIndex:stopIndex]["pitchFinDeflection"], color="yellow", label="Pitch Fin Deflection")
 fins.plot(df.iloc[startIndex:stopIndex]["tof"], df.iloc[startIndex:stopIndex]["yawFinCommand"], color="pink", label="Yaw Fin Command")

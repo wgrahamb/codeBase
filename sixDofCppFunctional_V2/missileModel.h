@@ -48,6 +48,7 @@ struct Missile
 	double pip[3]; // Predicted Intercept Point. Meters.
 
 	// Missile state.
+	bool ballistic = false;
 	bool launch = true; // Launch command. True for now, will be needed for fire control.
 	double TIME_STEP = 0.001;
 	double HALF_TIME_STEP = TIME_STEP * 0.5;
@@ -96,18 +97,22 @@ struct Missile
 	double seekerWLQ2D = 0.0; // Derivative of second state variable in pitching kalman filter. Radians per second^3.
 
 	// Guidance.
+	bool homing = false;
+	double timeToGo = 0.0;
 	double FLUMissileToPipRelativePosition[3] = {0.0, 0.0, 0.0}; // Meters.
 	double guidanceNormalCommand = 0.0; // Meters per second^2.
 	double guidanceSideCommand = 0.0; // Meters per second^2.
 	double maneuveringLimit = MAXIMUM_ACCELERATION; // Meters per second^2.
 
 	// Control
-	double yawControlFeedForwardIntegration = 0.0; // Yaw feed forward integration. Meters per second.
-	double yawControlFeedForwardDerivative = 0.0; // Yaw feed forward derivative. Meters per second.
-	double pitchControlFeedForwardIntegration = 0.0; // Pitch feed forward integration. Meters per second.
-	double pitchControlFeedForwardDerivative = 0.0; // Pitch feed forward derivative. Meters per second.
+	double lastYawRateError = 0.0; // Radians per second.
+	double yawRateError = 0.0; // Radians per second.
 	double yawFinCommand = 0.0; // Radians.
+	double lastPitchRateError = 0.0; // Radians per second.
+	double pitchRateError = 0.0; // Radians per second.
 	double pitchFinCommand = 0.0; // Radians.
+	double lastRollRateError = 0.0; // Radians per second.
+	double rollRateError = 0.0; // Radians per second.
 	double rollFinCommand = 0.0; // Radians.
 
 	// Actuators.

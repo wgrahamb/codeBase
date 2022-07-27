@@ -22,9 +22,6 @@ using namespace std;
 // Set each function as inputs and outputs.
 // Function to handle input and output.
 // Input and output structs for each function.
-// Proportional controller works. Add a derivative term.
-// Need to be able to fly both six dof and three dof function ballistically, easily.
-// Three dof needs work to work more easily with existing functions.
 
 /* Missile Model */
 /*
@@ -319,333 +316,427 @@ void atmosphere(Missile &missile)
 void seeker(Missile &missile)
 {
 
-	double wsq = SEEKER_KF_WN * SEEKER_KF_WN;
-	double gg = SEEKER_KF_G * wsq;
+	if (!missile.ballistic)
+	{
 
-	// Yaw channel.
-	double wlr1d_new = missile.seekerWLR2;
-	double wlr1_new = trapezoidIntegrate(wlr1d_new, missile.seekerWLR1D, missile.seekerWLR1, missile.TIME_STEP);
-	missile.seekerWLR1 = wlr1_new;
-	missile.seekerWLR1D = wlr1d_new;
-	double wlr2d_new = gg * missile.seekerYawError - 2 * SEEKER_KF_ZETA * SEEKER_KF_WN * missile.seekerWLR1D - wsq * missile.seekerWLR1;
-	double wlr2_new = trapezoidIntegrate(wlr2d_new, missile.seekerWLR2D, missile.seekerWLR2, missile.TIME_STEP);
-	missile.seekerWLR2 = wlr2_new;
-	missile.seekerWLR2D = wlr2d_new;
+		double wsq = SEEKER_KF_WN * SEEKER_KF_WN;
+		double gg = SEEKER_KF_G * wsq;
 
-	// Yaw control.
-	double wlrd_new = missile.seekerWLR1 - missile.bodyRate[2];
-	double wlr_new = trapezoidIntegrate(wlrd_new, missile.seekerWLRD, missile.seekerWLR, missile.TIME_STEP);
-	missile.seekerWLR = wlr_new;
-	missile.seekerWLRD = wlrd_new;
-	missile.seekerYaw = missile.seekerWLR;
+		// Yaw channel.
+		double wlr1d_new = missile.seekerWLR2;
+		double wlr1_new = trapezoidIntegrate(wlr1d_new, missile.seekerWLR1D, missile.seekerWLR1, missile.TIME_STEP);
+		missile.seekerWLR1 = wlr1_new;
+		missile.seekerWLR1D = wlr1d_new;
+		double wlr2d_new = gg * missile.seekerYawError - 2 * SEEKER_KF_ZETA * SEEKER_KF_WN * missile.seekerWLR1D - wsq * missile.seekerWLR1;
+		double wlr2_new = trapezoidIntegrate(wlr2d_new, missile.seekerWLR2D, missile.seekerWLR2, missile.TIME_STEP);
+		missile.seekerWLR2 = wlr2_new;
+		missile.seekerWLR2D = wlr2d_new;
 
-	// Pitch channel.
-	double wlq1d_new = missile.seekerWLQ2;
-	double wlq1_new = trapezoidIntegrate(wlq1d_new, missile.seekerWLQ1D, missile.seekerWLQ1, missile.TIME_STEP);
-	missile.seekerWLQ1 = wlq1_new;
-	missile.seekerWLQ1D = wlq1d_new;
-	double wlq2d_new = gg * missile.seekerPitchError - 2 * SEEKER_KF_ZETA * SEEKER_KF_WN * missile.seekerWLQ1D - wsq * missile.seekerWLQ1;
-	double wlq2_new = trapezoidIntegrate(wlq2d_new, missile.seekerWLQ2D, missile.seekerWLQ2, missile.TIME_STEP);
-	missile.seekerWLQ2 = wlq2_new;
-	missile.seekerWLQ2D = wlq2d_new;
+		// Yaw control.
+		double wlrd_new = missile.seekerWLR1 - missile.bodyRate[2];
+		double wlr_new = trapezoidIntegrate(wlrd_new, missile.seekerWLRD, missile.seekerWLR, missile.TIME_STEP);
+		missile.seekerWLR = wlr_new;
+		missile.seekerWLRD = wlrd_new;
+		missile.seekerYaw = missile.seekerWLR;
 
-	// Pitch control.
-	double wlqd_new = missile.seekerWLQ1 - missile.bodyRate[1];
-	double wlq_new = trapezoidIntegrate(wlqd_new, missile.seekerWLQD, missile.seekerWLQ, missile.TIME_STEP);
-	missile.seekerWLQ = wlq_new;
-	missile.seekerWLQD = wlqd_new;
-	missile.seekerPitch = missile.seekerWLQ;
+		// Pitch channel.
+		double wlq1d_new = missile.seekerWLQ2;
+		double wlq1_new = trapezoidIntegrate(wlq1d_new, missile.seekerWLQ1D, missile.seekerWLQ1, missile.TIME_STEP);
+		missile.seekerWLQ1 = wlq1_new;
+		missile.seekerWLQ1D = wlq1d_new;
+		double wlq2d_new = gg * missile.seekerPitchError - 2 * SEEKER_KF_ZETA * SEEKER_KF_WN * missile.seekerWLQ1D - wsq * missile.seekerWLQ1;
+		double wlq2_new = trapezoidIntegrate(wlq2d_new, missile.seekerWLQ2D, missile.seekerWLQ2, missile.TIME_STEP);
+		missile.seekerWLQ2 = wlq2_new;
+		missile.seekerWLQ2D = wlq2d_new;
 
-	// Convert seeker data to FLU relative position for guidance.
-	double localRelPos[3];
-	subtractTwoVectors(missile.ENUPosition, missile.pip, localRelPos);
-	double seekerAttitudeToLocalTM[3][3];
-	eulerAnglesToLocalOrientation(0.0, -missile.seekerPitch, missile.seekerYaw, seekerAttitudeToLocalTM);
-	threeByThreeTimesThreeByThree(seekerAttitudeToLocalTM, missile.missileENUToFLUMatrix, missile.seekerENUToFLUMatrix);
-	double seekerToInterceptRelPos[3];
-	threeByThreeTimesThreeByOne(missile.seekerENUToFLUMatrix, localRelPos, seekerToInterceptRelPos);
-	double inducedErr[3] = {1.0, 0.5, 0.2};
-	double seekerToInterceptRelPosWithErr[3];
-	multiplyTwoVectors(seekerToInterceptRelPos, inducedErr, seekerToInterceptRelPosWithErr);
-	azAndElFromVector(missile.seekerYawError, missile.seekerPitchError, seekerToInterceptRelPosWithErr);
-	oneByThreeTimesThreeByThree(seekerToInterceptRelPosWithErr, seekerAttitudeToLocalTM, missile.FLUMissileToPipRelativePosition);
+		// Pitch control.
+		double wlqd_new = missile.seekerWLQ1 - missile.bodyRate[1];
+		double wlq_new = trapezoidIntegrate(wlqd_new, missile.seekerWLQD, missile.seekerWLQ, missile.TIME_STEP);
+		missile.seekerWLQ = wlq_new;
+		missile.seekerWLQD = wlqd_new;
+		missile.seekerPitch = missile.seekerWLQ;
+
+		// Convert seeker data to FLU relative position for guidance.
+		double localRelPos[3];
+		subtractTwoVectors(missile.ENUPosition, missile.pip, localRelPos);
+		double seekerAttitudeToLocalTM[3][3];
+		eulerAnglesToLocalOrientation(0.0, -missile.seekerPitch, missile.seekerYaw, seekerAttitudeToLocalTM);
+		threeByThreeTimesThreeByThree(seekerAttitudeToLocalTM, missile.missileENUToFLUMatrix, missile.seekerENUToFLUMatrix);
+		double seekerToInterceptRelPos[3];
+		threeByThreeTimesThreeByOne(missile.seekerENUToFLUMatrix, localRelPos, seekerToInterceptRelPos);
+		double inducedErr[3] = {1.0, 0.5, 0.2};
+		double seekerToInterceptRelPosWithErr[3];
+		multiplyTwoVectors(seekerToInterceptRelPos, inducedErr, seekerToInterceptRelPosWithErr);
+		azAndElFromVector(missile.seekerYawError, missile.seekerPitchError, seekerToInterceptRelPosWithErr);
+		oneByThreeTimesThreeByThree(seekerToInterceptRelPosWithErr, seekerAttitudeToLocalTM, missile.FLUMissileToPipRelativePosition);
+
+	}
+	else
+	{
+
+		double relPos[3];
+		subtractTwoVectors(missile.ENUPosition, missile.pip, relPos);
+		double mslToIntercept[3];
+		threeByThreeTimesThreeByOne(missile.missileENUToFLUMatrix, relPos, mslToIntercept);
+		setArrayEquivalentToReference(missile.FLUMissileToPipRelativePosition, mslToIntercept);
+
+	}
 
 }
 
 void guidance(Missile &missile)
 {
 
-	double forwardLeftUpMissileToInterceptPositionUnitVector[3];
-	unitVec(missile.FLUMissileToPipRelativePosition, forwardLeftUpMissileToInterceptPositionUnitVector);
-	double forwardLeftUpMissileToInterceptLineOfSightVel[3];
-	vectorProjection(forwardLeftUpMissileToInterceptPositionUnitVector, missile.FLUVelocity, forwardLeftUpMissileToInterceptLineOfSightVel);
-	double timeToGo, forwardLeftUpMissileToInterceptPositionMagnitude, forwardLeftUpMissileToInterceptLineOfSightVelMagnitude;
-	magnitude(missile.FLUMissileToPipRelativePosition, forwardLeftUpMissileToInterceptPositionMagnitude);
-	magnitude(forwardLeftUpMissileToInterceptLineOfSightVel, forwardLeftUpMissileToInterceptLineOfSightVelMagnitude);
-	timeToGo = forwardLeftUpMissileToInterceptPositionMagnitude / forwardLeftUpMissileToInterceptLineOfSightVelMagnitude;
-	double closingVelocity[3];
-	multiplyVectorTimesScalar(-1.0, missile.FLUVelocity, closingVelocity);
-	double closingSpeed;
-	magnitude(closingVelocity, closingSpeed);
-	double TEMP1[3], TEMP2;
-	crossProductTwoVectors(missile.FLUMissileToPipRelativePosition, closingVelocity, TEMP1);
-	dotProductTwoVectors(missile.FLUMissileToPipRelativePosition, missile.FLUMissileToPipRelativePosition, TEMP2);
-	double lineOfSightRate[3];
-	divideVectorByScalar(TEMP2, TEMP1, lineOfSightRate);
-	double TEMP3, TEMP4[3];
-	TEMP3 = -1 * PROPORTIONAL_GUIDANCE_GAIN * closingSpeed;
-	multiplyVectorTimesScalar(TEMP3, forwardLeftUpMissileToInterceptPositionUnitVector, TEMP4);
-	double COMMAND[3];
-	crossProductTwoVectors(TEMP4, lineOfSightRate, COMMAND);
-	missile.guidanceNormalCommand = COMMAND[2];
-	missile.guidanceSideCommand = COMMAND[1];
-
-	double accelerationMagnitude = sqrt(missile.guidanceSideCommand * missile.guidanceSideCommand + missile.guidanceNormalCommand * missile.guidanceNormalCommand);
-	double trigonometricRatio = atan2(missile.guidanceNormalCommand, missile.guidanceSideCommand);
-	if (accelerationMagnitude > missile.maneuveringLimit)
+	if (!missile.ballistic)
 	{
 
-		accelerationMagnitude = missile.maneuveringLimit;
+		double forwardLeftUpMissileToInterceptPositionUnitVector[3];
+		unitVec(missile.FLUMissileToPipRelativePosition, forwardLeftUpMissileToInterceptPositionUnitVector);
+		double forwardLeftUpMissileToInterceptLineOfSightVel[3];
+		vectorProjection(forwardLeftUpMissileToInterceptPositionUnitVector, missile.FLUVelocity, forwardLeftUpMissileToInterceptLineOfSightVel);
+		double timeToGo, forwardLeftUpMissileToInterceptPositionMagnitude, forwardLeftUpMissileToInterceptLineOfSightVelMagnitude;
+		magnitude(missile.FLUMissileToPipRelativePosition, forwardLeftUpMissileToInterceptPositionMagnitude);
+		magnitude(forwardLeftUpMissileToInterceptLineOfSightVel, forwardLeftUpMissileToInterceptLineOfSightVelMagnitude);
+		missile.timeToGo = forwardLeftUpMissileToInterceptPositionMagnitude / forwardLeftUpMissileToInterceptLineOfSightVelMagnitude;
+		if (missile.timeToGo < 5)
+		{
+			if (!missile.homing)
+			{
+				missile.homing = true;
+			}
+			double closingVelocity[3];
+			multiplyVectorTimesScalar(-1.0, missile.FLUVelocity, closingVelocity);
+			double closingSpeed;
+			magnitude(closingVelocity, closingSpeed);
+			double TEMP1[3], TEMP2;
+			crossProductTwoVectors(missile.FLUMissileToPipRelativePosition, closingVelocity, TEMP1);
+			dotProductTwoVectors(missile.FLUMissileToPipRelativePosition, missile.FLUMissileToPipRelativePosition, TEMP2);
+			double lineOfSightRate[3];
+			divideVectorByScalar(TEMP2, TEMP1, lineOfSightRate);
+			double TEMP3, TEMP4[3];
+			TEMP3 = -1 * PROPORTIONAL_GUIDANCE_GAIN * closingSpeed;
+			multiplyVectorTimesScalar(TEMP3, forwardLeftUpMissileToInterceptPositionUnitVector, TEMP4);
+			double COMMAND[3];
+			crossProductTwoVectors(TEMP4, lineOfSightRate, COMMAND);
+			missile.guidanceNormalCommand = COMMAND[2];
+			missile.guidanceSideCommand = COMMAND[1];
+		}
+		else
+		{
+			double lineOfAttack[3];
+			lineOfAttack[0] = forwardLeftUpMissileToInterceptPositionUnitVector[0];
+			if (forwardLeftUpMissileToInterceptPositionUnitVector[1] < 0.0)
+			{
+				lineOfAttack[1] = -10 * degToRad;
+			}
+			else
+			{
+				lineOfAttack[1] = 10 * degToRad;
+			}
+			lineOfAttack[2] = -10 * degToRad;
+			double TEMP1[3];
+			TEMP1[0] = 4.0 * forwardLeftUpMissileToInterceptPositionUnitVector[0] - 1.5 * lineOfAttack[0];
+			TEMP1[1] = 4.0 * forwardLeftUpMissileToInterceptPositionUnitVector[1] - 1.5 * lineOfAttack[1];
+			TEMP1[2] = 4.0 * forwardLeftUpMissileToInterceptPositionUnitVector[2] - 1.5 * lineOfAttack[2];
+			double closingSpeedUnit[3];
+			unitVec(missile.FLUVelocity, closingSpeedUnit);
+			double TEMP2[3];
+			crossProductTwoVectors(TEMP1, closingSpeedUnit, TEMP2);
+			double TEMP3[3];
+			crossProductTwoVectors(closingSpeedUnit, TEMP2, TEMP3);
+			double closingSpeed;
+			magnitude(missile.FLUVelocity, closingSpeed);
+			double TEMP4 = closingSpeed * closingSpeed / forwardLeftUpMissileToInterceptPositionMagnitude;
+			double COMMAND[3];
+			multiplyVectorTimesScalar(TEMP4, TEMP3, COMMAND);
+			missile.guidanceNormalCommand = COMMAND[2];
+			missile.guidanceSideCommand = COMMAND[1];
+		}
+
+		double accelerationMagnitude = sqrt(missile.guidanceSideCommand * missile.guidanceSideCommand + missile.guidanceNormalCommand * missile.guidanceNormalCommand);
+		double trigonometricRatio = atan2(missile.guidanceNormalCommand, missile.guidanceSideCommand);
+		if (accelerationMagnitude > missile.maneuveringLimit)
+		{
+
+			accelerationMagnitude = missile.maneuveringLimit;
+
+		}
+		missile.guidanceNormalCommand = accelerationMagnitude * sin(trigonometricRatio);
+		missile.guidanceSideCommand = accelerationMagnitude * cos(trigonometricRatio);
 
 	}
-	missile.guidanceNormalCommand = accelerationMagnitude * sin(trigonometricRatio);
-	missile.guidanceSideCommand = accelerationMagnitude * cos(trigonometricRatio);
+	else
+	{
+
+		missile.guidanceNormalCommand = 0.0;
+		missile.guidanceSideCommand = 0.0;
+
+	}
 
 }
 
 void control(Missile &missile)
 {
 
-	// Roll autopilot.
-	double rollAngleGain = 1.0;
-	double rollRateGain = 0.005;
-	double phiAngleError = ROLL_ANGLE_COMMAND - missile.ENUEulerAngles[0]; // Radians.
-	double rollRateCommand = rollAngleGain * phiAngleError; // Radians per second.
-	double signOfRollRateCommand = signum(rollRateCommand); // Non dimensional.
-	if (abs(rollRateCommand) > rollAngleGain) // Limit rate command.
+	if (!missile.ballistic)
 	{
-		rollRateCommand = rollAngleGain * signOfRollRateCommand;
-	}
-	double rollRateError = rollRateCommand - missile.bodyRate[0]; // Radians per second.
-	missile.rollFinCommand = rollRateGain * rollRateError; // Radians.
 
-	// Pitch autopilot.
-	double pitchRateCommandLimit = 10;
-	double pitchRateGain = 0.1;
-	double guidancePitchRateCommand = -missile.guidanceNormalCommand * 4 / missile.speed;
-	double signOfPitchRateCommand = signum(guidancePitchRateCommand);
-	if (abs(guidancePitchRateCommand) > pitchRateCommandLimit)
+		// Roll autopilot.
+		double rollAngleGain = 1.0;
+		double rollRateProportionalGain = 0.011;
+		double rollRateDerivativeGain = ((0.013 / 2) * 0.07 * 3) / 40;
+		double phiAngleError = ROLL_ANGLE_COMMAND - missile.ENUEulerAngles[0]; // Radians.
+		double rollRateCommand = rollAngleGain * phiAngleError; // Radians per second.
+		double signOfRollRateCommand = signum(rollRateCommand); // Non dimensional.
+		if (abs(rollRateCommand) > rollAngleGain) // Limit rate command.
+		{
+			rollRateCommand = rollAngleGain * signOfRollRateCommand;
+		}
+		missile.lastRollRateError = missile.rollRateError;
+		missile.rollRateError = rollRateCommand - missile.bodyRate[0]; // Radians per second.
+		double derivativeRollRateError = (missile.rollRateError - missile.lastRollRateError) / missile.TIME_STEP;
+		missile.rollFinCommand = rollRateProportionalGain * missile.rollRateError + rollRateDerivativeGain * derivativeRollRateError; // Radians.
+
+		// Pitch autopilot.
+		double pitchRateCommandLimit = 20;
+		double pitchRateProportionalGain = 0.11;
+		double pitchRateDerivativeGain = ((0.1 / 2) * 0.1 * 3) / 40;
+		double guidancePitchRateCommand = -missile.guidanceNormalCommand * 4 / missile.speed;
+		double signOfPitchRateCommand = signum(guidancePitchRateCommand);
+		if (abs(guidancePitchRateCommand) > pitchRateCommandLimit)
+		{
+			guidancePitchRateCommand = signOfPitchRateCommand * pitchRateCommandLimit;
+		}
+		missile.lastPitchRateError = missile.pitchRateError;
+		missile.pitchRateError = guidancePitchRateCommand + missile.bodyRate[1];
+		double derivativePitchRateError = (missile.pitchRateError - missile.lastPitchRateError) / missile.TIME_STEP;
+		missile.pitchFinCommand = pitchRateProportionalGain * missile.pitchRateError + pitchRateDerivativeGain * derivativePitchRateError;
+
+		// Yaw autopilot.
+		double yawRateCommandLimit = 20;
+		double yawRateProportionalGain = 0.11;
+		double yawRateDerivativeGain = ((0.1 / 2) * 0.1 * 3) / 40;
+		double guidanceYawRateCommand = -missile.guidanceSideCommand * 4 / missile.speed;
+		double signOfYawRateCommand = signum(guidanceYawRateCommand);
+		if (abs(guidanceYawRateCommand) > yawRateCommandLimit)
+		{
+			guidanceYawRateCommand = signOfYawRateCommand * yawRateCommandLimit;
+		}
+		missile.lastYawRateError = missile.yawRateError;
+		missile.yawRateError = guidanceYawRateCommand + missile.bodyRate[2];
+		double derivativeYawRateError = (missile.yawRateError - missile.lastYawRateError) / missile.TIME_STEP;
+		missile.yawFinCommand = yawRateProportionalGain * missile.yawRateError;
+
+	}
+	else
 	{
-		guidancePitchRateCommand = signOfPitchRateCommand * pitchRateCommandLimit;
-	}
-	double pitchRateError = guidancePitchRateCommand + missile.bodyRate[1];
-	missile.pitchFinCommand = pitchRateGain * pitchRateError;
 
-	// Yaw autopilot.
-	double yawRateCommandLimit = 10;
-	double yawRateGain = 0.1;
-	double guidanceYawRateCommand = -missile.guidanceSideCommand * 4 / missile.speed;
-	double signOfYawRateCommand = signum(guidanceYawRateCommand);
-	if (abs(guidanceYawRateCommand) > yawRateCommandLimit)
-	{
-		guidanceYawRateCommand = signOfYawRateCommand * yawRateCommandLimit;
-	}
-	double yawRateError = guidanceYawRateCommand + missile.bodyRate[2];
-	missile.yawFinCommand = yawRateGain * yawRateError;
+		missile.rollFinCommand = 0.0;
+		missile.pitchFinCommand = 0.0;
+		missile.yawFinCommand = 0.0;
 
-	// missile.rollFinCommand = 0.0;
-	// missile.pitchFinCommand = 0.0;
-	// missile.yawFinCommand = 0.0;
+	}
 
 }
 
 void actuators(Missile &missile)
 {
 
-	// Fin commands.
-	double DEL1C = -missile.rollFinCommand + missile.pitchFinCommand - missile.yawFinCommand;
-	double DEL2C = -missile.rollFinCommand + missile.pitchFinCommand + missile.yawFinCommand;
-	double DEL3C = missile.rollFinCommand + missile.pitchFinCommand - missile.yawFinCommand;
-	double DEL4C = missile.rollFinCommand + missile.pitchFinCommand + missile.yawFinCommand;
+	if (!missile.ballistic)
+	{
 
-	int flag;
+		// Fin commands.
+		double DEL1C = -missile.rollFinCommand + missile.pitchFinCommand - missile.yawFinCommand;
+		double DEL2C = -missile.rollFinCommand + missile.pitchFinCommand + missile.yawFinCommand;
+		double DEL3C = missile.rollFinCommand + missile.pitchFinCommand - missile.yawFinCommand;
+		double DEL4C = missile.rollFinCommand + missile.pitchFinCommand + missile.yawFinCommand;
 
-	// Fin one.
-	flag = 0;
-	if (abs(missile.FIN1DEFL) > FIN_CONTROL_MAX_DEFLECTION_RADIANS)
-	{
-		if (missile.FIN1DEFL < 0)
-		{
-			missile.FIN1DEFL = -1 * FIN_CONTROL_MAX_DEFLECTION_RADIANS;
-		}
-		else if (missile.FIN1DEFL > 0)
-		{
-			missile.FIN1DEFL = FIN_CONTROL_MAX_DEFLECTION_RADIANS;
-		}
-		if ((missile.FIN1DEFL * missile.FIN1DEFL_DOT) > 0)
-		{
-			missile.FIN1DEFL_DOT = 0;
-		}
-	}
-	if (abs(missile.FIN1DEFL_DOT) > FIN_RATE_LIMIT_RADIANS)
-	{
-		flag = 1;
-		if (missile.FIN1DEFL_DOT < 0)
-		{
-			missile.FIN1DEFL_DOT = -1 * FIN_RATE_LIMIT_RADIANS;
-		}
-		else if (missile.FIN1DEFL_DOT > 0)
-		{
-			missile.FIN1DEFL_DOT = FIN_RATE_LIMIT_RADIANS;
-		}
-	}
-	double DEL1D_NEW = missile.FIN1DEFL_DOT;
-	double DEL1_NEW = trapezoidIntegrate(DEL1D_NEW, missile.FIN1DEFL_D, missile.FIN1DEFL, missile.TIME_STEP);
-	missile.FIN1DEFL = DEL1_NEW;
-	missile.FIN1DEFL_D = DEL1D_NEW;
-	double EDX1 = DEL1C - missile.FIN1DEFL;
-	double DEL1DOTDOT_NEW = FIN_CONTROL_WN * FIN_CONTROL_WN * EDX1 - 2 * FIN_CONTROL_ZETA * FIN_CONTROL_WN * missile.FIN1DEFL_D;
-	double DEL1DOT_NEW = trapezoidIntegrate(DEL1DOTDOT_NEW, missile.FIN1DEFL_DOTDOT, missile.FIN1DEFL_DOT, missile.TIME_STEP);
-	missile.FIN1DEFL_DOT = DEL1DOT_NEW;
-	missile.FIN1DEFL_DOTDOT = DEL1DOTDOT_NEW;
-	if (flag == 1 and (missile.FIN1DEFL_DOT * missile.FIN1DEFL_DOTDOT) > 0)
-	{
-		missile.FIN1DEFL_DOTDOT = 0.0;
-	}
+		int flag;
 
-	// Fin two.
-	flag = 0;
-	if (abs(missile.FIN2DEFL) > FIN_CONTROL_MAX_DEFLECTION_RADIANS)
-	{
-		if (missile.FIN2DEFL < 0)
+		// Fin one.
+		flag = 0;
+		if (abs(missile.FIN1DEFL) > FIN_CONTROL_MAX_DEFLECTION_RADIANS)
 		{
-			missile.FIN2DEFL = -1 * FIN_CONTROL_MAX_DEFLECTION_RADIANS;
+			if (missile.FIN1DEFL < 0)
+			{
+				missile.FIN1DEFL = -1 * FIN_CONTROL_MAX_DEFLECTION_RADIANS;
+			}
+			else if (missile.FIN1DEFL > 0)
+			{
+				missile.FIN1DEFL = FIN_CONTROL_MAX_DEFLECTION_RADIANS;
+			}
+			if ((missile.FIN1DEFL * missile.FIN1DEFL_DOT) > 0)
+			{
+				missile.FIN1DEFL_DOT = 0;
+			}
 		}
-		else if (missile.FIN2DEFL > 0)
+		if (abs(missile.FIN1DEFL_DOT) > FIN_RATE_LIMIT_RADIANS)
 		{
-			missile.FIN2DEFL = FIN_CONTROL_MAX_DEFLECTION_RADIANS;
+			flag = 1;
+			if (missile.FIN1DEFL_DOT < 0)
+			{
+				missile.FIN1DEFL_DOT = -1 * FIN_RATE_LIMIT_RADIANS;
+			}
+			else if (missile.FIN1DEFL_DOT > 0)
+			{
+				missile.FIN1DEFL_DOT = FIN_RATE_LIMIT_RADIANS;
+			}
 		}
-		if ((missile.FIN2DEFL * missile.FIN2DEFL_DOT) > 0)
+		double DEL1D_NEW = missile.FIN1DEFL_DOT;
+		double DEL1_NEW = trapezoidIntegrate(DEL1D_NEW, missile.FIN1DEFL_D, missile.FIN1DEFL, missile.TIME_STEP);
+		missile.FIN1DEFL = DEL1_NEW;
+		missile.FIN1DEFL_D = DEL1D_NEW;
+		double EDX1 = DEL1C - missile.FIN1DEFL;
+		double DEL1DOTDOT_NEW = FIN_CONTROL_WN * FIN_CONTROL_WN * EDX1 - 2 * FIN_CONTROL_ZETA * FIN_CONTROL_WN * missile.FIN1DEFL_D;
+		double DEL1DOT_NEW = trapezoidIntegrate(DEL1DOTDOT_NEW, missile.FIN1DEFL_DOTDOT, missile.FIN1DEFL_DOT, missile.TIME_STEP);
+		missile.FIN1DEFL_DOT = DEL1DOT_NEW;
+		missile.FIN1DEFL_DOTDOT = DEL1DOTDOT_NEW;
+		if (flag == 1 and (missile.FIN1DEFL_DOT * missile.FIN1DEFL_DOTDOT) > 0)
 		{
-			missile.FIN2DEFL_DOT = 0;
+			missile.FIN1DEFL_DOTDOT = 0.0;
 		}
-	}
-	if (abs(missile.FIN2DEFL_DOT) > FIN_RATE_LIMIT_RADIANS)
-	{
-		flag = 1;
-		if (missile.FIN2DEFL_DOT < 0)
-		{
-			missile.FIN2DEFL_DOT = -1 * FIN_RATE_LIMIT_RADIANS;
-		}
-		else if (missile.FIN2DEFL_DOT > 0)
-		{
-			missile.FIN2DEFL_DOT = FIN_RATE_LIMIT_RADIANS;
-		}
-	}
-	double DEL2D_NEW = missile.FIN2DEFL_DOT;
-	double DEL2_NEW = trapezoidIntegrate(DEL2D_NEW, missile.FIN2DEFL_D, missile.FIN2DEFL, missile.TIME_STEP);
-	missile.FIN2DEFL = DEL2_NEW;
-	missile.FIN2DEFL_D = DEL2D_NEW;
-	double EDX2 = DEL2C - missile.FIN2DEFL;
-	double DEL2DOTDOT_NEW = FIN_CONTROL_WN * FIN_CONTROL_WN * EDX2 - 2 * FIN_CONTROL_ZETA * FIN_CONTROL_WN * missile.FIN2DEFL_D;
-	double DEL2DOT_NEW = trapezoidIntegrate(DEL2DOTDOT_NEW, missile.FIN2DEFL_DOTDOT, missile.FIN2DEFL_DOT, missile.TIME_STEP);
-	missile.FIN2DEFL_DOT = DEL2DOT_NEW;
-	missile.FIN2DEFL_DOTDOT = DEL2DOTDOT_NEW;
-	if (flag == 1 and (missile.FIN2DEFL_DOT * missile.FIN2DEFL_DOTDOT) > 0)
-	{
-		missile.FIN2DEFL_DOTDOT = 0.0;
-	}
 
-	// Fin three.
-	flag = 0;
-	if (abs(missile.FIN3DEFL) > FIN_CONTROL_MAX_DEFLECTION_RADIANS)
-	{
-		if (missile.FIN3DEFL < 0)
+		// Fin two.
+		flag = 0;
+		if (abs(missile.FIN2DEFL) > FIN_CONTROL_MAX_DEFLECTION_RADIANS)
 		{
-			missile.FIN3DEFL = -1 * FIN_CONTROL_MAX_DEFLECTION_RADIANS;
+			if (missile.FIN2DEFL < 0)
+			{
+				missile.FIN2DEFL = -1 * FIN_CONTROL_MAX_DEFLECTION_RADIANS;
+			}
+			else if (missile.FIN2DEFL > 0)
+			{
+				missile.FIN2DEFL = FIN_CONTROL_MAX_DEFLECTION_RADIANS;
+			}
+			if ((missile.FIN2DEFL * missile.FIN2DEFL_DOT) > 0)
+			{
+				missile.FIN2DEFL_DOT = 0;
+			}
 		}
-		else if (missile.FIN3DEFL > 0)
+		if (abs(missile.FIN2DEFL_DOT) > FIN_RATE_LIMIT_RADIANS)
 		{
-			missile.FIN3DEFL = FIN_CONTROL_MAX_DEFLECTION_RADIANS;
+			flag = 1;
+			if (missile.FIN2DEFL_DOT < 0)
+			{
+				missile.FIN2DEFL_DOT = -1 * FIN_RATE_LIMIT_RADIANS;
+			}
+			else if (missile.FIN2DEFL_DOT > 0)
+			{
+				missile.FIN2DEFL_DOT = FIN_RATE_LIMIT_RADIANS;
+			}
 		}
-		if ((missile.FIN3DEFL * missile.FIN3DEFL_DOT) > 0)
+		double DEL2D_NEW = missile.FIN2DEFL_DOT;
+		double DEL2_NEW = trapezoidIntegrate(DEL2D_NEW, missile.FIN2DEFL_D, missile.FIN2DEFL, missile.TIME_STEP);
+		missile.FIN2DEFL = DEL2_NEW;
+		missile.FIN2DEFL_D = DEL2D_NEW;
+		double EDX2 = DEL2C - missile.FIN2DEFL;
+		double DEL2DOTDOT_NEW = FIN_CONTROL_WN * FIN_CONTROL_WN * EDX2 - 2 * FIN_CONTROL_ZETA * FIN_CONTROL_WN * missile.FIN2DEFL_D;
+		double DEL2DOT_NEW = trapezoidIntegrate(DEL2DOTDOT_NEW, missile.FIN2DEFL_DOTDOT, missile.FIN2DEFL_DOT, missile.TIME_STEP);
+		missile.FIN2DEFL_DOT = DEL2DOT_NEW;
+		missile.FIN2DEFL_DOTDOT = DEL2DOTDOT_NEW;
+		if (flag == 1 and (missile.FIN2DEFL_DOT * missile.FIN2DEFL_DOTDOT) > 0)
 		{
-			missile.FIN3DEFL_DOT = 0;
+			missile.FIN2DEFL_DOTDOT = 0.0;
 		}
-	}
-	if (abs(missile.FIN3DEFL_DOT) > FIN_RATE_LIMIT_RADIANS)
-	{
-		flag = 1;
-		if (missile.FIN3DEFL_DOT < 0)
-		{
-			missile.FIN3DEFL_DOT = -1 * FIN_RATE_LIMIT_RADIANS;
-		}
-		else if (missile.FIN3DEFL_DOT > 0)
-		{
-			missile.FIN3DEFL_DOT = FIN_RATE_LIMIT_RADIANS;
-		}
-	}
-	double DEL3D_NEW = missile.FIN3DEFL_DOT;
-	double DEL3_NEW = trapezoidIntegrate(DEL3D_NEW, missile.FIN3DEFL_D, missile.FIN3DEFL, missile.TIME_STEP);
-	missile.FIN3DEFL = DEL3_NEW;
-	missile.FIN3DEFL_D = DEL3D_NEW;
-	double EDX3 = DEL3C - missile.FIN3DEFL;
-	double DEL3DOTDOT_NEW = FIN_CONTROL_WN * FIN_CONTROL_WN * EDX3 - 2 * FIN_CONTROL_ZETA * FIN_CONTROL_WN * missile.FIN3DEFL_D;
-	double DEL3DOT_NEW = trapezoidIntegrate(DEL3DOTDOT_NEW, missile.FIN3DEFL_DOTDOT, missile.FIN3DEFL_DOT, missile.TIME_STEP);
-	missile.FIN3DEFL_DOT = DEL3DOT_NEW;
-	missile.FIN3DEFL_DOTDOT = DEL3DOTDOT_NEW;
-	if (flag == 1 and (missile.FIN3DEFL_DOT * missile.FIN3DEFL_DOTDOT) > 0)
-	{
-		missile.FIN3DEFL_DOTDOT = 0.0;
-	}
 
-	// Fin four.
-	flag = 0;
-	if (abs(missile.FIN4DEFL) > FIN_CONTROL_MAX_DEFLECTION_RADIANS)
-	{
-		if (missile.FIN4DEFL < 0)
+		// Fin three.
+		flag = 0;
+		if (abs(missile.FIN3DEFL) > FIN_CONTROL_MAX_DEFLECTION_RADIANS)
 		{
-			missile.FIN4DEFL = -1 * FIN_CONTROL_MAX_DEFLECTION_RADIANS;
+			if (missile.FIN3DEFL < 0)
+			{
+				missile.FIN3DEFL = -1 * FIN_CONTROL_MAX_DEFLECTION_RADIANS;
+			}
+			else if (missile.FIN3DEFL > 0)
+			{
+				missile.FIN3DEFL = FIN_CONTROL_MAX_DEFLECTION_RADIANS;
+			}
+			if ((missile.FIN3DEFL * missile.FIN3DEFL_DOT) > 0)
+			{
+				missile.FIN3DEFL_DOT = 0;
+			}
 		}
-		else if (missile.FIN4DEFL > 0)
+		if (abs(missile.FIN3DEFL_DOT) > FIN_RATE_LIMIT_RADIANS)
 		{
-			missile.FIN4DEFL = FIN_CONTROL_MAX_DEFLECTION_RADIANS;
+			flag = 1;
+			if (missile.FIN3DEFL_DOT < 0)
+			{
+				missile.FIN3DEFL_DOT = -1 * FIN_RATE_LIMIT_RADIANS;
+			}
+			else if (missile.FIN3DEFL_DOT > 0)
+			{
+				missile.FIN3DEFL_DOT = FIN_RATE_LIMIT_RADIANS;
+			}
 		}
-		if ((missile.FIN4DEFL * missile.FIN4DEFL_DOT) > 0)
+		double DEL3D_NEW = missile.FIN3DEFL_DOT;
+		double DEL3_NEW = trapezoidIntegrate(DEL3D_NEW, missile.FIN3DEFL_D, missile.FIN3DEFL, missile.TIME_STEP);
+		missile.FIN3DEFL = DEL3_NEW;
+		missile.FIN3DEFL_D = DEL3D_NEW;
+		double EDX3 = DEL3C - missile.FIN3DEFL;
+		double DEL3DOTDOT_NEW = FIN_CONTROL_WN * FIN_CONTROL_WN * EDX3 - 2 * FIN_CONTROL_ZETA * FIN_CONTROL_WN * missile.FIN3DEFL_D;
+		double DEL3DOT_NEW = trapezoidIntegrate(DEL3DOTDOT_NEW, missile.FIN3DEFL_DOTDOT, missile.FIN3DEFL_DOT, missile.TIME_STEP);
+		missile.FIN3DEFL_DOT = DEL3DOT_NEW;
+		missile.FIN3DEFL_DOTDOT = DEL3DOTDOT_NEW;
+		if (flag == 1 and (missile.FIN3DEFL_DOT * missile.FIN3DEFL_DOTDOT) > 0)
 		{
-			missile.FIN4DEFL_DOT = 0;
+			missile.FIN3DEFL_DOTDOT = 0.0;
 		}
-	}
-	if (abs(missile.FIN4DEFL_DOT) > FIN_RATE_LIMIT_RADIANS)
-	{
-		flag = 1;
-		if (missile.FIN4DEFL_DOT < 0)
-		{
-			missile.FIN4DEFL_DOT = -1 * FIN_RATE_LIMIT_RADIANS;
-		}
-		else if (missile.FIN4DEFL_DOT > 0)
-		{
-			missile.FIN4DEFL_DOT = FIN_RATE_LIMIT_RADIANS;
-		}
-	}
-	double DEL4D_NEW = missile.FIN4DEFL_DOT;
-	double DEL4_NEW = trapezoidIntegrate(DEL4D_NEW, missile.FIN4DEFL_D, missile.FIN4DEFL, missile.TIME_STEP);
-	missile.FIN4DEFL = DEL4_NEW;
-	missile.FIN4DEFL_D = DEL4D_NEW;
-	double EDX4 = DEL4C - missile.FIN4DEFL;
-	double DEL4DOTDOT_NEW = FIN_CONTROL_WN * FIN_CONTROL_WN * EDX4 - 2 * FIN_CONTROL_ZETA * FIN_CONTROL_WN * missile.FIN4DEFL_D;
-	double DEL4DOT_NEW = trapezoidIntegrate(DEL4DOTDOT_NEW, missile.FIN4DEFL_DOTDOT, missile.FIN4DEFL_DOT, missile.TIME_STEP);
-	missile.FIN4DEFL_DOT = DEL4DOT_NEW;
-	missile.FIN4DEFL_DOTDOT = DEL4DOTDOT_NEW;
-	if (flag == 1 and (missile.FIN4DEFL_DOT * missile.FIN4DEFL_DOTDOT) > 0)
-	{
-		missile.FIN4DEFL_DOTDOT = 0.0;
-	}
 
-	// Attitude fin deflections.
-	missile.rollFinDeflection = (-missile.FIN1DEFL - missile.FIN2DEFL + missile.FIN3DEFL + missile.FIN4DEFL) / 4;
-	missile.pitchFinDeflection = (missile.FIN1DEFL + missile.FIN2DEFL + missile.FIN3DEFL + missile.FIN4DEFL) / 4;
-	missile.yawFinDeflection = (-missile.FIN1DEFL + missile.FIN2DEFL - missile.FIN3DEFL + missile.FIN4DEFL) / 4;
+		// Fin four.
+		flag = 0;
+		if (abs(missile.FIN4DEFL) > FIN_CONTROL_MAX_DEFLECTION_RADIANS)
+		{
+			if (missile.FIN4DEFL < 0)
+			{
+				missile.FIN4DEFL = -1 * FIN_CONTROL_MAX_DEFLECTION_RADIANS;
+			}
+			else if (missile.FIN4DEFL > 0)
+			{
+				missile.FIN4DEFL = FIN_CONTROL_MAX_DEFLECTION_RADIANS;
+			}
+			if ((missile.FIN4DEFL * missile.FIN4DEFL_DOT) > 0)
+			{
+				missile.FIN4DEFL_DOT = 0;
+			}
+		}
+		if (abs(missile.FIN4DEFL_DOT) > FIN_RATE_LIMIT_RADIANS)
+		{
+			flag = 1;
+			if (missile.FIN4DEFL_DOT < 0)
+			{
+				missile.FIN4DEFL_DOT = -1 * FIN_RATE_LIMIT_RADIANS;
+			}
+			else if (missile.FIN4DEFL_DOT > 0)
+			{
+				missile.FIN4DEFL_DOT = FIN_RATE_LIMIT_RADIANS;
+			}
+		}
+		double DEL4D_NEW = missile.FIN4DEFL_DOT;
+		double DEL4_NEW = trapezoidIntegrate(DEL4D_NEW, missile.FIN4DEFL_D, missile.FIN4DEFL, missile.TIME_STEP);
+		missile.FIN4DEFL = DEL4_NEW;
+		missile.FIN4DEFL_D = DEL4D_NEW;
+		double EDX4 = DEL4C - missile.FIN4DEFL;
+		double DEL4DOTDOT_NEW = FIN_CONTROL_WN * FIN_CONTROL_WN * EDX4 - 2 * FIN_CONTROL_ZETA * FIN_CONTROL_WN * missile.FIN4DEFL_D;
+		double DEL4DOT_NEW = trapezoidIntegrate(DEL4DOTDOT_NEW, missile.FIN4DEFL_DOTDOT, missile.FIN4DEFL_DOT, missile.TIME_STEP);
+		missile.FIN4DEFL_DOT = DEL4DOT_NEW;
+		missile.FIN4DEFL_DOTDOT = DEL4DOTDOT_NEW;
+		if (flag == 1 and (missile.FIN4DEFL_DOT * missile.FIN4DEFL_DOTDOT) > 0)
+		{
+			missile.FIN4DEFL_DOTDOT = 0.0;
+		}
+
+		// Attitude fin deflections.
+		missile.rollFinDeflection = (-missile.FIN1DEFL - missile.FIN2DEFL + missile.FIN3DEFL + missile.FIN4DEFL) / 4;
+		missile.pitchFinDeflection = (missile.FIN1DEFL + missile.FIN2DEFL + missile.FIN3DEFL + missile.FIN4DEFL) / 4;
+		missile.yawFinDeflection = (-missile.FIN1DEFL + missile.FIN2DEFL - missile.FIN3DEFL + missile.FIN4DEFL) / 4;
+	}
+	else
+	{
+		missile.rollFinDeflection = 0.0;
+		missile.pitchFinDeflection = 0.0;
+		missile.yawFinDeflection = 0.0;
+	}
+	
 
 }
 
@@ -772,6 +863,10 @@ void accelerationLimit(Missile &missile)
 	if (availableAccelerationEstimate < 0)
 	{
 		missile.maneuveringLimit = 1;
+	}
+	else if (missile.homing)
+	{
+		missile.maneuveringLimit = currentAccelerationEstimate + 100;
 	}
 	else if (availableAccelerationEstimate > MAXIMUM_ACCELERATION)
 	{
@@ -1279,26 +1374,50 @@ void performanceAndTerminationCheck(Missile &missile, double maxTime)
 
 	magnitude(missile.FLUMissileToPipRelativePosition, missile.missDistance);
 
-	if (missile.ENUPosition[2] < 0)
+	if (!missile.ballistic)
 	{
-		missile.lethality = "GROUND_COLLISION";
+
+		if (missile.ENUPosition[2] < 0)
+		{
+			missile.lethality = "GROUND_COLLISION";
+		}
+		else if (missile.missDistance < 5.0)
+		{
+			missile.lethality = "SUCCESSFUL_INTERCEPT";
+		}
+		else if (missile.FLUMissileToPipRelativePosition[0] < 0)
+		{
+			missile.lethality = "POINT_OF_CLOSEST_APPROACH_PASSED";
+		}
+		else if (isnan(missile.ENUPosition[0]))
+		{
+			missile.lethality = "NOT_A_NUMBER";
+		}
+		else if (missile.timeOfFlight > maxTime)
+		{
+			missile.lethality = "MAX_TIME_EXCEEDED";
+		}
+
 	}
-	else if (missile.missDistance < 5.0)
+	else
 	{
-		missile.lethality = "SUCCESSFUL_INTERCEPT";
+
+		if (missile.ENUPosition[2] < 0)
+		{
+			missile.lethality = "GROUND_COLLISION";
+		}
+		else if (isnan(missile.ENUPosition[0]))
+		{
+			missile.lethality = "NOT_A_NUMBER";
+		}
+		else if (missile.timeOfFlight > maxTime)
+		{
+			missile.lethality = "MAX_TIME_EXCEEDED";
+		}
+
 	}
-	else if (missile.FLUMissileToPipRelativePosition[0] < 0)
-	{
-		missile.lethality = "POINT_OF_CLOSEST_APPROACH_PASSED";
-	}
-	else if (isnan(missile.ENUPosition[0]))
-	{
-		missile.lethality = "NOT_A_NUMBER";
-	}
-	else if (missile.timeOfFlight > maxTime)
-	{
-		missile.lethality = "MAX_TIME_EXCEEDED";
-	}
+
+
 
 }
 
@@ -1385,18 +1504,22 @@ void writeLogFileHeader(ofstream &logFile)
 	" " << "seekerWLQ1D" <<
 	" " << "seekerWLQ2" <<
 	" " << "seekerWLQ2D" <<
+	" " << "homing" <<
+	" " << "timeToGo" <<
 	" " << "missileToInterceptRelativePositionForward"
 	" " << "missileToInterceptRelativePositionLeft"
 	" " << "missileToInterceptRelativePositionUp"
 	" " << "guidanceNormalCommand" <<
 	" " << "guidanceSideCommand" <<
 	" " << "accelerationLimit" <<
-	" " << "controlYY" <<
-	" " << "controlYYD" <<
-	" " << "controlZZ" <<
-	" " << "controlZZD" <<
+	" " << "lastRollRateError" <<
+	" " << "rollRateError" <<
 	" " << "rollFinCommand" <<
+	" " << "lastPitchRateError" <<
+	" " << "pitchRateError" <<
 	" " << "pitchFinCommand" <<
+	" " << "lastYawRateError" <<
+	" " << "yawRateError" <<
 	" " << "yawFinCommand" <<
 	" " << "rollFinDeflection" <<
 	" " << "pitchFinDeflection" <<
@@ -1556,18 +1679,22 @@ void logData(Missile &missile, ofstream &logFile)
 	missile.seekerWLQ1D << " " <<
 	missile.seekerWLQ2 << " " <<
 	missile.seekerWLQ2D << " " <<
+	missile.homing << " " <<
+	missile.timeToGo << " " <<
 	missile.FLUMissileToPipRelativePosition[0] << " " <<
 	missile.FLUMissileToPipRelativePosition[1] << " " <<
 	missile.FLUMissileToPipRelativePosition[2] << " " <<
 	missile.guidanceNormalCommand << " " <<
 	missile.guidanceSideCommand << " " <<
 	missile.maneuveringLimit << " " <<
-	missile.yawControlFeedForwardIntegration << " " <<
-	missile.yawControlFeedForwardDerivative << " " <<
-	missile.pitchControlFeedForwardIntegration << " " <<
-	missile.pitchControlFeedForwardDerivative << " " <<
+	missile.lastRollRateError << " " <<
+	missile.rollRateError << " " <<
 	missile.rollFinCommand << " " <<
+	missile.lastPitchRateError << " " <<
+	missile.pitchRateError << " " <<
 	missile.pitchFinCommand << " " <<
+	missile.lastYawRateError << " " <<
+	missile.yawRateError << " " <<
 	missile.yawFinCommand << " " <<
 	missile.rollFinDeflection << " " <<
 	missile.pitchFinDeflection << " " <<
@@ -1851,51 +1978,28 @@ void threeDofFly(Missile &missile, string flyOutID, bool writeData, bool console
 		double CZ_Max = CYAERO_Max * missile.sinPhiPrime + CZAERO_Max * missile.cosPhiPrime;
 
 		// Limit guidance commands.
-		double maxNormalAccelerationAllowed = abs((CZ_Max * missile.dynamicPressure * REFERENCE_AREA) / missile.mass);
-		double maxSideAccelerationAllowed = abs((CY_Max * missile.dynamicPressure * REFERENCE_AREA) / missile.mass);
-
-		// Guidance.
-		double ENUMissileToInterceptRelativePosition[3];
-		subtractTwoVectors(missile.ENUPosition, missile.pip, ENUMissileToInterceptRelativePosition);
-		threeByThreeTimesThreeByOne(missile.missileENUToFLUMatrix, ENUMissileToInterceptRelativePosition, missile.FLUMissileToPipRelativePosition);
-		double forwardLeftUpMissileToInterceptPositionUnitVector[3];
-		unitVec(missile.FLUMissileToPipRelativePosition, forwardLeftUpMissileToInterceptPositionUnitVector);
-		double forwardLeftUpMissileToInterceptLineOfSightVel[3];
-		vectorProjection(forwardLeftUpMissileToInterceptPositionUnitVector, missile.FLUVelocity, forwardLeftUpMissileToInterceptLineOfSightVel);
-		double timeToGo, forwardLeftUpMissileToInterceptPositionMagnitude, forwardLeftUpMissileToInterceptLineOfSightVelMagnitude;
-		magnitude(missile.FLUMissileToPipRelativePosition, forwardLeftUpMissileToInterceptPositionMagnitude);
-		magnitude(forwardLeftUpMissileToInterceptLineOfSightVel, forwardLeftUpMissileToInterceptLineOfSightVelMagnitude);
-		timeToGo = forwardLeftUpMissileToInterceptPositionMagnitude / forwardLeftUpMissileToInterceptLineOfSightVelMagnitude;
-		double closingVelocity[3];
-		multiplyVectorTimesScalar(-1.0, missile.FLUVelocity, closingVelocity);
-		double closingSpeed;
-		magnitude(closingVelocity, closingSpeed);
-		double TEMP1[3], TEMP2;
-		crossProductTwoVectors(missile.FLUMissileToPipRelativePosition, closingVelocity, TEMP1);
-		dotProductTwoVectors(missile.FLUMissileToPipRelativePosition, missile.FLUMissileToPipRelativePosition, TEMP2);
-		double lineOfSightRate[3];
-		divideVectorByScalar(TEMP2, TEMP1, lineOfSightRate);
-		double TEMP3, TEMP4[3];
-		TEMP3 = -1 * PROPORTIONAL_GUIDANCE_GAIN * closingSpeed;
-		multiplyVectorTimesScalar(TEMP3, forwardLeftUpMissileToInterceptPositionUnitVector, TEMP4);
-		double COMMAND[3];
-		crossProductTwoVectors(TEMP4, lineOfSightRate, COMMAND);
-		missile.guidanceNormalCommand = COMMAND[2];
-		double sign;
-		sign = signum(missile.guidanceNormalCommand);
-		if (abs(missile.guidanceNormalCommand) > maxNormalAccelerationAllowed)
+		if (!missile.ballistic)
 		{
-			missile.guidanceNormalCommand = maxNormalAccelerationAllowed * sign;
+			double relPos[3];
+			subtractTwoVectors(missile.ENUPosition, missile.pip, relPos);
+			double mslToIntercept[3];
+			threeByThreeTimesThreeByOne(missile.missileENUToFLUMatrix, relPos, mslToIntercept);
+			setArrayEquivalentToReference(missile.FLUMissileToPipRelativePosition, mslToIntercept);
+			double maxNormalAccelerationAllowed = abs((CZ_Max * missile.dynamicPressure * REFERENCE_AREA) / missile.mass);
+			double maxSideAccelerationAllowed = abs((CY_Max * missile.dynamicPressure * REFERENCE_AREA) / missile.mass);
+			missile.maneuveringLimit = sqrt(maxNormalAccelerationAllowed * maxNormalAccelerationAllowed + maxSideAccelerationAllowed * maxSideAccelerationAllowed);
+			guidance(missile);
 		}
-		missile.guidanceSideCommand = COMMAND[1];
-		sign = signum(missile.guidanceSideCommand);
-		if (abs(missile.guidanceSideCommand) > maxSideAccelerationAllowed)
+		else
 		{
-			missile.guidanceSideCommand = maxSideAccelerationAllowed * sign;
+			double relPos[3];
+			subtractTwoVectors(missile.ENUPosition, missile.pip, relPos);
+			double mslToIntercept[3];
+			threeByThreeTimesThreeByOne(missile.missileENUToFLUMatrix, relPos, mslToIntercept);
+			setArrayEquivalentToReference(missile.FLUMissileToPipRelativePosition, mslToIntercept);
+			missile.guidanceNormalCommand = 0;
+			missile.guidanceSideCommand = 0;
 		}
-
-		// missile.guidanceNormalCommand = 0;
-		// missile.guidanceSideCommand = 0;
 
 		// Forces
 		double axialForce = missile.thrust - missile.CX * missile.dynamicPressure * REFERENCE_AREA + missile.FLUGravity[0] * missile.mass;
@@ -1927,28 +2031,7 @@ void threeDofFly(Missile &missile, string flyOutID, bool writeData, bool console
 		missile.betaRadians = atan2_0(missile.FLUVelocity[1], missile.FLUVelocity[0]);
 
 		// Performance and termination check.
-		magnitude(missile.FLUMissileToPipRelativePosition, missile.missDistance);
-
-		if (missile.ENUPosition[2] < 0)
-		{
-			missile.lethality = "GROUND_COLLISION";
-		}
-		else if (missile.missDistance < 5.0)
-		{
-			missile.lethality = "SUCCESSFUL_INTERCEPT";
-		}
-		else if (missile.FLUMissileToPipRelativePosition[0] < 0)
-		{
-			missile.lethality = "POINT_OF_CLOSEST_APPROACH_PASSED";
-		}
-		else if (isnan(missile.ENUPosition[0]))
-		{
-			missile.lethality = "NOT_A_NUMBER";
-		}
-		else if (missile.timeOfFlight > maxTime)
-		{
-			missile.lethality = "MAX_TIME_EXCEEDED";
-		}
+		performanceAndTerminationCheck(missile, 400.0);
 
 		// Log data.
 		if (writeData)
@@ -1993,152 +2076,45 @@ void threeDofFly(Missile &missile, string flyOutID, bool writeData, bool console
 int main()
 {
 
+	int ballistic;
+	int INTEGRATION_METHOD;
+	double phiRads;
+	double thetaRads;
+	double psiRads;
+	double posE;
+	double posN;
+	double posU;
+	double tgtE;
+	double tgtN;
+	double tgtU;
+	int LogData;
+	int ConsoleReport;
+
+	ifstream InputFile;
+	InputFile.open("input.txt");
+
+	InputFile >> ballistic >> INTEGRATION_METHOD >> phiRads >> thetaRads >> psiRads >> posE >> posN >> posU >> tgtE >> tgtN >> tgtU >> LogData >> ConsoleReport;
+
 	Missile missile;
-	missile.INTEGRATION_METHOD = 0;
-	double phiRads = 7 * degToRad; // Ballistically, loses flight stability with a starting perturbed roll angle of 8 degrees. AKA no more than 7 degree starting roll angle.
-	double thetaRads = 50.0 * degToRad;
-	double psiRads = 35.0 * degToRad;
-	double launchPosition[3] = {0.0, 0.0, 0.0};
+	missile.ballistic = ballistic;
+	missile.INTEGRATION_METHOD = INTEGRATION_METHOD;
+	phiRads *= degToRad;
+	thetaRads *= degToRad;
+	psiRads *= degToRad;
+	double launchPosition[3] = {posE, posN, posU};
 	initUnLaunchedMissile(missile, phiRads, thetaRads, psiRads, launchPosition);
-	double pip[3] = {6000.0, 0.0, 3000.0};
+	double pip[3] = {tgtE, tgtN, tgtU};
 	setArrayEquivalentToReference(missile.pip, pip);
 	initSeeker(missile);
 	missile.lethality = "FLYING";
 
 	Missile missile1 = missile;
-	sixDofFly(missile1, "missile", true, true, 400.0);
+	sixDofFly(missile1, "missile", LogData, ConsoleReport, 400.0);
 
-	// Missile missile2 = missile;
-	// threeDofFly(missile2, "missile", true, true, 400.0);
+	Missile missile2 = missile;
+	threeDofFly(missile2, "missile", LogData, ConsoleReport, 400.0);
 
 	cout << "\n";
 	return 0;
 
 }
-
-// if (missile.machSpeed > 0.6)
-// {
-
-// 	// Aerodynamic feedback.
-// 	double DNA = missile.CNA * (missile.dynamicPressure * REFERENCE_AREA / missile.mass);
-// 	double DMA = missile.CMA * (missile.dynamicPressure * REFERENCE_AREA * REFERENCE_DIAMETER / missile.transverseMomentOfInertia);
-// 	double DMD = missile.CMD * (missile.dynamicPressure * REFERENCE_AREA * REFERENCE_DIAMETER / missile.transverseMomentOfInertia);
-// 	double DMQ = missile.CMQ * (REFERENCE_DIAMETER / (2 * missile.speed)) * (missile.dynamicPressure * REFERENCE_AREA * REFERENCE_DIAMETER / missile.transverseMomentOfInertia);
-// 	double DLP = missile.CLP * (REFERENCE_DIAMETER / (2 * missile.speed)) * (missile.dynamicPressure * REFERENCE_AREA * REFERENCE_DIAMETER / missile.axialMomentOfInertia);
-// 	double DLD = missile.CLD * (missile.dynamicPressure * REFERENCE_AREA * REFERENCE_DIAMETER / missile.axialMomentOfInertia);
-
-// 	// Natural frequency and damping scheduling.
-// 	double WACL = 0.013 * sqrt(missile.dynamicPressure) + 7.1;
-// 	double ZACL = 0.000559 * sqrt(missile.dynamicPressure) + 0.232;
-// 	double PACL = 14;
-
-// 	// Feedback gain scheduling.
-// 	double GAINFB3 = WACL * WACL * PACL / (DNA * DMD);
-// 	double GAINFB2 = (2 * ZACL * WACL + PACL + DMQ - DNA / missile.speed) / DMD;
-// 	double GAINFB1 = (
-// 		WACL * WACL +
-// 		2 * ZACL * WACL * PACL +
-// 		DMA +
-// 		DMQ * DNA / missile.speed -
-// 		GAINFB2 * DMD * DNA / missile.speed
-// 	) / (DNA * DMD);
-
-// 	// Roll control.
-// 	double GKP = (2 * ROLL_CONTROL_WN * ROLL_CONTROL_ZETA + DLP) / DLD;
-// 	double GKPHI = ROLL_CONTROL_WN * ROLL_CONTROL_WN / DLD;
-// 	double EPHI = GKPHI * (ROLL_ANGLE_COMMAND - missile.ENUEulerAngles[0]);
-// 	missile.rollFinCommand = EPHI - GKP * missile.bodyRate[0];
-
-// 	// Pitch control.
-// 	double zzdNew = missile.guidanceNormalCommand - missile.FLUAcceleration[2];
-// 	double zzNew = trapezoidIntegrate(
-// 		zzdNew,
-// 		missile.pitchControlFeedForwardDerivative,
-// 		missile.pitchControlFeedForwardIntegration,
-// 		missile.TIME_STEP
-// 	);
-// 	missile.pitchControlFeedForwardIntegration = zzNew;
-// 	missile.pitchControlFeedForwardDerivative = zzdNew;
-// 	double deflPitch = GAINFB1 * missile.FLUAcceleration[2] - GAINFB2 * missile.bodyRate[1] + GAINFB3 * missile.pitchControlFeedForwardIntegration;
-// 	if (abs(deflPitch) > FIN_CONTROL_MAX_DEFLECTION_DEGREES)
-// 	{
-// 		if (deflPitch > 0)
-// 		{
-// 			deflPitch = FIN_CONTROL_MAX_DEFLECTION_DEGREES;
-// 		}
-// 		else if (deflPitch < 0)
-// 		{
-// 			deflPitch = -1 * FIN_CONTROL_MAX_DEFLECTION_DEGREES;
-// 		}
-// 	}
-// 	missile.pitchFinCommand = deflPitch * degToRad;
-
-// 	// Yaw control.
-// 	double yydNew = missile.guidanceSideCommand - missile.FLUAcceleration[1];
-// 	double yyNew = trapezoidIntegrate(
-// 		yydNew,
-// 		missile.yawControlFeedForwardDerivative,
-// 		missile.yawControlFeedForwardIntegration,
-// 		missile.TIME_STEP
-// 	);
-// 	missile.yawControlFeedForwardIntegration = yyNew;
-// 	missile.yawControlFeedForwardDerivative = yydNew;
-// 	double deflYaw = -1.0 * GAINFB1 * missile.FLUAcceleration[1] - GAINFB2 * missile.bodyRate[2] + GAINFB3 * missile.yawControlFeedForwardIntegration;
-// 	if (abs(deflYaw) > FIN_CONTROL_MAX_DEFLECTION_DEGREES)
-// 	{
-// 		if (deflYaw > 0)
-// 		{
-// 			deflYaw = FIN_CONTROL_MAX_DEFLECTION_DEGREES;
-// 		}
-// 		else if (deflYaw < 0)
-// 		{
-// 			deflYaw = -1 * FIN_CONTROL_MAX_DEFLECTION_DEGREES;
-// 		}
-// 	}
-// 	missile.yawFinCommand = deflYaw * degToRad;
-
-// }
-
-// else if (missile.machSpeed > 0.01)
-// {
-
-// 	// Aerodynamic feedback.
-// 	double DNA = missile.CNA * (missile.dynamicPressure * REFERENCE_AREA / missile.mass);
-// 	double DND = missile.CND * (missile.dynamicPressure * REFERENCE_AREA / missile.mass);
-// 	double DMA = missile.CMA * (missile.dynamicPressure * REFERENCE_AREA * REFERENCE_DIAMETER / missile.transverseMomentOfInertia);
-// 	double DMD = missile.CMD * (missile.dynamicPressure * REFERENCE_AREA * REFERENCE_DIAMETER / missile.transverseMomentOfInertia);
-// 	double DMQ = missile.CMQ * (REFERENCE_DIAMETER / (2 * missile.speed)) * (missile.dynamicPressure * REFERENCE_AREA * REFERENCE_DIAMETER / missile.transverseMomentOfInertia);
-// 	double DLP = missile.CLP * (REFERENCE_DIAMETER / (2 * missile.speed)) * (missile.dynamicPressure * REFERENCE_AREA * REFERENCE_DIAMETER / missile.axialMomentOfInertia);
-// 	double DLD = missile.CLD * (missile.dynamicPressure * REFERENCE_AREA * REFERENCE_DIAMETER / missile.axialMomentOfInertia);
-
-// 	// Roll control.
-// 	double GKP = (2 * ROLL_CONTROL_WN * ROLL_CONTROL_ZETA + DLP) / DLD;
-// 	double GKPHI = ROLL_CONTROL_WN * ROLL_CONTROL_WN / DLD;
-// 	double EPHI = GKPHI * (ROLL_ANGLE_COMMAND - missile.ENUEulerAngles[0]);
-// 	missile.rollFinCommand = EPHI - GKP * missile.bodyRate[0];
-
-// 	// Rate control.
-// 	double ZRATE = DNA / missile.speed - DMA * DND / (missile.speed * DMD);
-// 	double AA = DNA / missile.speed - DMQ;
-// 	double BB = -1 * DMA - DMQ * DNA / missile.speed;
-// 	double TEMP1 = AA - 2 * RATE_CONTROL_ZETA * RATE_CONTROL_ZETA * ZRATE;
-// 	double TEMP2 = AA * AA - 4 * RATE_CONTROL_ZETA * RATE_CONTROL_ZETA * BB;
-// 	double RADIX = TEMP1 * TEMP1 - TEMP2;
-// 	double GRATE = (-1 * TEMP1 + sqrt(RADIX)) / (-1 * DMD);
-
-// 	// Pitch control.
-// 	missile.pitchFinCommand = GRATE * missile.bodyRate[1]; // Radians.
-
-// 	// Yaw control.
-// 	missile.yawFinCommand = GRATE * missile.bodyRate[2]; // Radians.
-
-// }
-
-// else
-// {
-
-// 	missile.rollFinCommand = 0.0;
-// 	missile.pitchFinCommand = 0.0;
-// 	missile.yawFinCommand = 0.0;
-
-// }
