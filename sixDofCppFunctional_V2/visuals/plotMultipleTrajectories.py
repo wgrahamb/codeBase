@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import os
 from matPlotLibColors import matPlotLibColors
 
+threshold = 5850
 directory = "output"
 dfs = []
 
@@ -50,21 +51,23 @@ trajectories.set_zlim([zMin, zMax + 1000])
 
 colors = matPlotLibColors()
 for index, df in enumerate(dfs):
-	trajectories.plot(
-		df.iloc[startIndex:stopIndex]["posE"],
-		df.iloc[startIndex:stopIndex]["posN"],
-		df.iloc[startIndex:stopIndex]["posU"],
-		color=colors[index]
-	)
-	trajectories.scatter(
-		df.iloc[stopIndex]["tgtE"],
-		df.iloc[stopIndex]["tgtN"],
-		df.iloc[stopIndex]["tgtU"],
-		color=colors[index],
-		marker="2",
-		label=df.name,
-		s=80
-	)
+	rng = (df.iloc[stopIndex]["range"])
+	if rng > threshold:
+		trajectories.plot(
+			df.iloc[startIndex:stopIndex]["posE"],
+			df.iloc[startIndex:stopIndex]["posN"],
+			df.iloc[startIndex:stopIndex]["posU"],
+			color=colors[index]
+		)
+		trajectories.scatter(
+			df.iloc[stopIndex]["tgtE"],
+			df.iloc[stopIndex]["tgtN"],
+			df.iloc[stopIndex]["tgtU"],
+			color=colors[index],
+			marker="2",
+			label=df.name,
+			s=80
+		)
 
 plt.legend(fontsize = "x-small")
 plt.show()
