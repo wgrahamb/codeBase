@@ -139,8 +139,8 @@ class guidance:
 
 			self.command = 4 * omega * rightUpInterceptorToInterceptVelMag
 			accCommMag = np.abs(self.command)
-			if accCommMag > 25:
-				new = 25 * np.sign(self.command)
+			if accCommMag > 50:
+				new = 50 * np.sign(self.command)
 				self.command = new
 
 class control:
@@ -305,14 +305,13 @@ class MissileWithPIDManeuveringPitchController:
 		accels.plot(self.simData["TOF"], self.simData["FINDEFLECTION"], label="Fin deflection ().", color="g")
 		accels.legend()
 
-		# plt.get_current_fig_manager().full_screen_toggle()
 		plt.show()
 
 
 if __name__ == "__main__":
 	initialTargetRightUpPosition = npa([5000.0, 5000.0])
 	initialTargetRightUpVelocity = npa([-110.0, -90.0])
-	initialMissileRightUpVelocity = npa([200.0, 200.0])
+	initialMissileRightUpVelocity = npa([400.0, 400.0])
 	x = MissileWithPIDManeuveringPitchController(initialTargetRightUpPosition=initialTargetRightUpPosition, initialTargetRightUpVelocity=initialTargetRightUpVelocity, initialMissileRightUpVelocity=initialMissileRightUpVelocity)
 	x.fly(20.0)
 	x.plot()
