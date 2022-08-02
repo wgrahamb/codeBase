@@ -1,6 +1,5 @@
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
-import matPlotLibColors
 import numpy as np
 import pandas as pd
 import os
@@ -10,7 +9,7 @@ fig = plt.figure(figsize=(20,20))
 
 def plotAndWrite(xs, ys, labels, header):
 	ax = fig.add_subplot(111)
-	colors = matPlotLibColors.matPlotLibColors()
+	colors = ["r", "b", "g", "cyan"]
 	for index, x in enumerate(xs):
 		ax.plot(x , ys[index], label=labels[index], color=colors[index])
 	plt.xlabel("X") 

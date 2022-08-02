@@ -104,23 +104,15 @@ struct Missile
 	double guidanceSideCommand = 0.0; // Meters per second^2.
 	double maneuveringLimit = MAXIMUM_ACCELERATION; // Meters per second^2.
 
-	// // Control
-	// double lastYawRateError = 0.0; // Radians per second.
-	// double yawRateError = 0.0; // Radians per second.
-	// double lastPitchRateError = 0.0; // Radians per second.
-	// double pitchRateError = 0.0; // Radians per second.
-	// double lastRollRateError = 0.0; // Radians per second.
-	// double rollRateError = 0.0; // Radians per second.
-	// double rollFinCommand = 0.0; // Radians.
-
-	// double yawFinCommand = 0.0; // Radians.
-	// double pitchFinCommand = 0.0; // Radians.
-	// double rollFinCommand = 0.0; // Radians.
-
-	// Test control.
-	bool testControl;
+	// Control
+	double lastYawRateError = 0.0; // Radians per second.
+	double yawRateError = 0.0; // Radians per second.
 	double yawFinCommand = 0.0; // Radians.
+	double lastPitchRateError = 0.0; // Radians per second.
+	double pitchRateError = 0.0; // Radians per second.
 	double pitchFinCommand = 0.0; // Radians.
+	double lastRollRateError = 0.0; // Radians per second.
+	double rollRateError = 0.0; // Radians per second.
 	double rollFinCommand = 0.0; // Radians.
 
 	// Actuators.

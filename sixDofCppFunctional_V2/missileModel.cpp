@@ -478,12 +478,62 @@ void guidance(Missile &missile)
 void control(Missile &missile)
 {
 
-	if (missile.testControl)
+	if (!missile.ballistic)
 	{
 
-		missile.rollFinCommand = missile.rollFinCommand;
-		missile.pitchFinCommand = missile.pitchFinCommand;
-		missile.yawFinCommand = missile.yawFinCommand;
+		// Roll autopilot.
+		double rollAngleGain = 1.0;
+		double rollRateProportionalGain = 0.011;
+		double rollRateDerivativeGain = ((0.013 / 2) * 0.07 * 3) / 40;
+		double phiAngleError = ROLL_ANGLE_COMMAND - missile.ENUEulerAngles[0]; // Radians.
+		double rollRateCommand = rollAngleGain * phiAngleError; // Radians per second.
+		double signOfRollRateCommand = signum(rollRateCommand); // Non dimensional.
+		if (abs(rollRateCommand) > rollAngleGain) // Limit rate command.
+		{
+			rollRateCommand = rollAngleGain * signOfRollRateCommand;
+		}
+		missile.lastRollRateError = missile.rollRateError;
+		missile.rollRateError = rollRateCommand - missile.bodyRate[0]; // Radians per second.
+		double derivativeRollRateError = (missile.rollRateError - missile.lastRollRateError) / missile.TIME_STEP;
+		missile.rollFinCommand = rollRateProportionalGain * missile.rollRateError + rollRateDerivativeGain * derivativeRollRateError; // Radians.
+
+		// Pitch autopilot.
+		double pitchRateCommandLimit = 20;
+		double pitchRateProportionalGain = 0.11;
+		double pitchRateDerivativeGain = ((0.1 / 2) * 0.1 * 3) / 40;
+		double guidancePitchRateCommand = -missile.guidanceNormalCommand * 4 / missile.speed;
+		double signOfPitchRateCommand = signum(guidancePitchRateCommand);
+		if (abs(guidancePitchRateCommand) > pitchRateCommandLimit)
+		{
+			guidancePitchRateCommand = signOfPitchRateCommand * pitchRateCommandLimit;
+		}
+		missile.lastPitchRateError = missile.pitchRateError;
+		missile.pitchRateError = guidancePitchRateCommand + missile.bodyRate[1];
+		double derivativePitchRateError = (missile.pitchRateError - missile.lastPitchRateError) / missile.TIME_STEP;
+		missile.pitchFinCommand = pitchRateProportionalGain * missile.pitchRateError + pitchRateDerivativeGain * derivativePitchRateError;
+
+		// Yaw autopilot.
+		double yawRateCommandLimit = 20;
+		double yawRateProportionalGain = 0.11;
+		double yawRateDerivativeGain = ((0.1 / 2) * 0.1 * 3) / 40;
+		double guidanceYawRateCommand = -missile.guidanceSideCommand * 4 / missile.speed;
+		double signOfYawRateCommand = signum(guidanceYawRateCommand);
+		if (abs(guidanceYawRateCommand) > yawRateCommandLimit)
+		{
+			guidanceYawRateCommand = signOfYawRateCommand * yawRateCommandLimit;
+		}
+		missile.lastYawRateError = missile.yawRateError;
+		missile.yawRateError = guidanceYawRateCommand + missile.bodyRate[2];
+		double derivativeYawRateError = (missile.yawRateError - missile.lastYawRateError) / missile.TIME_STEP;
+		missile.yawFinCommand = yawRateProportionalGain * missile.yawRateError;
+
+	}
+	else
+	{
+
+		missile.rollFinCommand = 0.0;
+		missile.pitchFinCommand = 0.0;
+		missile.yawFinCommand = 0.0;
 
 	}
 
@@ -492,7 +542,7 @@ void control(Missile &missile)
 void actuators(Missile &missile)
 {
 
-	if (!missile.ballistic || (missile.testControl && missile.machSpeed > 0.4))
+	if (!missile.ballistic)
 	{
 
 		// Fin commands.
@@ -1462,8 +1512,14 @@ void writeLogFileHeader(ofstream &logFile)
 	" " << "guidanceNormalCommand" <<
 	" " << "guidanceSideCommand" <<
 	" " << "accelerationLimit" <<
+	" " << "lastRollRateError" <<
+	" " << "rollRateError" <<
 	" " << "rollFinCommand" <<
+	" " << "lastPitchRateError" <<
+	" " << "pitchRateError" <<
 	" " << "pitchFinCommand" <<
+	" " << "lastYawRateError" <<
+	" " << "yawRateError" <<
 	" " << "yawFinCommand" <<
 	" " << "rollFinDeflection" <<
 	" " << "pitchFinDeflection" <<
@@ -1631,8 +1687,14 @@ void logData(Missile &missile, ofstream &logFile)
 	missile.guidanceNormalCommand << " " <<
 	missile.guidanceSideCommand << " " <<
 	missile.maneuveringLimit << " " <<
+	missile.lastRollRateError << " " <<
+	missile.rollRateError << " " <<
 	missile.rollFinCommand << " " <<
+	missile.lastPitchRateError << " " <<
+	missile.pitchRateError << " " <<
 	missile.pitchFinCommand << " " <<
+	missile.lastYawRateError << " " <<
+	missile.yawRateError << " " <<
 	missile.yawFinCommand << " " <<
 	missile.rollFinDeflection << " " <<
 	missile.pitchFinDeflection << " " <<
@@ -2022,9 +2084,6 @@ int main()
 	double posE;
 	double posN;
 	double posU;
-	double rollFinCommandDegrees;
-	double pitchFinCommandDegrees;
-	double yawFinCommandDegrees;
 	double tgtE;
 	double tgtN;
 	double tgtU;
@@ -2034,15 +2093,11 @@ int main()
 	ifstream InputFile;
 	InputFile.open("input.txt");
 
-	InputFile >> ballistic >> INTEGRATION_METHOD >> phiRads >> thetaRads >> psiRads >> posE >> posN >> posU >> tgtE >> tgtN >> tgtU >> rollFinCommandDegrees >> pitchFinCommandDegrees >> yawFinCommandDegrees >> LogData >> ConsoleReport;
+	InputFile >> ballistic >> INTEGRATION_METHOD >> phiRads >> thetaRads >> psiRads >> posE >> posN >> posU >> tgtE >> tgtN >> tgtU >> LogData >> ConsoleReport;
 
 	Missile missile;
 	missile.ballistic = ballistic;
 	missile.INTEGRATION_METHOD = INTEGRATION_METHOD;
-	missile.rollFinCommand = rollFinCommandDegrees * degToRad;
-	missile.pitchFinCommand = pitchFinCommandDegrees * degToRad;
-	missile.yawFinCommand = yawFinCommandDegrees * degToRad;
-	missile.testControl = true;
 	phiRads *= degToRad;
 	thetaRads *= degToRad;
 	psiRads *= degToRad;
@@ -2054,8 +2109,10 @@ int main()
 	missile.lethality = "FLYING";
 
 	Missile missile1 = missile;
-	string identity = to_string(pitchFinCommandDegrees) + "_" + to_string(yawFinCommandDegrees);
-	sixDofFly(missile1, identity, LogData, ConsoleReport, 10.0);
+	sixDofFly(missile1, "missile", LogData, ConsoleReport, 400.0);
+
+	Missile missile2 = missile;
+	threeDofFly(missile2, "missile", LogData, ConsoleReport, 400.0);
 
 	cout << "\n";
 	return 0;
