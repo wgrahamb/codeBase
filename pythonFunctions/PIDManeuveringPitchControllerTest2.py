@@ -4,23 +4,27 @@ from numpy import array as npa
 from unitVector import unitvector
 from numpy import linalg as la
 from ambiance import Atmosphere as atm
-import math
-
 np.set_printoptions(suppress=True, precision=2)
 
 # Simulation constants.
 TIME_STEP = 1.0 / 500.0
-MAX_TIME = 100.0
-INTEGRATION_PASS = 0 # RK2 Integration. Controlled by Missile::motion().
+MAX_TIME = 75.0
+INTEGRATION_PASS = 0 # RK2 Integration. Controlled by MissileDynamics.
 
 # Math constants.
-STANDARD_GRAVITY = 9.81
+STANDARD_GRAVITY = 9.81 # Meters per second squared.
+STANDARD_PRESSURE = 101325 # Pascals.
 
-# Missile constant characteristics.
-BURN_TIME = 2.95 # Seconds.
-REFERENCE_DIAMETER = 1 # FEET
+# Missile constant characteristics. Rough approximation of a Hellfire missile.
+BURN_TIME = 2.95 # Seconds. Hellfire.
+NOZZLE_EXIT_AREA = 0.004 # Meters squared. Hellfire.
+
+REFERENCE_DIAMETER = 0.1778 # Meters. Hellfire.
+
 NOSE_LENGTH = 3 # FEET
-REFERENCE_LENGTH = 20 # FEET
+
+REFERENCE_LENGTH = 1.6 # Meters. Hellfire.
+
 WING_HALF_SPAN = 2 # FEET
 WING_TIP_CHORD = 0 # FEET
 WING_ROOT_CHORD = 6 # FEET
@@ -34,7 +38,7 @@ CENTER_OF_DEFLECTION_FROM_NOSE = 19.5 # FEET
 # Missile calculated constant characteristics.
 WING_AREA = 0.5 * WING_HALF_SPAN * (WING_TIP_CHORD + WING_ROOT_CHORD)
 TAIL_AREA = 0.5 * TAIL_HALF_SPAN * (TAIL_TIP_CHORD + TAIL_ROOT_CHORD)
-REFERENCE_AREA = np.pi * (REFERENCE_DIAMETER ** 2) / 4
+REFERENCE_AREA = np.pi * (REFERENCE_DIAMETER ** 2) / 4 # Meters squared. Hellfire.
 NOSE_AREA = NOSE_LENGTH * REFERENCE_DIAMETER
 PLANFORM_AREA = (REFERENCE_LENGTH - NOSE_LENGTH) * REFERENCE_DIAMETER + 0.667 * NOSE_LENGTH * REFERENCE_DIAMETER
 NOSE_CENTER_OF_PRESSURE = 0.67 * NOSE_LENGTH
@@ -60,36 +64,6 @@ class Target:
 		deltaPos = TIME_STEP * self.targetRightUpVelocity
 		self.targetRightUpPosition += deltaPos
 		self.targetTimeOfFlight += TIME_STEP
-
-class MassPropertiesAndRocketMotor:
-
-	def __init__(self):
-		self.ISP = 250 # Seconds
-		self.initialTotalMass = 45 # Kilograms.
-		self.finalTotalMass = 20 # Kilograms.
-		self.currentMass = self.initialTotalMass # Kilograms.
-		self.deltaV = np.log(self.initialTotalMass / self.finalTotalMass) * self.ISP * STANDARD_GRAVITY
-		self.massFlowRate = (self.initialTotalMass - self.finalTotalMass) / BURN_TIME
-		self.acceleration = 0.0
-		self.force = 0.0
-		self.flag = 0
-		self.transverseMomentOfInertia = (self.currentMass * (3 * ((0.5 * REFERENCE_DIAMETER) ** 2) + REFERENCE_LENGTH ** 2)) / (12)
-
-	def update(self, missileTimeOfFlight):
-		fuelUsed = self.massFlowRate * missileTimeOfFlight
-		self.currentMass = (self.initialTotalMass - fuelUsed)
-		if self.currentMass > self.finalTotalMass:
-			self.acceleration = self.massFlowRate * self.deltaV / self.currentMass
-			self.force = self.acceleration * self.currentMass
-			self.transverseMomentOfInertia = (self.currentMass * (3 * ((0.5 * REFERENCE_DIAMETER) ** 2) + REFERENCE_LENGTH ** 2)) / (12)
-			# print(missileTimeOfFlight, self.currentMass, self.acceleration, self.force)
-		else:
-			self.acceleration = 0
-			self.force = 0
-			if self.flag == 0:
-				self.transverseMomentOfInertia = (self.currentMass * (3 * ((0.5 * REFERENCE_DIAMETER) ** 2) + REFERENCE_LENGTH ** 2)) / (12)
-				print(missileTimeOfFlight, "BURNOUT", self.transverseMomentOfInertia)
-				self.flag = 1
 
 class Atmosphere:
 
@@ -129,15 +103,42 @@ class Atmosphere:
 			self.q = q
 			self.mach = mach
 
+class MassPropertiesAndRocketMotor:
+
+	def __init__(self):
+		self.ISP = 250 # Seconds
+		self.initialTotalMass = 45 # Kilograms.
+		self.finalTotalMass = 20 # Kilograms.
+		self.currentMass = self.initialTotalMass # Kilograms.
+		self.exitVelocity = self.ISP * STANDARD_GRAVITY # Meters per second.
+		self.deltaV = np.log(self.initialTotalMass / self.finalTotalMass) * self.exitVelocity # Meters per second.
+		self.massFlowRate = (self.initialTotalMass - self.finalTotalMass) / BURN_TIME # Kilograms per second.
+		self.thrust = 0.0 # Newtons.
+		self.flag = 0
+		self.transverseMomentOfInertia = (self.currentMass * (3 * ((0.5 * REFERENCE_DIAMETER) ** 2) + REFERENCE_LENGTH ** 2)) / (12) # Kilograms * meters squared.
+
+	def update(self, missileTimeOfFlight):
+		fuelUsed = self.massFlowRate * missileTimeOfFlight # Kilograms.
+		self.currentMass = (self.initialTotalMass - fuelUsed) # Kilograms.
+		if self.currentMass > self.finalTotalMass:
+			self.thrust = self.ISP * self.massFlowRate * missileTimeOfFlight # Newtons.
+			self.transverseMomentOfInertia = (self.currentMass * (3 * ((0.5 * REFERENCE_DIAMETER) ** 2) + REFERENCE_LENGTH ** 2)) / (12) # Kilograms * meters squared.
+		else:
+			if self.flag == 0:
+				self.thrust = 0.0 # Newtons.
+				self.transverseMomentOfInertia = (self.currentMass * (3 * ((0.5 * REFERENCE_DIAMETER) ** 2) + REFERENCE_LENGTH ** 2)) / (12) # Kilograms * meters squared.
+				print(missileTimeOfFlight, "BURNOUT", self.thrust, self.transverseMomentOfInertia)
+				self.flag = 1
+
 class Aerodynamics:
 
 	def __init__(self):
-		self.CD = 0.82
+		self.CD = 0.82 # Drag coefficient of a long cylinder.
 		self.force = np.zeros(2) # aerodynamic force
 		self.moment = np.zeros(2) # aerodynamic moment
 
 	def update(self, dynamicPressure):
-		self.force[0] = self.CD * REFERENCE_AREA * dynamicPressure
+		self.force[0] = -self.CD * REFERENCE_AREA * dynamicPressure
 		self.force[1] = 0.0
 		self.moment[0] = 0.0
 		self.moment[1] = 0.0 
@@ -145,17 +146,28 @@ class Aerodynamics:
 class MissileDynamics:
 
 	def __init__(self, initialMissileRightUpPosition, initialMissileRightUpVelocity):
+
 		self.missileTimeOfFlight = 0.0
 		self.missileRightUpPosition = initialMissileRightUpPosition
 		self.missileRightUpVelocity = initialMissileRightUpVelocity
 
-		self.rocketAcceleration = 0.0
+		# Mass of the missile.
+		self.mass = 0.0 # Kilograms.
+
+		# Acceleration due to gravity.
+		self.gravity = 0.0 # Meters per second squared.
+
+		# Axial acceleration.
+		self.rocketForce = 0.0 # Newtons.
+		self.dragForce = 0.0 # Newtons.
+
+		# Normal acceleration.
 		self.normalAcceleration = 0.0
-		self.aerodynamicForce = np.zeros(2)
-		self.aerodynamicMoment = np.zeros(2)
+		self.mslLocalOrient = np.zeros((2, 2))
+		self.bodyAcceleration = np.zeros(2)
 		self.localAcceleration = np.zeros(2)
 
-		print("CONSTRUCT MISSILE")
+		print("CONSTRUCTED MISSILE")
 
 	def calculateDerivatives(self):
 		velU = unitvector(self.missileRightUpVelocity)
@@ -164,6 +176,7 @@ class MissileDynamics:
 				velU[0],
 				velU[1]
 			]
+
 		)
 		normal = npa(
 			[
@@ -171,12 +184,20 @@ class MissileDynamics:
 				velU[0]
 			]
 		)
-		mslLocalOrient = npa([axis, normal])
+		self.mslLocalOrient = npa([axis, normal])
 
-		# axialAcceleration = 
+		axialAcceleration = None
+		rocketAcceleration = self.rocketForce / self.mass
+		dragAcceleration = self.dragForce / self.mass
+		axialAcceleration = rocketAcceleration + dragAcceleration
 
-		bodyAcceleration = npa([self.rocketAcceleration, self.normalAcceleration])
-		self.localAcceleration = bodyAcceleration @ mslLocalOrient
+		localGravity = npa([0.0, -1.0 * self.gravity])
+		bodyGravity = self.mslLocalOrient @ localGravity
+		self.bodyAcceleration = npa([axialAcceleration, self.normalAcceleration]) + bodyGravity
+		self.localAcceleration = self.bodyAcceleration @ self.mslLocalOrient
+
+		if self.missileTimeOfFlight > 5:
+			pause = 0
 
 	def motion(self):
 		deltaVel = TIME_STEP * self.localAcceleration
@@ -185,8 +206,11 @@ class MissileDynamics:
 		self.missileRightUpPosition += deltaPos
 		self.missileTimeOfFlight += TIME_STEP
 
-	def update(self, rocketAcceleration, normalAcceleration):
-		self.rocketAcceleration = rocketAcceleration
+	def update(self, gravity, mass, rocketForce, dragForce, normalAcceleration):
+		self.gravity = gravity
+		self.mass = mass
+		self.rocketForce = rocketForce
+		self.dragForce = dragForce
 		self.normalAcceleration = normalAcceleration
 		self.calculateDerivatives()
 		self.motion()
@@ -196,7 +220,7 @@ class Guidance:
 	def __init__(self):
 		self.PROPORTIONAL_GAIN = 4.0
 		self.command = 0.0
-		self.limit = 100.0
+		self.limit = 200.0
 		print("GUIDANCE CONSTRUCTED")
 
 	def update(self, missileRightUpPosition, missileRightUpVelocity, targetRightUpPosition, targetRightUpVelocity):
@@ -231,21 +255,22 @@ class Guidance:
 
 class Simulation:
 
-	def __init__(self, initialTargetRightUpPosition, initialTargetRightUpVelocity, initialMissileRightUpPosition, initialMissileRightUpVelocity):
+	def __init__(self, ballistic, initialTargetRightUpPosition, initialTargetRightUpVelocity, initialMissileRightUpPosition, initialMissileRightUpVelocity):
 
 		# Simulation.
 		self.SimulationTime = 0.0
 		self.SimulationTimeStep = 1.0 / 100.0
-		self.Data = {"X":[], "Y":[], "VX":[], "VY":[], "TX":[], "TY":[]}
+		self.Data = {"TOF":[], "X":[], "Y":[], "VX":[], "VY":[], "SPEED":[], "AX":[], "AY":[], "TX":[], "TY":[]}
 
 		# Target.
 		self.Target = Target(initialTargetRightUpPosition=initialTargetRightUpPosition, initialTargetRightUpVelocity=initialTargetRightUpVelocity)
 
 		# Missile.
-		self.RocketMotor = MassPropertiesAndRocketMotor()
+		self.ballistic = ballistic
 		self.Atmoshpere = Atmosphere()
-		self.MassProperties = None
-		self.Missile = MissileDynamics(initialMissileRightUpPosition=initialMissileRightUpPosition, initialMissileRightUpVelocity=initialMissileRightUpVelocity)
+		self.MassPropertiesAndRocketMotor = MassPropertiesAndRocketMotor()
+		self.Aerodynamics = Aerodynamics()
+		self.MissileDynamics = MissileDynamics(initialMissileRightUpPosition=initialMissileRightUpPosition, initialMissileRightUpVelocity=initialMissileRightUpVelocity)
 
 		# Guidance and Control.
 		self.Guidance = Guidance()
@@ -261,79 +286,109 @@ class Simulation:
 			self.Target.update()
 
 		# Update atmosphere, guidance, missile.
-		while self.Missile.missileTimeOfFlight < self.SimulationTime:
-			self.RocketMotor.update(self.Missile.missileTimeOfFlight)
-			self.Atmoshpere.update(self.Missile.missileRightUpPosition[1], la.norm(self.Missile.missileRightUpVelocity), "METRIC")
-			self.Missile.update(self.RocketMotor.acceleration, self.Guidance.command)
-			self.Guidance.update(self.Missile.missileRightUpPosition, self.Missile.missileRightUpVelocity, self.Target.targetRightUpPosition, self.Target.targetRightUpVelocity)
+		while self.MissileDynamics.missileTimeOfFlight < self.SimulationTime:
+			self.Atmoshpere.update(self.MissileDynamics.missileRightUpPosition[1], la.norm(self.MissileDynamics.missileRightUpVelocity), "METRIC")
+			self.MassPropertiesAndRocketMotor.update(self.MissileDynamics.missileTimeOfFlight)
+			self.Aerodynamics.update(self.Atmoshpere.q)
+			self.MissileDynamics.update(self.Atmoshpere.gravity, self.MassPropertiesAndRocketMotor.currentMass, self.MassPropertiesAndRocketMotor.thrust, self.Aerodynamics.force[0], self.Guidance.command)
+			if not self.ballistic:
+				self.Guidance.update(self.MissileDynamics.missileRightUpPosition, self.MissileDynamics.missileRightUpVelocity, self.Target.targetRightUpPosition, self.Target.targetRightUpVelocity)
 
 		# Log data.
-		self.Data["X"].append(self.Missile.missileRightUpPosition[0])
-		self.Data["Y"].append(self.Missile.missileRightUpPosition[1])
-		self.Data["VX"].append(self.Missile.missileRightUpVelocity[0])
-		self.Data["VY"].append(self.Missile.missileRightUpVelocity[1])
+		self.Data["TOF"].append(self.MissileDynamics.missileTimeOfFlight)
+		self.Data["X"].append(self.MissileDynamics.missileRightUpPosition[0])
+		self.Data["Y"].append(self.MissileDynamics.missileRightUpPosition[1])
+		self.Data["VX"].append(self.MissileDynamics.missileRightUpVelocity[0])
+		self.Data["VY"].append(self.MissileDynamics.missileRightUpVelocity[1])
+		speed = np.sqrt(self.MissileDynamics.missileRightUpVelocity[0] * self.MissileDynamics.missileRightUpVelocity[0] + self.MissileDynamics.missileRightUpVelocity[1] * self.MissileDynamics.missileRightUpVelocity[1])
+		self.Data["SPEED"].append(speed)
 		self.Data["TX"].append(self.Target.targetRightUpPosition[0])
 		self.Data["TY"].append(self.Target.targetRightUpPosition[1])
 
 	def plot(self):
+
 		fig = plt.figure()
-		trajectory = fig.add_subplot(111)
-		trajectory.set_xlabel("Down Range (ft).")
-		trajectory.set_ylabel("Altitude (ft).")
-		xMin = min(self.Data["X"] + self.Data["TX"])
-		xMax = max(self.Data["X"] + self.Data["TX"])
-		yMin = min(self.Data["Y"] + self.Data["TY"])
-		yMax = max(self.Data["Y"] + self.Data["TY"])
-		trajectory.set_xlim([xMin, xMax])
-		trajectory.set_ylim([yMin, yMax])
+
+		trajectory = fig.add_subplot(221)
+		trajectory.set_xlabel("Down Range (meters).")
+		trajectory.set_ylabel("Altitude (meters).")
 		trajectory.plot(self.Data["X"], self.Data["Y"], label="Interceptor", color="b")
-		trajectory.plot(self.Data["TX"], self.Data["TY"], label="Threat", color="r")
+		if not self.ballistic:
+			trajectory.plot(self.Data["TX"], self.Data["TY"], label="Threat", color="r")
 		trajectory.legend()
+
+		velocities = fig.add_subplot(222)
+		velocities.set_xlabel("Time Of Flight")
+		velocities.set_ylabel("Meters per second.")
+		velocities.plot(self.Data["TOF"], self.Data["VX"], label="Interceptor Right Velocity", color="b")
+		velocities.plot(self.Data["TOF"], self.Data["VY"], label="Interceptor Up Velocity", color="r")
+		velocities.plot(self.Data["TOF"], self.Data["SPEED"], label="Speed", color="g")
+		velocities.legend()
+
 		plt.show()
 
 	def simulate(self):
 
-		while self.SimulationTime < MAX_TIME:
+		go = True
+		while go:
 
 			# Update simulation.
 			self.update()
 
-			# Intercept check.
-			missDistance = la.norm(self.Target.targetRightUpPosition - self.Missile.missileRightUpPosition)
-			if missDistance < 10:
-				print(f"SUCCESSFUL INTERCEPT, MISS DISTANCE = {missDistance}")
-				break
+			# Performance and termination check.
+			if not self.ballistic:
 
-			# Poca check.
-			velU = unitvector(self.Missile.missileRightUpVelocity)
-			axis = npa(
-				[
-					velU[0],
-					velU[1]
-				]
-			)
-			normal = npa(
-				[
-					-1 * velU[1],
-					velU[0]
-				]
-			)
-			mslLocalOrient = npa([axis, normal])
-			relPos = self.Target.targetRightUpPosition - self.Missile.missileRightUpPosition
-			bodyRelPos = mslLocalOrient @ relPos
-			if bodyRelPos[0] < 0:
-				break
+				# Intercept check.
+				missDistance = la.norm(self.Target.targetRightUpPosition - self.MissileDynamics.missileRightUpPosition)
+				if missDistance < 10:
+					print(f"SUCCESSFUL INTERCEPT, MISS DISTANCE = {missDistance}")
+					go = False
+
+				# Poca check.
+				velU = unitvector(self.MissileDynamics.missileRightUpVelocity)
+				axis = npa(
+					[
+						velU[0],
+						velU[1]
+					]
+				)
+				normal = npa(
+					[
+						-1 * velU[1],
+						velU[0]
+					]
+				)
+				mslLocalOrient = npa([axis, normal])
+				relPos = self.Target.targetRightUpPosition - self.MissileDynamics.missileRightUpPosition
+				bodyRelPos = mslLocalOrient @ relPos
+				if bodyRelPos[0] < 0:
+					print(f"POINT OF CLOSEST APPROACH PASSED, MISS DISTANCE = {missDistance}")
+					go = False
+
+			# Ground check.
+			if self.MissileDynamics.missileRightUpPosition[1] < 0:
+				print(f"GROUND COLLISION")
+				go = False
+			# Nan check.
+			if np.isnan(np.sum(self.MissileDynamics.missileRightUpPosition)):
+				print(f"NOT A NUMBER")
+				go = False
+			# Max time check.
+			if self.SimulationTime > MAX_TIME:
+				print(f"MAX TIME")
+				go = False
 
 			# Console report.
-			if (round(self.Missile.missileTimeOfFlight, 2).is_integer()):
-				print(f"{self.Missile.missileTimeOfFlight:.2f} {self.Missile.missileRightUpPosition}")
+			if (round(self.MissileDynamics.missileTimeOfFlight, 2).is_integer()):
+				print(f"{self.MissileDynamics.missileTimeOfFlight:.2f} {self.MissileDynamics.missileRightUpPosition}")
 
 		self.plot()
 
 if __name__ == "__main__":
+	ballistic = True
 	initialTargetRightUpPosition = npa([6000.0, 6000.0])
 	initialTargetRightUpVelocity = npa([-50.0, -50.0])
 	initialMissileRightUpPosition = npa([0.0, 0.0])
-	initialMissileRightUpVelocity = npa([10.0, 18.0])
-	x = Simulation(initialTargetRightUpPosition, initialTargetRightUpVelocity, initialMissileRightUpPosition, initialMissileRightUpVelocity)
+	initialMissileRightUpVelocity = npa([10.0, 20.0])
+	x = Simulation(ballistic, initialTargetRightUpPosition, initialTargetRightUpVelocity, initialMissileRightUpPosition, initialMissileRightUpVelocity)
 	x.simulate()
