@@ -43,12 +43,12 @@ TEMP4 = (centerOfGravityFromNose - noseCenterOfPressure) / refDiameter
 
 # Missile.
 missileTof = 0.0
-missilePos = npa([0.0, 1000.0])
-missileVel = npa([800.0, 100.0])
+missilePos = npa([0.0, 0.0])
+missileVel = npa([1000.0, 1000.0])
 missileAcc = npa([0.0, 0.0])
 
 # Target.
-targetPos = npa([30000.0, 2000.0])
+targetPos = npa([50000.0, 50000.0])
 targetVel = npa([-800.0, 0.0])
 
 # Simulation control.
@@ -61,7 +61,7 @@ eDot = 0
 while go:
 
 	# Target update.
-	targetAcc = np.random.randint(-150, 150, 2)
+	targetAcc = np.random.randint(-250, 1, 2)
 	targetVel += (targetAcc * timeStep)
 	targetPos += (targetVel * timeStep)
 
@@ -100,8 +100,9 @@ while go:
 	omega = T1 / T2
 	normalAccCommand = 4 * omega * rightUpInterceptorToInterceptVelMag
 	accCommMag = np.abs(normalAccCommand)
-	if accCommMag > 25:
-		new = 25 * np.sign(normalAccCommand)
+	limit = 75
+	if accCommMag > limit:
+		new = limit * np.sign(normalAccCommand)
 		normalAccCommand = new
 
 	# Atmosphere.
@@ -115,7 +116,7 @@ while go:
 		rho = 0.0034 * np.exp(-altitude / 22000)
 	dynamicPressure = 0.5 * rho * velMag * velMag
 
-	# Autopilot. Aerodynamic feedback coefficients are calculated on line but other sims have look up tables.
+	# Aerodynamics.
 	beta = np.sqrt(np.abs(mach ** 2 - 1))
 	CNTRIM = weight * normalAccCommand / (dynamicPressure * refArea)
 	Y1 = 2 + 8 * wingArea / (beta * refArea) + 8 * tailArea / (beta * refArea)
@@ -134,24 +135,28 @@ while go:
 	CMA = CMAP + 8 * tailArea * TEMP2 / (beta * refArea)
 	CMD = 8 * tailArea * TEMP2 / (beta * refArea)
 
-	# I'm not sure what "e" is or the "1845" value. Gonna have to read.
 	ZA = -1 * gravity * dynamicPressure * refArea * CNA / (weight * velMag)
 	ZD = -1 * gravity * dynamicPressure * refArea * CND / (weight * velMag)
 	MA = dynamicPressure * refArea * refDiameter * CMA / transverseMomentOfInertia
 	MD = dynamicPressure * refArea * refDiameter * CMD / transverseMomentOfInertia
-	omegaZ = np.sqrt((MA * ZD - MD * ZA) / ZD)
-	omegaAF = np.sqrt(-1 * MA)
-	zetaAF = ZA * omegaAF / (2 * MA)
+
+	# Control
 	KR = 0.1
 	K1 = -1 * velMag * ((MA * ZD - ZA * MD) / (1845 * MA))
 	TA = MD / (MA * ZD - MD * ZA)
-	K3 = 1845 * K1 / velMag
+	K3 = 1845 * K1 / velMag # 1845 = Some kind of gain.
 	KDC = (1 - KR * K3) / (K1 * KR)
-	eOld = e
-	eDotOld = eDot
 	THD = K3 * (e + TA * eDot)
+
+	# Actuator.
 	deflection = KR * (KDC * normalAccCommand + THD)
 
+	# Motion.
+	eOld = e
+	eDotOld = eDot
+	omegaZ = np.sqrt((MA * ZD - MD * ZA) / ZD)
+	omegaAF = np.sqrt(-1 * MA)
+	zetaAF = ZA * omegaAF / (2 * MA)
 	eDotDot = (omegaAF ** 2) * (deflection - e - 2 * zetaAF * eDot / omegaAF)
 	normalAccel = K1 * (e - (eDotDot / (omegaZ ** 2)))
 	e += timeStep * eDot
@@ -192,7 +197,7 @@ trajectory.scatter(targetPos[0], targetPos[1], color="r")
 trajectory.legend()
 
 accels = fig.add_subplot(122)
-accels.set_ylim([-30, 30])
+# accels.set_ylim([-30, 30])
 accels.plot(simData["TOF"], simData["COMMAND"], label="Acceleration command (m/s^2).", color="r")
 accels.plot(simData["TOF"], simData["ACHIEVED"], label="Acceleration achieved (m/s^2).", color="b")
 accels.legend()

@@ -4,14 +4,20 @@ from numpy import array as npa
 from unitVector import unitvector
 from numpy import linalg as la
 from ambiance import Atmosphere as atm
+import math
 
 np.set_printoptions(suppress=True, precision=2)
 
 # Simulation constants.
 TIME_STEP = 1.0 / 500.0
 MAX_TIME = 100.0
+INTEGRATION_PASS = 0 # RK2 Integration. Controlled by Missile::motion().
+
+# Math constants.
+STANDARD_GRAVITY = 9.81
 
 # Missile constant characteristics.
+BURN_TIME = 2.95 # Seconds.
 REFERENCE_DIAMETER = 1 # FEET
 NOSE_LENGTH = 3 # FEET
 REFERENCE_LENGTH = 20 # FEET
@@ -55,6 +61,36 @@ class Target:
 		self.targetRightUpPosition += deltaPos
 		self.targetTimeOfFlight += TIME_STEP
 
+class MassPropertiesAndRocketMotor:
+
+	def __init__(self):
+		self.ISP = 250 # Seconds
+		self.initialTotalMass = 45 # Kilograms.
+		self.finalTotalMass = 20 # Kilograms.
+		self.currentMass = self.initialTotalMass # Kilograms.
+		self.deltaV = np.log(self.initialTotalMass / self.finalTotalMass) * self.ISP * STANDARD_GRAVITY
+		self.massFlowRate = (self.initialTotalMass - self.finalTotalMass) / BURN_TIME
+		self.acceleration = 0.0
+		self.force = 0.0
+		self.flag = 0
+		self.transverseMomentOfInertia = (self.currentMass * (3 * ((0.5 * REFERENCE_DIAMETER) ** 2) + REFERENCE_LENGTH ** 2)) / (12)
+
+	def update(self, missileTimeOfFlight):
+		fuelUsed = self.massFlowRate * missileTimeOfFlight
+		self.currentMass = (self.initialTotalMass - fuelUsed)
+		if self.currentMass > self.finalTotalMass:
+			self.acceleration = self.massFlowRate * self.deltaV / self.currentMass
+			self.force = self.acceleration * self.currentMass
+			self.transverseMomentOfInertia = (self.currentMass * (3 * ((0.5 * REFERENCE_DIAMETER) ** 2) + REFERENCE_LENGTH ** 2)) / (12)
+			# print(missileTimeOfFlight, self.currentMass, self.acceleration, self.force)
+		else:
+			self.acceleration = 0
+			self.force = 0
+			if self.flag == 0:
+				self.transverseMomentOfInertia = (self.currentMass * (3 * ((0.5 * REFERENCE_DIAMETER) ** 2) + REFERENCE_LENGTH ** 2)) / (12)
+				print(missileTimeOfFlight, "BURNOUT", self.transverseMomentOfInertia)
+				self.flag = 1
+
 class Atmosphere:
 
 	def __init__(self):
@@ -93,13 +129,74 @@ class Atmosphere:
 			self.q = q
 			self.mach = mach
 
+class Aerodynamics:
+
+	def __init__(self):
+		self.CD = 0.82
+		self.force = np.zeros(2) # aerodynamic force
+		self.moment = np.zeros(2) # aerodynamic moment
+
+	def update(self, dynamicPressure):
+		self.force[0] = self.CD * REFERENCE_AREA * dynamicPressure
+		self.force[1] = 0.0
+		self.moment[0] = 0.0
+		self.moment[1] = 0.0 
+
+class MissileDynamics:
+
+	def __init__(self, initialMissileRightUpPosition, initialMissileRightUpVelocity):
+		self.missileTimeOfFlight = 0.0
+		self.missileRightUpPosition = initialMissileRightUpPosition
+		self.missileRightUpVelocity = initialMissileRightUpVelocity
+
+		self.rocketAcceleration = 0.0
+		self.normalAcceleration = 0.0
+		self.aerodynamicForce = np.zeros(2)
+		self.aerodynamicMoment = np.zeros(2)
+		self.localAcceleration = np.zeros(2)
+
+		print("CONSTRUCT MISSILE")
+
+	def calculateDerivatives(self):
+		velU = unitvector(self.missileRightUpVelocity)
+		axis = npa(
+			[
+				velU[0],
+				velU[1]
+			]
+		)
+		normal = npa(
+			[
+				-1 * velU[1],
+				velU[0]
+			]
+		)
+		mslLocalOrient = npa([axis, normal])
+
+		# axialAcceleration = 
+
+		bodyAcceleration = npa([self.rocketAcceleration, self.normalAcceleration])
+		self.localAcceleration = bodyAcceleration @ mslLocalOrient
+
+	def motion(self):
+		deltaVel = TIME_STEP * self.localAcceleration
+		self.missileRightUpVelocity += deltaVel
+		deltaPos = TIME_STEP * self.missileRightUpVelocity
+		self.missileRightUpPosition += deltaPos
+		self.missileTimeOfFlight += TIME_STEP
+
+	def update(self, rocketAcceleration, normalAcceleration):
+		self.rocketAcceleration = rocketAcceleration
+		self.normalAcceleration = normalAcceleration
+		self.calculateDerivatives()
+		self.motion()
+
 class Guidance:
 
 	def __init__(self):
 		self.PROPORTIONAL_GAIN = 4.0
 		self.command = 0.0
 		self.limit = 100.0
-
 		print("GUIDANCE CONSTRUCTED")
 
 	def update(self, missileRightUpPosition, missileRightUpVelocity, targetRightUpPosition, targetRightUpVelocity):
@@ -130,35 +227,29 @@ class Guidance:
 		if accCommMag > self.limit:
 			new = self.limit * np.sign(bodyAccelCommand)
 			bodyAccelCommand = new
-		self.command = npa([0.0, bodyAccelCommand]) @ mslLocalOrient
-
-class Missile:
-
-	def __init__(self, initialMissileRightUpPosition, initialMissileRightUpVelocity):
-		self.missileTimeOfFlight = 0.0
-		self.missileRightUpPosition = initialMissileRightUpPosition
-		self.missileRightUpVelocity = initialMissileRightUpVelocity
-
-		print("CONSTRUCT MISSILE")
-
-	def update(self, RightUpAcceleration):
-		deltaVel = TIME_STEP * RightUpAcceleration
-		self.missileRightUpVelocity += deltaVel
-		deltaPos = TIME_STEP * self.missileRightUpVelocity
-		self.missileRightUpPosition += deltaPos
-		self.missileTimeOfFlight += TIME_STEP
+		self.command = bodyAccelCommand
 
 class Simulation:
 
 	def __init__(self, initialTargetRightUpPosition, initialTargetRightUpVelocity, initialMissileRightUpPosition, initialMissileRightUpVelocity):
 
+		# Simulation.
 		self.SimulationTime = 0.0
 		self.SimulationTimeStep = 1.0 / 100.0
-		self.Data = {"X":[], "Y":[], "TX":[], "TY":[]}
+		self.Data = {"X":[], "Y":[], "VX":[], "VY":[], "TX":[], "TY":[]}
+
+		# Target.
 		self.Target = Target(initialTargetRightUpPosition=initialTargetRightUpPosition, initialTargetRightUpVelocity=initialTargetRightUpVelocity)
+
+		# Missile.
+		self.RocketMotor = MassPropertiesAndRocketMotor()
 		self.Atmoshpere = Atmosphere()
+		self.MassProperties = None
+		self.Missile = MissileDynamics(initialMissileRightUpPosition=initialMissileRightUpPosition, initialMissileRightUpVelocity=initialMissileRightUpVelocity)
+
+		# Guidance and Control.
 		self.Guidance = Guidance()
-		self.Missile = Missile(initialMissileRightUpPosition=initialMissileRightUpPosition, initialMissileRightUpVelocity=initialMissileRightUpVelocity)
+		
 
 	def update(self):
 
@@ -171,13 +262,16 @@ class Simulation:
 
 		# Update atmosphere, guidance, missile.
 		while self.Missile.missileTimeOfFlight < self.SimulationTime:
+			self.RocketMotor.update(self.Missile.missileTimeOfFlight)
 			self.Atmoshpere.update(self.Missile.missileRightUpPosition[1], la.norm(self.Missile.missileRightUpVelocity), "METRIC")
+			self.Missile.update(self.RocketMotor.acceleration, self.Guidance.command)
 			self.Guidance.update(self.Missile.missileRightUpPosition, self.Missile.missileRightUpVelocity, self.Target.targetRightUpPosition, self.Target.targetRightUpVelocity)
-			self.Missile.update(self.Guidance.command)
 
 		# Log data.
 		self.Data["X"].append(self.Missile.missileRightUpPosition[0])
 		self.Data["Y"].append(self.Missile.missileRightUpPosition[1])
+		self.Data["VX"].append(self.Missile.missileRightUpVelocity[0])
+		self.Data["VY"].append(self.Missile.missileRightUpVelocity[1])
 		self.Data["TX"].append(self.Target.targetRightUpPosition[0])
 		self.Data["TY"].append(self.Target.targetRightUpPosition[1])
 
@@ -204,21 +298,42 @@ class Simulation:
 			# Update simulation.
 			self.update()
 
-			# End check.
+			# Intercept check.
 			missDistance = la.norm(self.Target.targetRightUpPosition - self.Missile.missileRightUpPosition)
 			if missDistance < 10:
 				print(f"SUCCESSFUL INTERCEPT, MISS DISTANCE = {missDistance}")
 				break
 
+			# Poca check.
+			velU = unitvector(self.Missile.missileRightUpVelocity)
+			axis = npa(
+				[
+					velU[0],
+					velU[1]
+				]
+			)
+			normal = npa(
+				[
+					-1 * velU[1],
+					velU[0]
+				]
+			)
+			mslLocalOrient = npa([axis, normal])
+			relPos = self.Target.targetRightUpPosition - self.Missile.missileRightUpPosition
+			bodyRelPos = mslLocalOrient @ relPos
+			if bodyRelPos[0] < 0:
+				break
+
 			# Console report.
-			print(f"{self.Missile.missileTimeOfFlight:.2f} {self.Missile.missileRightUpPosition}")
+			if (round(self.Missile.missileTimeOfFlight, 2).is_integer()):
+				print(f"{self.Missile.missileTimeOfFlight:.2f} {self.Missile.missileRightUpPosition}")
 
 		self.plot()
 
 if __name__ == "__main__":
-	initialTargetRightUpPosition = npa([5000.0, 5000.0])
-	initialTargetRightUpVelocity = npa([-200.0, -50.0])
+	initialTargetRightUpPosition = npa([6000.0, 6000.0])
+	initialTargetRightUpVelocity = npa([-50.0, -50.0])
 	initialMissileRightUpPosition = npa([0.0, 0.0])
-	initialMissileRightUpVelocity = npa([250.0, 260.0])
+	initialMissileRightUpVelocity = npa([10.0, 18.0])
 	x = Simulation(initialTargetRightUpPosition, initialTargetRightUpVelocity, initialMissileRightUpPosition, initialMissileRightUpVelocity)
 	x.simulate()
