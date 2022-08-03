@@ -18,13 +18,9 @@ STANDARD_PRESSURE = 101325 # Pascals.
 # Missile constant characteristics. Rough approximation of a Hellfire missile.
 BURN_TIME = 2.95 # Seconds. Hellfire.
 NOZZLE_EXIT_AREA = 0.004 # Meters squared. Hellfire.
-
 REFERENCE_DIAMETER = 0.1778 # Meters. Hellfire.
-
 NOSE_LENGTH = 3 # FEET
-
 REFERENCE_LENGTH = 1.6 # Meters. Hellfire.
-
 WING_HALF_SPAN = 2 # FEET
 WING_TIP_CHORD = 0 # FEET
 WING_ROOT_CHORD = 6 # FEET
@@ -188,7 +184,7 @@ class MissileDynamics:
 
 		axialAcceleration = None
 		rocketAcceleration = self.rocketForce / self.mass
-		dragAcceleration = self.dragForce / self.mass
+		dragAcceleration = 0.0
 		axialAcceleration = rocketAcceleration + dragAcceleration
 
 		localGravity = npa([0.0, -1.0 * self.gravity])
@@ -196,7 +192,7 @@ class MissileDynamics:
 		self.bodyAcceleration = npa([axialAcceleration, self.normalAcceleration]) + bodyGravity
 		self.localAcceleration = self.bodyAcceleration @ self.mslLocalOrient
 
-		if self.missileTimeOfFlight > 5:
+		if self.missileTimeOfFlight > 4:
 			pause = 0
 
 	def motion(self):
@@ -265,7 +261,7 @@ class Simulation:
 		# Target.
 		self.Target = Target(initialTargetRightUpPosition=initialTargetRightUpPosition, initialTargetRightUpVelocity=initialTargetRightUpVelocity)
 
-		# Missile.
+		# Missile Dynamics..
 		self.ballistic = ballistic
 		self.Atmoshpere = Atmosphere()
 		self.MassPropertiesAndRocketMotor = MassPropertiesAndRocketMotor()
