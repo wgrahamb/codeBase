@@ -81,7 +81,7 @@ while time <= maxTime:
 	loopOneStorage["NORMAL ACCEL"].append(normalAccel)
 
 # OUTPUT
-print(f"LOOP ONE FINISHED.")
+print(f"LINEAR AIRFRAME LOOP FINISHED.")
 
 # CALCULATION OF CONSTANTS FOR SIMULATION TWO
 TEMP1 = (centerOfGravityFromNose - wingCenterOfPressure) / refDiameter
@@ -152,7 +152,7 @@ while time <= maxTime:
 
 
 # OUTPUT
-print(f"LOOP TWO FINISHED.")
+print(f"DIFFERENTIAL EQUATIONS OF MOTION LOOP FINISHED.")
 
 # PLOT
 radToDeg = 57.2957795130823
