@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
-f1 = r"output/missile_6DOF.txt"
+f1 = r"sixDofCppFunctional_V2/output/missile_6DOF.txt"
 
 viewFile = f1
 

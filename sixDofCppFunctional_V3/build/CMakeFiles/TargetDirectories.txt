@@ -1,3 +1,0 @@
-/home/graham/codeBase/sixDofCppFunctional_V3/build/CMakeFiles/rebuild_cache.dir
-/home/graham/codeBase/sixDofCppFunctional_V3/build/CMakeFiles/edit_cache.dir
-/home/graham/codeBase/sixDofCppFunctional_V3/build/CMakeFiles/missileModel.dir
