@@ -3,27 +3,52 @@ from numpy import array as npa
 from numpy import linalg as la
 import pandas as pd
 import matplotlib.pyplot as plt
+from ambiance import Atmosphere as atm
+
+MM_TO_M = 1.0 / 1000.0
+
+"""
+
+REFERENCE_DIAMETER 0.18 M
+REFERENCE_LENGTH 1.6 M
+NOSE_LENGTH 0.249733 M
+WING_SPAN 66.1175 MM
+WING_TIP_CHORD 91.047 MM
+WING_ROOT_CHORD 0.123564 M
+TAIL_SPAN 71.3548 MM
+TAIL_TIP_CHORD 0.387894 M
+TAIL_ROOT_CHORD 0.48084 M
+DISTANCE_FROM_BASE_OF_NOSE_TO_WING 0.323925 M
+FINAL_CG_FROM_NOSE 0.644605 m
+CENTER_OF_DEFLECTION_FROM_NOSE_UNCORRECTED 1.8059 M
+UNCORRECTED_REFERENCE_LENGTH 1.85026 m
+
+"""
 
 # INPUTS
-altitude = 50000 # FEET
-speed = 3000 # FEET PER SEC
-finDeflectionDeg = 5 # DEGREES
-finDeflection = np.radians(finDeflectionDeg) # RADIANS
-speedOfSound = 1000 # FEET PER SECOND >>> ASSUMED CONSTANT
-gravity = 32.2 # FEET PER S^2 >>> ASSUMED CONSTANT
-refDiameter = 1 # FEET
-noseLength = 3 # FEET
-refLength = 20 # FEET
-wingHalfSpan = 2 # FEET
-wingTipChord = 0 # FEET
-wingRootChord = 6 # FEET
-tailHalfSpan = 2 # FEET
-tailTipChord = 0 # FEET
-tailRootChord = 2 # FEET
-distanceFromBaseOfNoseToWing = 4 # FEET
-centerOfGravityFromNose = 10 # FEET
-centerOfDeflectionFromNose = 19.5 # FEET
-weight = 1000 # LBF
+altitude = 15000 # Meters
+speed = 180 # Meters per sec
+finDeflectionDeg = 1 # DEGREES
+finDeflectionRadians = np.radians(finDeflectionDeg) # Radians.
+speedOfSound = 343 # Meters per second
+gravity = 9.81 # meters per second squared
+
+refDiameter = 0.18 # Meters
+noseLength = 0.249733 # Meters
+refLength = 1.6 # Meters
+
+wingHalfSpan = 66.1175 * MM_TO_M / 2.0 # Meters
+wingTipChord = 91.047 * MM_TO_M # Meters
+wingRootChord = 0.123564 # Meters
+
+tailHalfSpan = 71.3548 * MM_TO_M / 2.0 # Meters
+tailRootChord = 0.48084 # Meters
+tailTipChord = 0.387894 # Meters
+
+distanceFromBaseOfNoseToWing = 0.323925 # Meters
+finalCenterOfGravityFromNose =  0.644605 # Meters
+centerOfDeflectionFromNose = 1.8059 - noseLength # Meters (correction here due to oversight in drawing)
+weight = 20 # Kg
 
 # CALCULATIONS OF CONSTANTS FOR LOOP ONE AND TWO
 wingArea = 0.5 * wingHalfSpan * (wingTipChord + wingRootChord)
@@ -32,16 +57,18 @@ refArea = np.pi * (refDiameter ** 2) / 4
 noseArea = noseLength * refDiameter
 planformArea = (refLength - noseLength) * refDiameter + 0.667 * noseLength * refDiameter
 mach = speed / speedOfSound
-beta = np.sqrt(mach ** 2 - 1)
+if mach > 1:
+	beta = np.sqrt(mach ** 2 - 1)
+else:
+	beta = mach
 noseCenterOfPressure = 0.67 * noseLength
 wingCenterOfPressure = noseLength + distanceFromBaseOfNoseToWing + 0.7 * wingRootChord - 0.2 * wingTipChord
 AN = 0.67 * noseLength * refDiameter
 AB = (refLength - noseLength) * refDiameter
 bodyCenterOfPressure = (0.67 * AN * noseLength + AB * (noseLength + 0.5 * (refLength - noseLength))) / (AN + AB)
-if altitude <= 30000:
-	rho = 0.002378 * np.exp(-altitude / 30000)
-else:
-	rho = 0.0034 * np.exp(-altitude / 22000)
+
+atmos = atm(altitude)
+rho = atmos.density[0]
 dynamicPressure = 0.5 * rho * speed * speed
 transverseMomentOfInertia = (weight * (3 * ((0.5 * refDiameter) ** 2) + refLength ** 2)) / (12 * gravity)
 
@@ -64,8 +91,8 @@ while time <= maxTime:
 	time += timeStep
 
 	# NORMAL COEFFICIENT AND PITCHING MOMENT COEFFICIENT CALCULATION
-	normalCoefficient = 2 * alpha + (1.5 * planformArea * alpha * alpha) / refArea + (8 * wingArea * alpha) / (beta * refArea) + (8 * tailArea * (alpha + finDeflection)) / (beta * refArea)
-	pitchingMomentCoefficient = 2 * alpha * ((centerOfGravityFromNose - noseCenterOfPressure) / refDiameter) + ((1.5 * planformArea * alpha * alpha) / refArea) * ((centerOfGravityFromNose - bodyCenterOfPressure) / refDiameter) + ((8 * wingArea * alpha) / (beta * refArea)) * ((centerOfGravityFromNose - wingCenterOfPressure) / refDiameter) + ((8 * tailArea * (alpha + finDeflection)) / (beta * refArea)) * ((centerOfGravityFromNose - centerOfDeflectionFromNose) / refDiameter)
+	normalCoefficient = 2 * alpha + (1.5 * planformArea * alpha * alpha) / refArea + (8 * wingArea * alpha) / (beta * refArea) + (8 * tailArea * (alpha + finDeflectionRadians)) / (beta * refArea)
+	pitchingMomentCoefficient = 2 * alpha * ((finalCenterOfGravityFromNose - noseCenterOfPressure) / refDiameter) + ((1.5 * planformArea * alpha * alpha) / refArea) * ((finalCenterOfGravityFromNose - bodyCenterOfPressure) / refDiameter) + ((8 * wingArea * alpha) / (beta * refArea)) * ((finalCenterOfGravityFromNose - wingCenterOfPressure) / refDiameter) + ((8 * tailArea * (alpha + finDeflectionRadians)) / (beta * refArea)) * ((finalCenterOfGravityFromNose - centerOfDeflectionFromNose) / refDiameter)
 
 	# UPDATE SIMULATION PARAMETERS
 	thetaDotDot = (dynamicPressure * refArea * refDiameter * pitchingMomentCoefficient) / transverseMomentOfInertia
@@ -84,13 +111,13 @@ while time <= maxTime:
 print(f"LOOP ONE FINISHED.")
 
 # CALCULATION OF CONSTANTS FOR SIMULATION TWO
-TEMP1 = (centerOfGravityFromNose - wingCenterOfPressure) / refDiameter
-TEMP2 = (centerOfGravityFromNose - centerOfDeflectionFromNose) / refDiameter
-TEMP3 = (centerOfGravityFromNose - bodyCenterOfPressure) / refDiameter
-TEMP4 = (centerOfGravityFromNose - noseCenterOfPressure) / refDiameter
+TEMP1 = (finalCenterOfGravityFromNose - wingCenterOfPressure) / refDiameter
+TEMP2 = (finalCenterOfGravityFromNose - centerOfDeflectionFromNose) / refDiameter
+TEMP3 = (finalCenterOfGravityFromNose - bodyCenterOfPressure) / refDiameter
+TEMP4 = (finalCenterOfGravityFromNose - noseCenterOfPressure) / refDiameter
 Y1 = 2 * TEMP4 + 8 * wingArea * TEMP1 / (beta * refArea) + 8 * tailArea * TEMP2 / (beta * refArea)
 Y2 = 1.5 * planformArea * TEMP3 / refArea
-Y3 = 8 * tailArea * TEMP2 * finDeflection / (beta * refArea)
+Y3 = 8 * tailArea * TEMP2 * finDeflectionRadians / (beta * refArea)
 
 alphaTrim = (-Y1 - np.sqrt((Y1 ** 2) - 4 * Y2 * Y3)) / (2 * Y2)
 CNA = 2 + 1.5 * planformArea * alphaTrim / refArea + 8 * wingArea / (beta * refArea) + 8 * tailArea / (beta * refArea)

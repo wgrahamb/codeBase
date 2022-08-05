@@ -10,21 +10,33 @@ from interpolationGivenTwoVectors import linearInterpolation
 
 np.set_printoptions(suppress=True, precision=2)
 
-# Constants.
-gravity = 32.2 # FEET PER S^2 >>> ASSUMED CONSTANT
-refDiameter = 1 # FEET
-noseLength = 3 # FEET
-refLength = 20 # FEET
-wingHalfSpan = 2 # FEET
-wingTipChord = 0 # FEET
-wingRootChord = 6 # FEET
-tailHalfSpan = 2 # FEET
-tailTipChord = 0 # FEET
-tailRootChord = 2 # FEET
-distanceFromBaseOfNoseToWing = 4 # FEET
-centerOfGravityFromNose = 10 # FEET
-centerOfDeflectionFromNose = 19.5 # FEET
-weight = 1000 # LBF
+MM_TO_M = 1.0 / 1000.0
+
+# INPUTS
+altitude = 15000 # Meters
+speed = 130 # Meters per sec
+finDeflectionDeg = 1 # DEGREES
+finDeflectionRadians = np.radians(finDeflectionDeg) # Radians.
+speedOfSound = 343 # Meters per second
+gravity = 9.81 # meters per second squared
+
+refDiameter = 0.18 # Meters
+noseLength = 0.249733 # Meters
+refLength = 1.6 # Meters
+
+wingHalfSpan = 66.1175 * MM_TO_M / 2.0 # Meters
+wingTipChord = 91.047 * MM_TO_M # Meters
+wingRootChord = 0.123564 # Meters
+
+tailHalfSpan = 71.3548 * MM_TO_M / 2.0 # Meters
+tailRootChord = 0.48084 # Meters
+tailTipChord = 0.387894 # Meters
+
+distanceFromBaseOfNoseToWing = 0.323925 # Meters
+finalCenterOfGravityFromNose =  0.644605 # Meters
+centerOfDeflectionFromNose = 1.8059 - noseLength # Meters (correction here due to oversight in drawing)
+weight = 20 # Kg
+
 wingArea = 0.5 * wingHalfSpan * (wingTipChord + wingRootChord)
 tailArea = 0.5 * tailHalfSpan * (tailTipChord + tailRootChord)
 refArea = np.pi * (refDiameter ** 2) / 4
@@ -36,32 +48,36 @@ AN = 0.67 * noseLength * refDiameter
 AB = (refLength - noseLength) * refDiameter
 bodyCenterOfPressure = (0.67 * AN * noseLength + AB * (noseLength + 0.5 * (refLength - noseLength))) / (AN + AB)
 transverseMomentOfInertia = (weight * (3 * ((0.5 * refDiameter) ** 2) + refLength ** 2)) / (12 * gravity)
-TEMP1 = (centerOfGravityFromNose - wingCenterOfPressure) / refDiameter
-TEMP2 = (centerOfGravityFromNose - centerOfDeflectionFromNose) / refDiameter
-TEMP3 = (centerOfGravityFromNose - bodyCenterOfPressure) / refDiameter
-TEMP4 = (centerOfGravityFromNose - noseCenterOfPressure) / refDiameter
+TEMP1 = (finalCenterOfGravityFromNose - wingCenterOfPressure) / refDiameter
+TEMP2 = (finalCenterOfGravityFromNose - centerOfDeflectionFromNose) / refDiameter
+TEMP3 = (finalCenterOfGravityFromNose - bodyCenterOfPressure) / refDiameter
+TEMP4 = (finalCenterOfGravityFromNose - noseCenterOfPressure) / refDiameter
 
 # Missile.
 missileTof = 0.0
 missilePos = npa([0.0, 0.0])
-missileVel = npa([1000.0, 1000.0])
+missileVel = npa([50.0, 100.0])
 missileAcc = npa([0.0, 0.0])
 
 # Target.
-targetPos = npa([50000.0, 50000.0])
-targetVel = npa([-800.0, 0.0])
+targetPos = npa([2000.0, 2000.0])
+targetVel = npa([-200.0, -200.0])
 
 # Simulation control.
 timeStep = 0.001
 go = True
-simData = {"TOF": [], "X": [], "Y": [], "TX": [], "TY": [], "COMMAND": [], "ACHIEVED": []}
+simData = {"TOF": [], "X": [], "Y": [], "TX": [], "TY": [], "COMMAND": [], "ACHIEVED": [], "ALPHA": [], "THETA_DOT": [], "ALPHA_DOT": []}
+
+alpha = 0.0
+alphaOld = 0.0
+alphaDot = 0.0
 e = 0
 eDot = 0
 
 while go:
 
 	# Target update.
-	targetAcc = np.random.randint(-250, 1, 2)
+	targetAcc = np.random.randint(-1, 1, 2)
 	targetVel += (targetAcc * timeStep)
 	targetPos += (targetVel * timeStep)
 
@@ -100,25 +116,26 @@ while go:
 	omega = T1 / T2
 	normalAccCommand = 4 * omega * rightUpInterceptorToInterceptVelMag
 	accCommMag = np.abs(normalAccCommand)
-	limit = 75
+	limit = 35
 	if accCommMag > limit:
 		new = limit * np.sign(normalAccCommand)
 		normalAccCommand = new
 
 	# Atmosphere.
-	altitude = missilePos[1] # Feet.
+	altitude = missilePos[1] # Meters
 	atmosphere = atm(altitude)
-	speedOfSound = 3.28084 * atmosphere.speed_of_sound[0] # Feet per second.
+	speedOfSound = atmosphere.speed_of_sound[0] # Feet per second.
 	mach = velMag / speedOfSound
-	if altitude <= 30000:
-		rho = 0.002378 * np.exp(-altitude / 30000)
-	else:
-		rho = 0.0034 * np.exp(-altitude / 22000)
+	rho = atmosphere.density[0]
 	dynamicPressure = 0.5 * rho * velMag * velMag
 
 	# Aerodynamics.
-	beta = np.sqrt(np.abs(mach ** 2 - 1))
+	if mach > 1:
+		beta = np.sqrt(mach ** 2 - 1)
+	else:
+		beta = 0.7
 	CNTRIM = weight * normalAccCommand / (dynamicPressure * refArea)
+
 	Y1 = 2 + 8 * wingArea / (beta * refArea) + 8 * tailArea / (beta * refArea)
 	Y2 = 1.5 * planformArea / refArea
 	Y3 = 8 * tailArea / (beta * refArea)
@@ -127,14 +144,21 @@ while go:
 	Y6 = 8 * tailArea * TEMP2 / (beta * refArea)
 	P2 = Y2 - (Y3 * Y5) / Y6
 	P3 = Y1 - (Y3 * Y4) / Y6
-	alphaTrim = (-1 * P3 + np.sqrt(P3 * P3 + 4 * P2 * CNTRIM)) / (2 * P2)
+
+	# Kludge limiter on alpha trim.
+	temporaryOne = P3 * P3
+	temporaryTwo = 4 * P2 * CNTRIM
+	temporaryThree = temporaryOne + temporaryTwo
+	if temporaryThree < 0:
+		temporaryThree =1
+
+	alphaTrim = (-1 * P3 + np.sqrt(temporaryThree)) / (2 * P2)
 	deltaTrim = (-1 * Y4 * alphaTrim - Y5 * alphaTrim * alphaTrim) / Y6
 	CNA = 2 + 1.5 * planformArea * alphaTrim / refArea + 8 * wingArea / (beta * refArea) + 8 * tailArea / (beta * refArea)
 	CND = 8 * tailArea / (beta * refArea)
 	CMAP = 2 * TEMP4 + 1.5 * planformArea * alphaTrim * TEMP3 / refArea + 8 * wingArea * TEMP1 / (beta * refArea)
 	CMA = CMAP + 8 * tailArea * TEMP2 / (beta * refArea)
 	CMD = 8 * tailArea * TEMP2 / (beta * refArea)
-
 	ZA = -1 * gravity * dynamicPressure * refArea * CNA / (weight * velMag)
 	ZD = -1 * gravity * dynamicPressure * refArea * CND / (weight * velMag)
 	MA = dynamicPressure * refArea * refDiameter * CMA / transverseMomentOfInertia
@@ -146,7 +170,7 @@ while go:
 	TA = MD / (MA * ZD - MD * ZA)
 	K3 = 1845 * K1 / velMag # 1845 = Some kind of gain.
 	KDC = (1 - KR * K3) / (K1 * KR)
-	THD = K3 * (e + TA * eDot)
+	THD = K3 * (e + TA * eDot) # theta dot
 
 	# Actuator.
 	deflection = KR * (KDC * normalAccCommand + THD)
@@ -158,7 +182,11 @@ while go:
 	omegaAF = np.sqrt(-1 * MA)
 	zetaAF = ZA * omegaAF / (2 * MA)
 	eDotDot = (omegaAF ** 2) * (deflection - e - 2 * zetaAF * eDot / omegaAF)
+
 	normalAccel = K1 * (e - (eDotDot / (omegaZ ** 2)))
+	alphaDot = THD - ((normalAccel * gravity) / velMag)
+	alpha += alphaDot * timeStep
+
 	e += timeStep * eDot
 	eDot += timeStep * eDotDot
 	e = (e + eOld + timeStep * eDot) / 2
@@ -180,6 +208,9 @@ while go:
 	simData["TY"].append(targetPos[1])
 	simData["COMMAND"].append(normalAccCommand)
 	simData["ACHIEVED"].append(normalAccel)
+	simData["ALPHA"].append(alpha)
+	simData['THETA_DOT'].append(THD)
+	simData["ALPHA_DOT"].append(alphaDot)
 
 	# Console report.
 	if round(missileTof, 3).is_integer():
@@ -196,11 +227,14 @@ trajectory.plot(simData["TX"], simData["TY"], label="Threat", color="r")
 trajectory.scatter(targetPos[0], targetPos[1], color="r")
 trajectory.legend()
 
-accels = fig.add_subplot(122)
+performance = fig.add_subplot(122)
 # accels.set_ylim([-30, 30])
-accels.plot(simData["TOF"], simData["COMMAND"], label="Acceleration command (m/s^2).", color="r")
-accels.plot(simData["TOF"], simData["ACHIEVED"], label="Acceleration achieved (m/s^2).", color="b")
-accels.legend()
+performance.plot(simData["TOF"], simData["COMMAND"], label="Acceleration command (m/s^2).", color="r")
+performance.plot(simData["TOF"], simData["ACHIEVED"], label="Acceleration achieved (m/s^2).", color="b")
+performance.plot(simData["TOF"], simData["ALPHA"], label="Alpha Radians.")
+performance.plot(simData["TOF"], simData["THETA_DOT"], label="Theta Dot Radians Per Second.")
+# performance.plot(simData["TOF"], simData["ALPHA_DOT"], label="Alpha Dot Radians Per Second.")
+performance.legend()
 
 # plt.get_current_fig_manager().full_screen_toggle()
 plt.show()

@@ -3,50 +3,61 @@ from numpy import array as npa
 from numpy import linalg as la
 import pandas as pd
 import matplotlib.pyplot as plt
+from ambiance import Atmosphere as atm
+
+MM_TO_M = 1.0 / 1000.0
 
 # INPUTS
-altitude = 0 # FEET
-speed = 3000 # FEET PER SEC
-speedOfSound = 1000 # FEET PER SECOND >>> ASSUMED CONSTANT
-gravity = 32.2 # FEET PER S^2 >>> ASSUMED CONSTANT
-refDiameter = 1 # FEET
-noseLength = 3 # FEET
-refLength = 20 # FEET
-wingHalfSpan = 2 # FEET
-wingTipChord = 0 # FEET
-wingRootChord = 6 # FEET
-tailHalfSpan = 2 # FEET
-tailTipChord = 0 # FEET
-tailRootChord = 2 # FEET
-distanceFromBaseOfNoseToWing = 4 # FEET
-centerOfGravityFromNose = 10 # FEET
-centerOfDeflectionFromNose = 19.5 # FEET
-weight = 1000 # LBF
+altitude = 15000 # Meters
+speed = 130 # Meters per sec
+finDeflectionDeg = 1 # DEGREES
+finDeflectionRadians = np.radians(finDeflectionDeg) # Radians.
+speedOfSound = 343 # Meters per second
+gravity = 9.81 # meters per second squared
+
+refDiameter = 0.18 # Meters
+noseLength = 0.249733 # Meters
+refLength = 1.6 # Meters
+
+wingHalfSpan = 66.1175 * MM_TO_M / 2.0 # Meters
+wingTipChord = 91.047 * MM_TO_M # Meters
+wingRootChord = 0.123564 # Meters
+
+tailHalfSpan = 71.3548 * MM_TO_M / 2.0 # Meters
+tailRootChord = 0.48084 # Meters
+tailTipChord = 0.387894 # Meters
+
+distanceFromBaseOfNoseToWing = 0.323925 # Meters
+finalCenterOfGravityFromNose =  0.644605 # Meters
+centerOfDeflectionFromNose = 1.8059 - noseLength # Meters (correction here due to oversight in drawing)
+weight = 20 # Kg
+
 wingArea = 0.5 * wingHalfSpan * (wingTipChord + wingRootChord)
 tailArea = 0.5 * tailHalfSpan * (tailTipChord + tailRootChord)
 refArea = np.pi * (refDiameter ** 2) / 4
 noseArea = noseLength * refDiameter
 planformArea = (refLength - noseLength) * refDiameter + 0.667 * noseLength * refDiameter
 mach = speed / speedOfSound
-beta = np.sqrt(mach ** 2 - 1)
+if mach > 1:
+	beta = np.sqrt(mach ** 2 - 1)
+else:
+	beta = mach
 noseCenterOfPressure = 0.67 * noseLength
 wingCenterOfPressure = noseLength + distanceFromBaseOfNoseToWing + 0.7 * wingRootChord - 0.2 * wingTipChord
 AN = 0.67 * noseLength * refDiameter
 AB = (refLength - noseLength) * refDiameter
 bodyCenterOfPressure = (0.67 * AN * noseLength + AB * (noseLength + 0.5 * (refLength - noseLength))) / (AN + AB)
-if altitude <= 30000:
-	rho = 0.002378 * np.exp(-altitude / 30000)
-else:
-	rho = 0.0034 * np.exp(-altitude / 22000)
+atmos = atm(altitude)
+rho = atmos.density[0]
 dynamicPressure = 0.5 * rho * speed * speed
 transverseMomentOfInertia = (weight * (3 * ((0.5 * refDiameter) ** 2) + refLength ** 2)) / (12 * gravity)
 
 # CALCULATIONS OF CONSTANTS FOR LOOP ONE
-accelCommand = 10 # Gs
-TEMP1 = (centerOfGravityFromNose - wingCenterOfPressure) / refDiameter
-TEMP2 = (centerOfGravityFromNose - centerOfDeflectionFromNose) / refDiameter
-TEMP3 = (centerOfGravityFromNose - bodyCenterOfPressure) / refDiameter
-TEMP4 = (centerOfGravityFromNose - noseCenterOfPressure) / refDiameter
+accelCommand = 1 # Gs
+TEMP1 = (finalCenterOfGravityFromNose - wingCenterOfPressure) / refDiameter
+TEMP2 = (finalCenterOfGravityFromNose - centerOfDeflectionFromNose) / refDiameter
+TEMP3 = (finalCenterOfGravityFromNose - bodyCenterOfPressure) / refDiameter
+TEMP4 = (finalCenterOfGravityFromNose - noseCenterOfPressure) / refDiameter
 CNTRIM = weight * accelCommand / (dynamicPressure * refArea)
 Y1 = 2 + 8 * wingArea / (beta * refArea) + 8 * tailArea / (beta * refArea)
 Y2 = 1.5 * planformArea / refArea
