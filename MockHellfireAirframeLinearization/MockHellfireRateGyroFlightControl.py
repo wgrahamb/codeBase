@@ -1,3 +1,4 @@
+# Python libraries.
 import numpy as np
 from numpy import array as npa
 from numpy import linalg as la
@@ -5,123 +6,307 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from ambiance import Atmosphere as atm
 
+# Utility.
+from utility.matPlotLibColors import matPlotLibColors as colors
+from utility.trapezoidIntegrate import integrate
+
+# Classes.
+from classes.Atmosphere import Atmosphere
+
+
+"""
+
+MOCK HELLFIRE DIMENSIONS
+
+REFERENCE_DIAMETER 0.18 M
+REFERENCE_LENGTH 1.6 M
+NOSE_LENGTH 0.249733 M
+WING_SPAN 66.1175 MM
+WING_TIP_CHORD 91.047 MM
+WING_ROOT_CHORD 0.123564 M
+TAIL_SPAN 71.3548 MM
+TAIL_TIP_CHORD 0.387894 M
+TAIL_ROOT_CHORD 0.48084 M
+DISTANCE_FROM_BASE_OF_NOSE_TO_WING 0.323925 M
+STARTING_CG_FROM_NOSE 0.644605 m
+UNCORRECTED_CENTER_OF_DEFLECTION_FROM_NOSE 1.8059 M
+UNCORRECTED_REFERENCE_LENGTH 1.85026 m
+
+"""
+
+
+# Constants.
+TIME_STEP = 0.001 # Seconds.
+MANEUVER_TIME = 1.5 # Seconds.
+MAX_TIME = 3 # Seconds.
 MM_TO_M = 1.0 / 1000.0
+RAD_TO_DEG = 57.2957795130823
+DEG_TO_RAD = 1.0 / 57.2957795130823
+STANDARD_GRAVITY = 9.81 # Meters per second squared.
+REFERENCE_DIAMETER = 0.18 # Meters.
+NOSE_LENGTH = 0.249733 # Meters.
+DEFL_LIMIT = 25 # Degrees.
+DEFL_RATE_LIMIT = 50 # Degrees per second.
+WNACT = 10 * RAD_TO_DEG # Degrees per second per second.
+ZETACT = 0.7 # Non dimensional.
+WING_HALF_SPAN = 66.1175 * MM_TO_M / 2.0 # Meters.
+WING_TIP_CHORD = 91.047 * MM_TO_M # Meters.
+WING_ROOT_CHORD = 0.123564 # Meters.
+TAIL_HALF_SPAN = 71.3548 * MM_TO_M / 2.0 # Meters.
+TAIL_TIP_CHORD = 0.387894 # Meters.
+TAIL_ROOT_CHORD = 0.48084 # Meters.
+DISTANCE_FROM_BASE_OF_NOSE_TO_WING = 0.323925 # Meters.
 
-# INPUTS
-altitude = 15000 # Meters
-speed = 130 # Meters per sec
-finDeflectionDeg = 1 # DEGREES
-finDeflectionRadians = np.radians(finDeflectionDeg) # Radians.
-speedOfSound = 343 # Meters per second
-gravity = 9.81 # meters per second squared
+### FUNCTION NEEDED HERE ###
+ALTITUDE = 1000 # Meters.
+AIRSPEED = 130.0 # Meters per second.
+FIRST_ACCEL_COMMAND_IN_GS = 2 # Gs.
+SECOND_ACCEL_COMMAND_IN_GS = -2 # Gs
+SPEED_OF_SOUND = 343 # Meters per second.
+STARTING_CG_FROM_NOSE =  0.644605 # Meters.
+LAST_CG_FROM_NOSE =  NOSE_LENGTH # Meters.
+MASS = 45 # Kilograms.
+### END FUNCTION NEEDED HERE ###
 
-refDiameter = 0.18 # Meters
-noseLength = 0.249733 # Meters
-refLength = 1.6 # Meters
+# Gonna leave uncorrected and see what happens.
+# REFERENCE_LENGTH = 1.6 # Meters.
+REFERENCE_LENGTH = 1.85026 # Meters.
 
-wingHalfSpan = 66.1175 * MM_TO_M / 2.0 # Meters
-wingTipChord = 91.047 * MM_TO_M # Meters
-wingRootChord = 0.123564 # Meters
+# Gonna leave uncorrected and see what happens.
+# CENTER_OF_DEFLECTION_FROM_NOSE = 1.8059 - NOSE_LENGTH # Meters (correction here due to oversight in drawing).
+CENTER_OF_DEFLECTION_FROM_NOSE = 1.8059 # Meters.
 
-tailHalfSpan = 71.3548 * MM_TO_M / 2.0 # Meters
-tailRootChord = 0.48084 # Meters
-tailTipChord = 0.387894 # Meters
+# CALCULATION OF AIRFRAME CONSTANTS FOR LINEAR EQUATIONS OF MOTION AND DIFFERENTIAL EQUATIONS OF MOTION.
+WING_AREA = 0.5 * WING_HALF_SPAN * (WING_TIP_CHORD + WING_ROOT_CHORD) # Meters squared.
+TAIL_AREA = 0.5 * TAIL_HALF_SPAN * (TAIL_TIP_CHORD + TAIL_ROOT_CHORD) # Meters squared.
+REFERENCE_AREA = np.pi * (REFERENCE_DIAMETER ** 2) / 4 # Meters squared.
+NOSE_AREA = NOSE_LENGTH * REFERENCE_DIAMETER # Meters squared.
+PLANFORM_AREA = (REFERENCE_LENGTH - NOSE_LENGTH) * REFERENCE_DIAMETER + 0.667 * NOSE_LENGTH * REFERENCE_DIAMETER # Meters squared.
+NOSE_CENTER_OF_PRESSURE = 0.67 * NOSE_LENGTH # Meters.
+WING_CENTER_OF_PRESSURE = NOSE_LENGTH + DISTANCE_FROM_BASE_OF_NOSE_TO_WING + 0.7 * WING_ROOT_CHORD - 0.2 * WING_TIP_CHORD # Meters.
+AN = 0.67 * NOSE_LENGTH * REFERENCE_DIAMETER # Meters squared.
+AB = (REFERENCE_LENGTH - NOSE_LENGTH) * REFERENCE_DIAMETER # Meters squared.
+BODY_CENTER_OF_PRESSURE = (0.67 * AN * NOSE_LENGTH + AB * (NOSE_LENGTH + 0.5 * (REFERENCE_LENGTH - NOSE_LENGTH))) / (AN + AB) # Meters.
+TEMP1 = (LAST_CG_FROM_NOSE - WING_CENTER_OF_PRESSURE) / REFERENCE_DIAMETER 
+TEMP2 = (LAST_CG_FROM_NOSE - CENTER_OF_DEFLECTION_FROM_NOSE) / REFERENCE_DIAMETER
+TEMP3 = (LAST_CG_FROM_NOSE - BODY_CENTER_OF_PRESSURE) / REFERENCE_DIAMETER
+TEMP4 = (LAST_CG_FROM_NOSE - NOSE_CENTER_OF_PRESSURE) / REFERENCE_DIAMETER
 
-distanceFromBaseOfNoseToWing = 0.323925 # Meters
-finalCenterOfGravityFromNose =  0.644605 # Meters
-centerOfDeflectionFromNose = 1.8059 - noseLength # Meters (correction here due to oversight in drawing)
-weight = 20 # Kg
+# ATMOSPHERE
+MACHSPEED = AIRSPEED / SPEED_OF_SOUND # Non dimensional.
+ATMOS = atm(ALTITUDE)
+RHO = ATMOS.density[0] # Pascals.
+DYNAMIC_PRESSURE = 0.5 * RHO * AIRSPEED * AIRSPEED # Pascals.
+TRANSVERSE_MOMENT_OF_INERTIA = (MASS * (3 * ((0.5 * REFERENCE_DIAMETER) ** 2) + REFERENCE_LENGTH ** 2)) / (12) # Kilograms times meters squared.
 
-wingArea = 0.5 * wingHalfSpan * (wingTipChord + wingRootChord)
-tailArea = 0.5 * tailHalfSpan * (tailTipChord + tailRootChord)
-refArea = np.pi * (refDiameter ** 2) / 4
-noseArea = noseLength * refDiameter
-planformArea = (refLength - noseLength) * refDiameter + 0.667 * noseLength * refDiameter
-mach = speed / speedOfSound
-if mach > 1:
-	beta = np.sqrt(mach ** 2 - 1)
+### FUNCTION NEEDED HERE ###
+if MACHSPEED > 1:
+	BETA = np.sqrt(MACHSPEED ** 2 - 1) # Non dimensional.
 else:
-	beta = mach
-noseCenterOfPressure = 0.67 * noseLength
-wingCenterOfPressure = noseLength + distanceFromBaseOfNoseToWing + 0.7 * wingRootChord - 0.2 * wingTipChord
-AN = 0.67 * noseLength * refDiameter
-AB = (refLength - noseLength) * refDiameter
-bodyCenterOfPressure = (0.67 * AN * noseLength + AB * (noseLength + 0.5 * (refLength - noseLength))) / (AN + AB)
-atmos = atm(altitude)
-rho = atmos.density[0]
-dynamicPressure = 0.5 * rho * speed * speed
-transverseMomentOfInertia = (weight * (3 * ((0.5 * refDiameter) ** 2) + refLength ** 2)) / (12 * gravity)
+	BETA = MACHSPEED # Non dimensional.
 
-# CALCULATIONS OF CONSTANTS FOR LOOP ONE
-accelCommand = 1 # Gs
-TEMP1 = (finalCenterOfGravityFromNose - wingCenterOfPressure) / refDiameter
-TEMP2 = (finalCenterOfGravityFromNose - centerOfDeflectionFromNose) / refDiameter
-TEMP3 = (finalCenterOfGravityFromNose - bodyCenterOfPressure) / refDiameter
-TEMP4 = (finalCenterOfGravityFromNose - noseCenterOfPressure) / refDiameter
-CNTRIM = weight * accelCommand / (dynamicPressure * refArea)
-Y1 = 2 + 8 * wingArea / (beta * refArea) + 8 * tailArea / (beta * refArea)
-Y2 = 1.5 * planformArea / refArea
-Y3 = 8 * tailArea / (beta * refArea)
-Y4 = 2 * TEMP4 + 8 * wingArea * TEMP1 / (beta * refArea) + 8 * tailArea * TEMP2 / (beta * refArea)
-Y5 = 1.5 * planformArea * TEMP3 / refArea
-Y6 = 8 * tailArea * TEMP2 / (beta * refArea)
+# AERODYNAMICS.
+CNTRIM = MASS * FIRST_ACCEL_COMMAND_IN_GS / (DYNAMIC_PRESSURE * REFERENCE_AREA)
+Y1 = 2 + 8 * WING_AREA / (BETA * REFERENCE_AREA) + 8 * TAIL_AREA / (BETA * REFERENCE_AREA)
+Y2 = 1.5 * PLANFORM_AREA / REFERENCE_AREA
+Y3 = 8 * TAIL_AREA / (BETA * REFERENCE_AREA)
+Y4 = 2 * TEMP4 + 8 * WING_AREA * TEMP1 / (BETA * REFERENCE_AREA) + 8 * TAIL_AREA * TEMP2 / (BETA * REFERENCE_AREA)
+Y5 = 1.5 * PLANFORM_AREA * TEMP3 / REFERENCE_AREA
+Y6 = 8 * TAIL_AREA * TEMP2 / (BETA * REFERENCE_AREA)
 P2 = Y2 - (Y3 * Y5) / Y6
 P3 = Y1 - (Y3 * Y4) / Y6
-alphaTrim = (-1 * P3 + np.sqrt(P3 * P3 + 4 * P2 * CNTRIM)) / (2 * P2)
-deltaTrim = (-1 * Y4 * alphaTrim - Y5 * alphaTrim * alphaTrim) / Y6
-CNA = 2 + 1.5 * planformArea * alphaTrim / refArea + 8 * wingArea / (beta * refArea) + 8 * tailArea / (beta * refArea)
-CND = 8 * tailArea / (beta * refArea)
-ZA = -1 * gravity * dynamicPressure * refArea * CNA / (weight * speed)
-ZD = -1 * gravity * dynamicPressure * refArea * CND / (weight * speed)
-CMAP = 2 * TEMP4 + 1.5 * planformArea * alphaTrim * TEMP3 / refArea + 8 * wingArea * TEMP1 / (beta * refArea)
-CMA = CMAP + 8 * tailArea * TEMP2 / (beta * refArea)
-CMD = 8 * tailArea * TEMP2 / (beta * refArea)
-MA = dynamicPressure * refArea * refDiameter * CMA / transverseMomentOfInertia
-MD = dynamicPressure * refArea * refDiameter * CMD / transverseMomentOfInertia
-omegaZ = np.sqrt((MA * ZD - MD * ZA) / ZD)
-omegaAF = np.sqrt(-1 * MA)
-zetaAF = ZA * omegaAF / (2 * MA)
-KR = 0.1
-K1 = -1 * speed * ((MA * ZD - ZA * MD) / (1845 * MA))
-TA = MD / (MA * ZD - MD * ZA)
-K3 = 1845 * K1 / speed
-KDC = (1 - KR * K3) / (K1 * KR)
+ALPHA_TRIM = (-1 * P3 + np.sqrt(P3 * P3 + 4 * P2 * CNTRIM)) / (2 * P2)
+DELTA_TRIM = (-1 * Y4 * ALPHA_TRIM - Y5 * ALPHA_TRIM * ALPHA_TRIM) / Y6
+CNA = 2 + 1.5 * PLANFORM_AREA * ALPHA_TRIM / REFERENCE_AREA + 8 * WING_AREA / (BETA * REFERENCE_AREA) + 8 * TAIL_AREA / (BETA * REFERENCE_AREA)
+CND = 8 * TAIL_AREA / (BETA * REFERENCE_AREA)
+ZA = -1 * STANDARD_GRAVITY * DYNAMIC_PRESSURE * REFERENCE_AREA * CNA / (MASS * AIRSPEED)
+ZD = -1 * STANDARD_GRAVITY * DYNAMIC_PRESSURE * REFERENCE_AREA * CND / (MASS * AIRSPEED)
+CMAP = 2 * TEMP4 + 1.5 * PLANFORM_AREA * ALPHA_TRIM * TEMP3 / REFERENCE_AREA + 8 * WING_AREA * TEMP1 / (BETA * REFERENCE_AREA)
+CMA = CMAP + 8 * TAIL_AREA * TEMP2 / (BETA * REFERENCE_AREA)
+CMD = 8 * TAIL_AREA * TEMP2 / (BETA * REFERENCE_AREA)
+MA = DYNAMIC_PRESSURE * REFERENCE_AREA * REFERENCE_DIAMETER * CMA / TRANSVERSE_MOMENT_OF_INERTIA
+MD = DYNAMIC_PRESSURE * REFERENCE_AREA * REFERENCE_DIAMETER * CMD / TRANSVERSE_MOMENT_OF_INERTIA
 
-# SIMULATION TWO PARAMETERS
-e = 0.0
-eDot = 0.0
-time = 0.0
-timeStep = 0.0001
-maxTime = 1
-storage = {
-	"TIME OF FLIGHT": [],
-	"NORMAL ACCEL": [],
-	"COMMANDED ACCEL": [],
-	"DEFLECTION": []
+# CONTROL.
+OMEGA_Z = np.sqrt((MA * ZD - MD * ZA) / ZD)
+OMEGA_AF = np.sqrt(-1 * MA)
+ZETA_AF = ZA * OMEGA_AF / (2 * MA)
+KR = 0.1
+K1 = -1 * AIRSPEED * ((MA * ZD - ZA * MD) / (1845 * MA))
+TA = MD / (MA * ZD - MD * ZA)
+K3 = 1845 * K1 / AIRSPEED
+KDC = (1 - KR * K3) / (K1 * KR)
+### END FUNCTION NEEDED HERE ###
+
+# SIMULATION DIFFERENTIAL EQUATIONS OF MOTION STATE.
+TOF = 0.0 # Seconds.
+E = 0.0
+EDOT = 0.0
+DEFLECTION_COMMAND = 0.0 # Degrees.
+DEFLECTION = 0.0 # Degrees.
+DEFLECTION_DOT_DER = 0.0 # Degrees per second.
+DEFLECTION_DOT = 0.0 # Degrees per second.
+DEFLECTION_DOT_DOT = 0.0 #  # Degrees per second.squared.
+THETA_DOT = 0.0 # Radians per second.
+THETA = 0.0 # Radians.
+NORMAL_SPECIFIC_FORCE = 0.0 # Meters per second squared.
+POSITION = ALTITUDE # Meters.
+VELOCITY = npa([AIRSPEED, 0.0])
+ALPHA_DOT = 0.0 # Radians per second.
+ALPHA_OLD = 0.0 # Radians per second.
+ALPHA = 0.0 # Radians.
+
+# DATA STORAGE.
+MOCK_HELLFIRE_RATE_GYRO_CTRL_DICT = {
+	"TOF": [],
+	"DEFLECTION": [],
+	"DEFLECTION_COMMAND": [],
+	"COMMANDED_ACCEL": [],
+	"THETA_DOT": [],
+	"THETA": [],
+	"NORMAL_ACCEL": [],
+	"POSITION": [],
+	"U": [],
+	"W": [],
+	"ALPHA_DOT": [],
+	"ALPHA": []
 }
 
-while time <= maxTime:
+# CREATE CLASSES
+AtmosphereObject = Atmosphere()
+
+FLAG1 = 0
+FLAG2 = 0
+GO = True
+while TOF <= MAX_TIME:
+
+	# DYNAMICS. 
+	# ATMOSPHERE.
+	AtmosphereObject.update(altitudeMeters=ALTITUDE, speedMperSec=la.norm(VELOCITY))
+	# MASS AND MOTOR.
+	# AERODYNAMICS - DRAG IMPLEMENTATION.
+	# MISSILE MOTION.
+
+	# TARGET.
+	# SEEKER.
+
+	# GUIDANCE.
+	# CONTROL.
+
+	# ACTUATORS.
+
+	# PERFORMANCE AND TERMINATION CHECK.
+	# DATA LOG.
+
+	# COMMAND SWITCH.
+	COMMAND = 0.0
+	if TOF < MANEUVER_TIME:
+		COMMAND = FIRST_ACCEL_COMMAND_IN_GS
+	else:
+		COMMAND = SECOND_ACCEL_COMMAND_IN_GS
+		if FLAG1 == 0:
+
+			FLAG1 = 1
+			CNTRIM = MASS * COMMAND / (DYNAMIC_PRESSURE * REFERENCE_AREA)
+			Y1 = 2 + 8 * WING_AREA / (BETA * REFERENCE_AREA) + 8 * TAIL_AREA / (BETA * REFERENCE_AREA)
+			Y2 = 1.5 * PLANFORM_AREA / REFERENCE_AREA
+			Y3 = 8 * TAIL_AREA / (BETA * REFERENCE_AREA)
+			Y4 = 2 * TEMP4 + 8 * WING_AREA * TEMP1 / (BETA * REFERENCE_AREA) + 8 * TAIL_AREA * TEMP2 / (BETA * REFERENCE_AREA)
+			Y5 = 1.5 * PLANFORM_AREA * TEMP3 / REFERENCE_AREA
+			Y6 = 8 * TAIL_AREA * TEMP2 / (BETA * REFERENCE_AREA)
+			P2 = Y2 - (Y3 * Y5) / Y6
+			P3 = Y1 - (Y3 * Y4) / Y6
+			ALPHA_TRIM = (-1 * P3 + np.sqrt(P3 * P3 + 4 * P2 * CNTRIM)) / (2 * P2)
+			DELTA_TRIM = (-1 * Y4 * ALPHA_TRIM - Y5 * ALPHA_TRIM * ALPHA_TRIM) / Y6
+			CNA = 2 + 1.5 * PLANFORM_AREA * ALPHA_TRIM / REFERENCE_AREA + 8 * WING_AREA / (BETA * REFERENCE_AREA) + 8 * TAIL_AREA / (BETA * REFERENCE_AREA)
+			CND = 8 * TAIL_AREA / (BETA * REFERENCE_AREA)
+			ZA = -1 * STANDARD_GRAVITY * DYNAMIC_PRESSURE * REFERENCE_AREA * CNA / (MASS * AIRSPEED)
+			ZD = -1 * STANDARD_GRAVITY * DYNAMIC_PRESSURE * REFERENCE_AREA * CND / (MASS * AIRSPEED)
+			CMAP = 2 * TEMP4 + 1.5 * PLANFORM_AREA * ALPHA_TRIM * TEMP3 / REFERENCE_AREA + 8 * WING_AREA * TEMP1 / (BETA * REFERENCE_AREA)
+			CMA = CMAP + 8 * TAIL_AREA * TEMP2 / (BETA * REFERENCE_AREA)
+			CMD = 8 * TAIL_AREA * TEMP2 / (BETA * REFERENCE_AREA)
+			MA = DYNAMIC_PRESSURE * REFERENCE_AREA * REFERENCE_DIAMETER * CMA / TRANSVERSE_MOMENT_OF_INERTIA
+			MD = DYNAMIC_PRESSURE * REFERENCE_AREA * REFERENCE_DIAMETER * CMD / TRANSVERSE_MOMENT_OF_INERTIA
+
+			OMEGA_Z = np.sqrt((MA * ZD - MD * ZA) / ZD)
+			OMEGA_AF = np.sqrt(-1 * MA)
+			ZETA_AF = ZA * OMEGA_AF / (2 * MA)
+			KR = 0.1
+			K1 = -1 * AIRSPEED * ((MA * ZD - ZA * MD) / (1845 * MA))
+			TA = MD / (MA * ZD - MD * ZA)
+			K3 = 1845 * K1 / AIRSPEED
+			KDC = (1 - KR * K3) / (K1 * KR)
 
 	# ITERATE TIME OF FLIGHT
-	time += timeStep
-	storage["TIME OF FLIGHT"].append(time)
-	storage["COMMANDED ACCEL"].append(accelCommand)
-	eOld = e
-	eDotOld = eDot
-	THD = K3 * (e + TA * eDot)
-	deflection = KR * (KDC * accelCommand + THD)
-	storage["DEFLECTION"].append(deflection)
-	eDotDot = (omegaAF ** 2) * (deflection - e - 2 * zetaAF * eDot / omegaAF)
-	normalAccel = K1 * (e - (eDotDot / (omegaZ ** 2)))
-	storage["NORMAL ACCEL"].append(normalAccel)
-	e += timeStep * eDot
-	eDot += timeStep * eDotDot
-	e = (e + eOld + timeStep * eDot) / 2
-	eDot = (eDot + eDotOld + timeStep * eDotDot) / 2
+	TOF += TIME_STEP
 
-DF = pd.DataFrame(storage)
-plt.plot(DF.iloc[:]["TIME OF FLIGHT"], DF.iloc[:]["NORMAL ACCEL"], label="ACHIEVED", color="b")
-plt.plot(DF.iloc[:]["TIME OF FLIGHT"], DF.iloc[:]["COMMANDED ACCEL"], label="COMMANDED", color="r")
-plt.plot(DF.iloc[:]["TIME OF FLIGHT"], DF.iloc[:]["DEFLECTION"], label="DEFLECTION", color="g")
-plt.legend()
+	# DIFFERENTIAL EQUATION TO SOLVE FOR THE DERIVATIVES IN THE PITCH.
+	EDOTDOT = (OMEGA_AF ** 2) * (DEFLECTION - E - 2 * ZETA_AF * EDOT / OMEGA_AF)
+	E += EDOT * TIME_STEP
+	EDOT += EDOTDOT * TIME_STEP
+	THETA_DOT = K3 * (E + TA * EDOT)
+	NORMAL_SPECIFIC_FORCE = K1 * (E - (EDOTDOT / (OMEGA_Z ** 2)))
+
+	# ACTUATOR AND DEFLECTION.
+	DEFLECTION_COMMAND = KR * (KDC * COMMAND + THETA_DOT)
+	FLAG2 = 0
+	if np.abs(DEFLECTION) > DEFL_LIMIT:
+		DEFLECTION = DEFL_LIMIT * np.sign(DEFLECTION)
+		if (DEFLECTION * DEFLECTION_DOT) > 0.0:
+			DEFLECTION_DOT = 0.0
+	if np.abs(DEFLECTION_DOT > DEFL_RATE_LIMIT):
+		FLAG2 = 1
+		DEFLECTION_DOT = DEFL_RATE_LIMIT * np.sign(DEFLECTION_DOT)
+	DEFL_DOT_NEW = DEFLECTION_DOT
+	DEFLECTION = integrate(DEFL_DOT_NEW, DEFLECTION_DOT_DER, DEFLECTION, TIME_STEP)
+	DEFLECTION_DOT_DER = DEFL_DOT_NEW
+	EDX = DEFLECTION_COMMAND - DEFLECTION
+	DEFLDOTDOT_NEW = WNACT * WNACT * EDX - 2 * ZETACT * WNACT * DEFLECTION_DOT_DER
+	DEFLECTION_DOT_DER = integrate(DEFLDOTDOT_NEW, DEFLECTION_DOT_DOT, DEFLECTION_DOT, TIME_STEP)
+	DEFLECTION_DOT_DOT = DEFLDOTDOT_NEW
+	if FLAG2 == 1 and (DEFLECTION_DOT_DER * DEFLECTION_DOT_DOT) > 0:
+		DEFLECTION_DOT_DOT= 0
+
+	# EQUATIONS OF MOTION.
+	THETA += THETA_DOT * TIME_STEP
+	DELTA_POSITION = VELOCITY * TIME_STEP
+	POSITION += DELTA_POSITION
+	DELTA_VELOCITY = npa([0.0, NORMAL_SPECIFIC_FORCE * TIME_STEP * STANDARD_GRAVITY])
+	VELOCITY += DELTA_VELOCITY
+	ALPHA_OLD = ALPHA
+	ALPHA = np.arctan2(VELOCITY[1], VELOCITY[0])
+	ALPHA_DOT = (ALPHA_OLD - ALPHA) * (1.0 / TIME_STEP)
+
+	# STORE DATA AT CURRENT CONDITIONS
+	MOCK_HELLFIRE_RATE_GYRO_CTRL_DICT["TOF"].append(TOF)
+	MOCK_HELLFIRE_RATE_GYRO_CTRL_DICT["DEFLECTION"].append(DEFLECTION * DEG_TO_RAD)
+	MOCK_HELLFIRE_RATE_GYRO_CTRL_DICT["DEFLECTION_COMMAND"].append(DEFLECTION_COMMAND * DEG_TO_RAD)
+	MOCK_HELLFIRE_RATE_GYRO_CTRL_DICT["COMMANDED_ACCEL"].append(COMMAND)
+	MOCK_HELLFIRE_RATE_GYRO_CTRL_DICT["THETA_DOT"].append(THETA_DOT * DEG_TO_RAD)
+	MOCK_HELLFIRE_RATE_GYRO_CTRL_DICT["THETA"].append(THETA * DEG_TO_RAD)
+	MOCK_HELLFIRE_RATE_GYRO_CTRL_DICT["NORMAL_ACCEL"].append(NORMAL_SPECIFIC_FORCE)
+	MOCK_HELLFIRE_RATE_GYRO_CTRL_DICT["POSITION"].append(POSITION)
+	MOCK_HELLFIRE_RATE_GYRO_CTRL_DICT["U"].append(VELOCITY[0])
+	MOCK_HELLFIRE_RATE_GYRO_CTRL_DICT["W"].append(VELOCITY[1])
+	MOCK_HELLFIRE_RATE_GYRO_CTRL_DICT["ALPHA_DOT"].append(ALPHA_DOT)
+	MOCK_HELLFIRE_RATE_GYRO_CTRL_DICT["ALPHA"].append(ALPHA)
+
+# OUTPUT
+print(f"DIFFERENTIAL EQUATIONS OF MOTION FINISHED.")
+
+# PLOT
+DATA = pd.DataFrame(MOCK_HELLFIRE_RATE_GYRO_CTRL_DICT)
+FIGURE = plt.figure()
+START_INDEX = 0
+STOP_INDEX = -1
+PLOT = FIGURE.add_subplot(111)
+COLOR_LIST = colors()
+for index, key in enumerate(MOCK_HELLFIRE_RATE_GYRO_CTRL_DICT.keys()):
+	if key == "POSITION" or key == "U" or key == "TOF":
+		continue
+	PLOT.plot(DATA.iloc[START_INDEX:STOP_INDEX]["TOF"], DATA.iloc[START_INDEX:STOP_INDEX][f"{key}"], label=f"{key}", color = COLOR_LIST[index])
+PLOT.set_xlabel("TIME OF FLIGHT")
+PLOT.set_title("RATE GYRO CONTROL")
+PLOT.legend(fontsize="small")
+plt.get_current_fig_manager().full_screen_toggle()
 plt.show()

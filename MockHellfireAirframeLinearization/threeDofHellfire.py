@@ -10,9 +10,9 @@ from numpy import linalg as la
 from ambiance import Atmosphere as atm
 
 # Utility.
-from coordinateTransformations import FLIGHTPATH_TO_LOCAL_TM
-from unitVector import unitvector
-from returnAzAndElevation import returnAzAndElevation
+from utility.coordinateTransformations import FLIGHTPATH_TO_LOCAL_TM
+from utility.unitVector import unitvector
+from utility.returnAzAndElevation import returnAzAndElevation
 
 # Simulation constants.
 WALL_CLOCK_START = time.time()
