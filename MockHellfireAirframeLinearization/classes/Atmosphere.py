@@ -12,7 +12,7 @@ class Atmosphere:
 		self.q = self.rho * 0.5 * 0.0 * 0.0 # Pascals.
 		self.mach = 0.0 / self.a # Non dimensional.
 
-		print("ATMOSPHERE CONSTRUCTED")
+		print("ATMOSPHERE LOADED")
 
 	def update(self, altitudeMeters, speedMperSec):
 
