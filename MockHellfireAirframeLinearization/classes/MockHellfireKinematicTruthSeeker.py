@@ -10,6 +10,7 @@ class MockHellfireKinematicTruthSeeker:
 	def __init__(self):
 
 		self.ENU_TO_FLU_MATRIX = np.zeros((3, 3))
+		self.CLOSING_SPEED = 0.0
 		self.MSL_TO_TGT_RELPOS = np.zeros(3)
 		self.LINE_OF_SIGHT_RATE = np.zeros(3)
 
@@ -55,6 +56,7 @@ class MockHellfireKinematicTruthSeeker:
 		TEMP1 = np.cross(FLU_MSL_TO_TGT_RELPOS, CLOSING_VEL)
 		TEMP2 = np.dot(FLU_MSL_TO_TGT_RELPOS, FLU_MSL_TO_TGT_RELPOS)
 
+		self.CLOSING_SPEED = la.norm(self.CLOSING_SPEED)
 		self.MSL_TO_TGT_RELPOS = FLU_MSL_TO_TGT_RELPOS
 		self.LINE_OF_SIGHT_RATE = TEMP1 / TEMP2
 
