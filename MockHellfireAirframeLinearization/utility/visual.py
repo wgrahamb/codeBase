@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
-f1 = r"HellfireAirframeLinearization/threeDofHellfire.txt"
+f1 = r"MockHellfireAirframeLinearization/threeDofHellfire.txt"
 
 viewFile = f1
 

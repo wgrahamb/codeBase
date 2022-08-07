@@ -13,6 +13,7 @@ from ambiance import Atmosphere as atm
 from utility.coordinateTransformations import FLIGHTPATH_TO_LOCAL_TM
 from utility.unitVector import unitvector
 from utility.returnAzAndElevation import returnAzAndElevation
+from utility.interpolationGivenTwoVectors import linearInterpolation
 
 # Simulation constants.
 WALL_CLOCK_START = time.time()
@@ -116,6 +117,8 @@ class threeDofHellfire:
 		self.thrust = 0.0
 		self.FLAG = 0
 		self.transverseMomentOfInertia = (self.currentTotalMass * (3 * ((0.5 * REFERENCE_DIAMETER) ** 2) + REFERENCE_LENGTH ** 2)) / (12) # Kilograms times meters squared.
+		self.THRUST_TIME_VALUES = np.linspace(0.0, BURN_TIME, 100)
+		self.THRUST_VALUES = np.linspace(4000.0, 6000.0, 100)
 
 		# Missile motion.
 		self.timeOfFlight = 0.0 # Seconds.
@@ -131,7 +134,7 @@ class threeDofHellfire:
 		self.FLUAcceleration = np.zeros(3) # Meters per second squared.
 
 		# Log data.
-		self.logFile = open("HellfireAirframeLinearization/threeDofHellfire.txt", "w")
+		self.logFile = open("MockHellfireAirframeLinearization/threeDofHellfire.txt", "w")
 		self.logFile.write("tof posE posN posU psiRads thetaRads velE velN velU mach speed specificForceX specificForceY specificForceZ tgtE tgtN tgtU\n")
 
 		# Performance and termination check.
@@ -182,7 +185,9 @@ class threeDofHellfire:
 			self.currentTotalMass = (self.initialTotalMass - fuelUsed)
 
 		if self.currentTotalMass > self.finalTotalMass:
-			self.thrust = (self.ISP * self.massFlowRate * (BURN_TIME - self.timeOfFlight)) + (self.p - SEA_LEVEL_PRESSURE) * NOZZLE_EXIT_AREA
+			# self.thrust = (self.ISP * self.massFlowRate * (BURN_TIME - self.timeOfFlight)) + (self.p - SEA_LEVEL_PRESSURE) * NOZZLE_EXIT_AREA
+			thrust = linearInterpolation(self.timeOfFlight, self.THRUST_TIME_VALUES, self.THRUST_VALUES)
+			self.thrust = thrust + (self.p - SEA_LEVEL_PRESSURE) * NOZZLE_EXIT_AREA
 			self.transverseMomentOfInertia = (self.currentTotalMass * (3 * ((0.5 * REFERENCE_DIAMETER) ** 2) + REFERENCE_LENGTH ** 2)) / (12) # Kilograms times meters squared.
 		else:
 			if self.FLAG == 0:
@@ -280,7 +285,7 @@ class threeDofHellfire:
 if __name__ == "__main__":
 
 	np.set_printoptions(suppress=True, precision=4)
-	ballistic = False
+	ballistic = True
 	psiDegrees = 0.0
 	thetaDegrees = 55.0
 	speed = 1.0

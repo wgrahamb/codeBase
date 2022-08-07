@@ -29,7 +29,7 @@ class MockHellfireDynamicMotionDriver:
 
 	def update(self, OMEGA_Z, OMEGA_AF, ZETA_AF, KR, K1, TA, K3, DEFLECTION, GRAVITY,  MAX_TIME):
 
-		# CALCULATE NEXT TIME STEP.
+		# CALCULATE NEW TIME STEP.
 		DT = (MAX_TIME - self.TOF) / 100.0
 		if DT > 0.01:
 			DT = 0.01

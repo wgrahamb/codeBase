@@ -1,38 +1,35 @@
 def matPlotLibColors():
 	colors = [
+
 		"palegreen","mediumpurple","orange","red","royalblue",
-		"darkgreen","coral","deeppink","cadetblue","k",
-		"seagreen",
+		"darkgreen","coral","deeppink","cadetblue","blue",
+		"seagreen","blue","cyan","limegreen","y",
+
 		"mediumspringgreen",
 		"lightseagreen",
 		"paleturquoise",
 		"darkcyan",
 		"darkturquoise",
-		# "deepskyblue",
-		# "aliceblue",
+		"deepskyblue",
+		"aliceblue",
 		"slategrey",
-		
 		"navy",
-		"blue",
-		
 		"darkorchid",
+		"k"
 		"plum",
 		"m",
 		"mediumvioletred",
 		"palevioletred",
-		
 		"grey",
 		"lightgray",
 		"w",
 		"lightcoral",
 		"maroon",
 		"mistyrose",
-		
 		"seashell",
 		"peachpuff",
 		"darkorange",
 		"navajowhite",
-		
 		"darkgoldenrod",
 		"lemonchiffon",
 		"ivory",
@@ -46,7 +43,6 @@ def matPlotLibColors():
 		"mediumturquoise",
 		"darkslategray",
 		"c",
-		
 		"skyblue",
 		"dodgerblue",
 		"slategrey",
@@ -57,7 +53,6 @@ def matPlotLibColors():
 		"darkviolet",
 		"violet",
 		"fuchsia",
-		
 		"crimson",
 		"dimgray",
 		"darkgray",
@@ -75,7 +70,6 @@ def matPlotLibColors():
 		"goldenrod",
 		"khaki",
 		"beige",
-		"y",
 		"darkolivegreen",
 		"honeydew",
 		"forestgreen",
@@ -117,13 +111,11 @@ def matPlotLibColors():
 		"yellow",
 		"greenyellow",
 		"darkseagreen",
-		"limegreen",
 		"lime",
 		"mintcream",
 		"turquoise",
 		"lightcyan",
 		"teal",
-		"cyan",
 		"lightblue",
 		"steelblue",
 		"lightslategrey",
@@ -143,7 +135,6 @@ def matPlotLibColors():
 		"whitesmoke",
 		"rosybrown",
 		"firebrick",
-		
 		"darksalmon",
 		"sienna",
 		"sandybrown",

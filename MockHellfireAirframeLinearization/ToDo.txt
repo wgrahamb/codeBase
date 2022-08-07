@@ -1,7 +1,0 @@
-put cad drawing into free software and get dimensions
-
-put dimensions into airframe simulation
-then put dimensions into rateGyroFlightControl
-then put dimensions into PIDManeuveringPitchControl
-
-then use three dof test bed to test

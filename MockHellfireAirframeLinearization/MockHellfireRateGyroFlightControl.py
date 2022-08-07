@@ -1,21 +1,11 @@
-# Python libraries.
-import numpy as np
-from numpy import array as npa
-from numpy import linalg as la
-import pandas as pd
-import matplotlib.pyplot as plt
-from ambiance import Atmosphere as atm
+"""
 
-# Utility.
-from utility.matPlotLibColors import matPlotLibColors as colors
-from utility.trapezoidIntegrate import integrate
+TO DO:
 
-# Classes.
-from classes.Atmosphere import Atmosphere
-from classes.MockHellfireMassPropertiesAndMotor import MockHellfireMassPropertiesAndMotor
-from classes.MockHellfireAerodynamics import MockHellfireAerodynamics
-from classes.MockHellfireDynamicMotionDriver import MockHellfireDynamicMotionDriver
-from classes.MockHellFireActuator import SecondOrderActuator
+ADD THRUST TO MOTION MODULE
+COORDINATE TRANSFORMATION FROM AXIAL, NORMAL TO RIGHT, UP
+
+"""
 
 """
 
@@ -32,13 +22,36 @@ TAIL_TIP_CHORD 0.387894 M
 TAIL_ROOT_CHORD 0.48084 M
 DISTANCE_FROM_BASE_OF_NOSE_TO_WING 0.323925 M
 STARTING_CG_FROM_NOSE 0.644605 m
+FINAL_CG_FROM_NOSE 0.249733 M
 EXTENDED_CENTER_OF_DEFLECTION_FROM_NOSE 1.8059 M
 EXTENDED_REFERENCE_LENGTH 1.85026 m
 
 """
 
+# Python libraries.
+import numpy as np
+from numpy import array as npa
+from numpy import linalg as la
+import pandas as pd
+import matplotlib.pyplot as plt
+from ambiance import Atmosphere as atm
+np.printoptions(suppress=True, precision=4)
+
+# Utility.
+from utility.matPlotLibColors import matPlotLibColors as colors
+from utility.trapezoidIntegrate import integrate
+
+# Classes.
+from classes.Atmosphere import Atmosphere
+from classes.MockHellfireMassPropertiesAndMotor import MockHellfireMassPropertiesAndMotor
+from classes.MockHellfireAerodynamics import MockHellfireAerodynamics
+from classes.MockHellfireDynamicMotionDriver import MockHellfireDynamicMotionDriver
+from classes.MockHellFireActuator import SecondOrderActuator
+from classes.Target import Target
+from classes.MockHellfireKinematicTruthSeeker import MockHellfireKinematicTruthSeeker
+
 # CONSTANTS.
-TIME_STEP = 0.001 # Seconds.
+SIM_TIME_STEP = 0.001 # Seconds.
 MANEUVER_TIME = 1.5 # Seconds.
 BURN_TIME = 3.1 # Seconds.
 MAX_TIME = 3 # Seconds.
@@ -51,6 +64,8 @@ REFERENCE_AREA = np.pi * (REFERENCE_DIAMETER ** 2) / 4 # Meters squared.
 REFERENCE_LENGTH = 1.85026 # Meters.
 INITIAL_AIRSPEED = 130.0 # Meters per second.
 INITIAL_ALTITUDE = 1000 # Meters.
+INITIAL_TARGET_POSITION = npa([3000.0, INITIAL_ALTITUDE])
+INITIAL_TARGET_VELOCITY = npa([0.0, 0.0])
 
 # CREATE CLASSES.
 AtmosphereObject = Atmosphere()
@@ -60,6 +75,12 @@ INITIAL_POSITION = npa([0.0, INITIAL_ALTITUDE])
 INITIAL_VELOCITY = npa([INITIAL_AIRSPEED, 0.0])
 MissileMotionObject = MockHellfireDynamicMotionDriver(INITIAL_POSITION=INITIAL_POSITION, INITIAL_VELOCITY=INITIAL_VELOCITY)
 ActuatorObject = SecondOrderActuator()
+TargetObject = Target(
+	INITIAL_TARGET_POSITION=INITIAL_TARGET_POSITION,
+	INITIAL_TARGET_VELOCITY=INITIAL_TARGET_VELOCITY,
+	TIME_STEP=SIM_TIME_STEP
+)
+SeekerObject = MockHellfireKinematicTruthSeeker()
 
 ### STATE. ###
 
@@ -197,6 +218,47 @@ def storeDynamicsState():
 	for index, key in enumerate(DYNAMICS_STATE_STORAGE_DICTIONARY.keys()):
 		DYNAMICS_STATE_STORAGE_DICTIONARY[f"{key}"].append(DYNAMICS_STATE_CURRENT_DICTIONARY[f"{key}"])
 
+### TARGET STATES ###
+TARGET_STATE_STORAGE_DICTIONARY = {
+	"TOF": [],
+	"X": [],
+	"Z": [],
+	"VX": [],
+	"VZ": [],
+	"MSL_TGT_RELPOS": [],
+	"LINE_OF_SIGHT_RATE": []
+}
+# TARGET.
+TargetObject.update()
+TGT_TOF = TargetObject.targetTimeOfFlight
+TGT_POS = TargetObject.targetRightUpPosition
+TGT_VEL = TargetObject.targetRightUpVelocity
+# SEEKER.
+SeekerObject.update(
+	THETA_RADS=THETA,
+	PSI_RADS=0.0,
+	MSL_POS=POSITION,
+	MSL_VEL=VELOCITY,
+	TGT_POS=TGT_POS,
+	TGT_VEL=TGT_VEL,
+	DIMENSION_FLAG=2
+)
+MSL_TO_TGT_RELPOS = SeekerObject.MSL_TO_TGT_RELPOS
+LINE_OF_SIGHT_RATE = SeekerObject.LINE_OF_SIGHT_RATE
+TARGET_STATE_CURRENT_DICTIONARY = {
+	"TOF": TGT_TOF,
+	"X": TGT_POS[0],
+	"Z": TGT_POS[1],
+	"VX": TGT_VEL[0],
+	"VZ": TGT_VEL[1],
+	"MSL_TGT_RELPOS": MSL_TO_TGT_RELPOS,
+	"LINE_OF_SIGHT_RATE": LINE_OF_SIGHT_RATE
+}
+
+def storeTargetState():
+	for index, key in enumerate(TARGET_STATE_STORAGE_DICTIONARY.keys()):
+		TARGET_STATE_STORAGE_DICTIONARY[f"{key}"].append(TARGET_STATE_CURRENT_DICTIONARY[f"{key}"])
+
 ### ACTUATOR ###
 ACTUATOR_STATE_STORAGE_DICTIONARY = {
 	"TOF": [],
@@ -215,10 +277,6 @@ def storeActuatorState():
 	for index, key in enumerate(ACTUATOR_STATE_STORAGE_DICTIONARY.keys()):
 		ACTUATOR_STATE_STORAGE_DICTIONARY[f"{key}"].append(ACTUATOR_STATE_CURRENT_DICTIONARY[f"{key}"])
 
-### TARGET STATES ###
-# TARGET.
-# SEEKER.
-
 ### GUIDANCE AND CONTROL ###
 # GUIDANCE.
 FIRST_ACCEL_COMMAND_IN_GS = 2 # Gs.
@@ -228,9 +286,11 @@ COMMAND = FIRST_ACCEL_COMMAND_IN_GS #Gs.
 DEFLECTION_COMMAND = 0.0 # Degrees.
 
 storeDynamicsState()
+storeTargetState()
+storeActuatorState()
 
 GO = True
-while TOF <= MAX_TIME:
+while GO:
 
 	### DYNAMICS. ###
 	# ATMOSPHERE.
@@ -249,7 +309,7 @@ while TOF <= MAX_TIME:
 	MASS = MassAndMotorProperties.MASS
 	TRANSVERSE_MOMENT_OF_INERTIA = MassAndMotorProperties.TRANSVERSE_MOI # Kilograms times meters squared.
 
-	# AERODYNAMICS - ADD DRAG IMPLEMENTATION.
+	# AERODYNAMICS - TO DO - ADD DRAG PROFILE FOR ROUND NOSE.
 	AerodynamicsObject.update(
 		VELOCITY=VELOCITY,
 		XCG=XCG,
@@ -279,7 +339,7 @@ while TOF <= MAX_TIME:
 		K3=K3,
 		DEFLECTION=DEFLECTION,
 		GRAVITY=GRAVITY,
-		MAX_TIME=TOF + TIME_STEP
+		MAX_TIME=TOF + SIM_TIME_STEP
 	)
 	E = MissileMotionObject.E
 	EDOT = MissileMotionObject.EDOT
@@ -295,10 +355,25 @@ while TOF <= MAX_TIME:
 
 	### TARGET STATES ###
 	# TARGET.
+	TargetObject.update()
+	TGT_TOF = TargetObject.targetTimeOfFlight
+	TGT_POS = TargetObject.targetRightUpPosition
+	TGT_VEL = TargetObject.targetRightUpVelocity
 	# SEEKER.
+	SeekerObject.update(
+		THETA_RADS=THETA * DEG_TO_RAD,
+		PSI_RADS=0.0,
+		MSL_POS=POSITION,
+		MSL_VEL=VELOCITY,
+		TGT_POS=TGT_POS,
+		TGT_VEL=TGT_VEL,
+		DIMENSION_FLAG=2
+	)
+	MSL_TO_TGT_RELPOS = SeekerObject.MSL_TO_TGT_RELPOS
+	LINE_OF_SIGHT_RATE = SeekerObject.LINE_OF_SIGHT_RATE
 
 	### ACTUATOR ###
-	ActuatorObject.update(DEFLECTION_COMMAND=DEFLECTION_COMMAND, MAX_TIME = TOF + TIME_STEP)
+	ActuatorObject.update(DEFLECTION_COMMAND=DEFLECTION_COMMAND, MAX_TIME = TOF + SIM_TIME_STEP)
 	DEFLECTION = ActuatorObject.DEFLECTION
 
 	### GUIDANCE AND CONTROL ###
@@ -315,7 +390,22 @@ while TOF <= MAX_TIME:
 
 	### OVERHEAD ###
 	# PERFORMANCE AND TERMINATION CHECK.
-	# DATA LOG.
+	MISS_DISTANCE = la.norm(MSL_TO_TGT_RELPOS)
+	if TOF > MAX_TIME:
+		print("MAX TIME EXCEEDED")
+		GO = False
+	if np.isnan(np.sum(POSITION)):
+		print("NOT A NUMBER")
+		GO = False
+	if POSITION[1] < 0:
+		print("GROUND COLLISION")
+		GO = False
+	if MISS_DISTANCE < 5.0:
+		print(f"SUCCESSFUL INTERCEPT {MISS_DISTANCE} {MSL_TO_TGT_RELPOS}")
+		GO = False
+	if MSL_TO_TGT_RELPOS[0] < 0:
+		print(f"POINT OF CLOSEST APPROACH PASSED {MISS_DISTANCE} {MSL_TO_TGT_RELPOS}")
+		GO = False
 
 	# STORE DATA AT CURRENT CONDITIONS
 	DYNAMICS_STATE_CURRENT_DICTIONARY = {
@@ -354,6 +444,17 @@ while TOF <= MAX_TIME:
 	}
 	storeDynamicsState()
 
+	TARGET_STATE_CURRENT_DICTIONARY = {
+		"TOF": TGT_TOF,
+		"X": TGT_POS[0],
+		"Z": TGT_POS[1],
+		"VX": TGT_VEL[0],
+		"VZ": TGT_VEL[1],
+		"MSL_TGT_RELPOS": MSL_TO_TGT_RELPOS,
+		"LINE_OF_SIGHT_RATE": LINE_OF_SIGHT_RATE
+	}
+	storeTargetState()
+
 	ACTUATOR_STATE_CURRENT_DICTIONARY = {
 		"TOF": TOF,
 		"DEFLECTION_COMMAND": DEFLECTION_COMMAND,
@@ -366,6 +467,7 @@ print(f"DIFFERENTIAL EQUATIONS OF MOTION FINISHED.")
 
 # PLOT
 DATA_DYN= pd.DataFrame(DYNAMICS_STATE_STORAGE_DICTIONARY)
+DATA_TGT = pd.DataFrame(TARGET_STATE_STORAGE_DICTIONARY)
 DATA_ACT = pd.DataFrame(ACTUATOR_STATE_STORAGE_DICTIONARY)
 FIGURE = plt.figure()
 START_INDEX = 0
@@ -374,11 +476,19 @@ COLOR_LIST = colors()
 INDEX = 0
 
 PLOT1 = FIGURE.add_subplot(221)
-PLOT1.plot(DATA_DYN.iloc[START_INDEX:STOP_INDEX]["TOF"], DATA_DYN.iloc[START_INDEX:STOP_INDEX]["Z"], label="ALTITUDE METERS", color=COLOR_LIST[INDEX])
+PLOT1.plot(DATA_DYN.iloc[START_INDEX:STOP_INDEX]["X"], DATA_DYN.iloc[START_INDEX:STOP_INDEX]["Z"], label="MSL POS", color=COLOR_LIST[INDEX])
 INDEX += 1
-PLOT1.set_xlabel("TIME OF FLIGHT")
-PLOT1.set_title("ALTITUDE")
-PLOT1.legend(fontsize="small")
+if DATA_TGT.iloc[STOP_INDEX]["X"] == DATA_TGT.iloc[START_INDEX]["X"]:
+	PLOT1.scatter(DATA_TGT.iloc[STOP_INDEX]["X"], DATA_TGT.iloc[STOP_INDEX]["Z"], label="TGT POS", color=COLOR_LIST[INDEX])
+else:
+	PLOT1.plot(DATA_TGT.iloc[START_INDEX:STOP_INDEX]["X"],DATA_TGT[START_INDEX:STOP_INDEX]["Z"], label="TGT POS", color=COLOR_LIST[INDEX])
+INDEX += 1
+PLOT1.set_xlabel("EAST")
+PLOT1.set_ylabel("UP")
+PLOT1.set_ylim([INITIAL_ALTITUDE-350, INITIAL_ALTITUDE+350])
+PLOT1.set_title("POSITION")
+PLOT1.set_aspect("equal")
+PLOT1.legend(fontsize="xx-small")
 
 PLOT2 = FIGURE.add_subplot(222)
 PLOT2.plot(DATA_DYN.iloc[START_INDEX:STOP_INDEX]["TOF"], DATA_DYN.iloc[START_INDEX:STOP_INDEX]["THETA"] * DEG_TO_RAD, label="THETA RADIANS", color=COLOR_LIST[INDEX])
@@ -396,7 +506,7 @@ PLOT2.legend(fontsize="small")
 PLOT3 = FIGURE.add_subplot(223)
 PLOT3.plot(DATA_ACT.iloc[START_INDEX:STOP_INDEX]["TOF"], DATA_ACT.iloc[START_INDEX:STOP_INDEX]["DEFLECTION"], label="DEFLECTION", color=COLOR_LIST[INDEX])
 INDEX += 1
-PLOT3.plot(DATA_ACT.iloc[START_INDEX:STOP_INDEX]["TOF"], DATA_ACT.iloc[START_INDEX:STOP_INDEX]["DEFLECTION_COMMAND"], label="DEFLECTION COMMAND", color=COLOR_LIST[INDEX])
+PLOT3.plot(DATA_ACT.iloc[START_INDEX:STOP_INDEX]["TOF"], DATA_ACT.iloc[START_INDEX:STOP_INDEX]["DEFLECTION_COMMAND"], label="DEFLECTION COMMAND", color=COLOR_LIST[INDEX], alpha=0.5)
 INDEX += 1
 PLOT3.set_xlabel("TIME OF FLIGHT")
 PLOT3.set_title("ACTUATOR")
@@ -405,7 +515,7 @@ PLOT3.legend(fontsize="small")
 PLOT4 = FIGURE.add_subplot(224)
 PLOT4.plot(DATA_DYN.iloc[START_INDEX:STOP_INDEX]["TOF"], DATA_DYN.iloc[START_INDEX:STOP_INDEX]["COMMANDED_ACCEL"], label="ACCELERATION COMMAND", color=COLOR_LIST[INDEX])
 INDEX += 1
-PLOT4.plot(DATA_DYN.iloc[START_INDEX:STOP_INDEX]["TOF"], DATA_DYN.iloc[START_INDEX:STOP_INDEX]["NORMAL_SPECIFIC_FORCE"], label="NORMAL SPECIFIC FORCE", color=COLOR_LIST[INDEX])
+PLOT4.plot(DATA_DYN.iloc[START_INDEX:STOP_INDEX]["TOF"], DATA_DYN.iloc[START_INDEX:STOP_INDEX]["NORMAL_SPECIFIC_FORCE"], label="NORMAL SPECIFIC FORCE", color=COLOR_LIST[INDEX], alpha=0.5)
 INDEX += 1
 PLOT4.plot(DATA_DYN.iloc[START_INDEX:STOP_INDEX]["TOF"], DATA_DYN.iloc[START_INDEX:STOP_INDEX]["W"], label="NORMAL VELOCITY", color=COLOR_LIST[INDEX])
 INDEX += 1
