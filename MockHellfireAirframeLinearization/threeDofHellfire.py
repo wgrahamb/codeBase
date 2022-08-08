@@ -134,7 +134,7 @@ class threeDofHellfire:
 		self.FLUAcceleration = np.zeros(3) # Meters per second squared.
 
 		# Log data.
-		self.logFile = open("MockHellfireAirframeLinearization/threeDofHellfire.txt", "w")
+		self.logFile = open("threeDofHellfire.txt", "w")
 		self.logFile.write("tof posE posN posU psiRads thetaRads velE velN velU mach speed specificForceX specificForceY specificForceZ tgtE tgtN tgtU\n")
 
 		# Performance and termination check.
