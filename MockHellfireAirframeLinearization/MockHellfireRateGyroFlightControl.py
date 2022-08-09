@@ -46,15 +46,16 @@ from classes.Atmosphere import Atmosphere
 from classes.MockHellfireMassPropertiesAndMotor import MockHellfireMassPropertiesAndMotor
 from classes.MockHellfireAerodynamics import MockHellfireAerodynamics
 from classes.MockHellfireDynamicMotionDriver import MockHellfireDynamicMotionDriver
-from classes.MockHellFireActuator import SecondOrderActuator
+from classes.SecondOrderActuator import SecondOrderActuator
 from classes.Target import Target
-from classes.MockHellfireKinematicTruthSeeker import MockHellfireKinematicTruthSeeker
+from classes.KinematicTruthSeeker import KinematicTruthSeeker
+from classes.ProportionalGuidance import ProportionalGuidance
 
 # CONSTANTS.
 SIM_TIME_STEP = 0.001 # Seconds.
 MANEUVER_TIME = 1.5 # Seconds.
 BURN_TIME = 3.1 # Seconds.
-MAX_TIME = 3 # Seconds.
+MAX_TIME = 30 # Seconds.
 MM_TO_M = 1.0 / 1000.0
 RAD_TO_DEG = 57.2957795130823
 DEG_TO_RAD = 1.0 / 57.2957795130823
@@ -62,9 +63,10 @@ STANDARD_GRAVITY = 9.81 # Meters per second squared.
 REFERENCE_DIAMETER = 0.18 # Meters.
 REFERENCE_AREA = np.pi * (REFERENCE_DIAMETER ** 2) / 4 # Meters squared.
 REFERENCE_LENGTH = 1.85026 # Meters.
-INITIAL_AIRSPEED = 130.0 # Meters per second.
-INITIAL_ALTITUDE = 1000 # Meters.
-INITIAL_TARGET_POSITION = npa([3000.0, INITIAL_ALTITUDE])
+INITIAL_HORIZONTAL_AIRSPEED = 100.0 # Meters per second.
+INITIAL_VERTICAL_AIRSPEED = 10.0 # Meters per second.
+INITIAL_ALTITUDE = 400 # Meters.
+INITIAL_TARGET_POSITION = npa([400.0, INITIAL_ALTITUDE + 0.0])
 INITIAL_TARGET_VELOCITY = npa([0.0, 0.0])
 
 # CREATE CLASSES.
@@ -72,7 +74,7 @@ AtmosphereObject = Atmosphere()
 MassAndMotorProperties = MockHellfireMassPropertiesAndMotor()
 AerodynamicsObject = MockHellfireAerodynamics()
 INITIAL_POSITION = npa([0.0, INITIAL_ALTITUDE])
-INITIAL_VELOCITY = npa([INITIAL_AIRSPEED, 0.0])
+INITIAL_VELOCITY = npa([INITIAL_HORIZONTAL_AIRSPEED, INITIAL_VERTICAL_AIRSPEED])
 MissileMotionObject = MockHellfireDynamicMotionDriver(INITIAL_POSITION=INITIAL_POSITION, INITIAL_VELOCITY=INITIAL_VELOCITY)
 ActuatorObject = SecondOrderActuator()
 TargetObject = Target(
@@ -80,7 +82,8 @@ TargetObject = Target(
 	INITIAL_TARGET_VELOCITY=INITIAL_TARGET_VELOCITY,
 	TIME_STEP=SIM_TIME_STEP
 )
-SeekerObject = MockHellfireKinematicTruthSeeker()
+SeekerObject = KinematicTruthSeeker()
+GuidanceLaw = ProportionalGuidance()
 
 ### STATE. ###
 ### DYNAMICS
@@ -120,7 +123,7 @@ DYNAMICS_STATE_STORAGE_DICTIONARY = {
 }
 
 # ATMOSPHERE.
-AtmosphereObject.update(altitudeMeters=INITIAL_ALTITUDE, speedMperSec=INITIAL_AIRSPEED)
+AtmosphereObject.update(altitudeMeters=INITIAL_ALTITUDE, speedMperSec=INITIAL_HORIZONTAL_AIRSPEED)
 RHO = AtmosphereObject.rho
 PRESSURE = AtmosphereObject.p
 SPEED_OF_SOUND = AtmosphereObject.a
@@ -137,7 +140,7 @@ TRANSVERSE_MOMENT_OF_INERTIA = MassAndMotorProperties.TRANSVERSE_MOI # Kilograms
 
 # AERODYNAMICS
 AerodynamicsObject.update(
-	VELOCITY=npa([INITIAL_AIRSPEED, 0.0]),
+	VELOCITY=npa([INITIAL_HORIZONTAL_AIRSPEED, 0.0]),
 	XCG=XCG,
 	MACHSPEED=MACHSPEED,
 	MASS=MASS,
@@ -281,6 +284,11 @@ def storeActuatorState():
 
 ### GUIDANCE AND CONTRO
 # GUIDANCE.
+GuidanceLaw.update(
+	CLOSING_SPEED=CLOSING_SPEED,
+	MSL_TO_TARGET_RELPOS=MSL_TO_TGT_RELPOS,
+	LINE_OF_SIGHT_RATE=LINE_OF_SIGHT_RATE
+)
 FIRST_ACCEL_COMMAND_IN_GS = 2 # Gs.
 SECOND_ACCEL_COMMAND_IN_GS = -2 # Gs
 COMMAND = FIRST_ACCEL_COMMAND_IN_GS #Gs.
@@ -348,10 +356,10 @@ while GO:
 	ACCELERATION = MissileMotionObject.ACCELERATION # Meters per second squared.
 	POSITION = MissileMotionObject.POSITION # Meters.
 	VELOCITY = MissileMotionObject.VELOCITY # Meters per second.
-	THETA = MissileMotionObject.THETA # Radians.
+	THETA = MissileMotionObject.THETA * DEG_TO_RAD # Radians.
 	ALPHA = MissileMotionObject.ALPHA # Radians.
 	ALPHA_DOT = MissileMotionObject.ALPHA_DOT # Radians per second.
-	THETA_DOT = MissileMotionObject.THETA_DOT # Radians per second.
+	THETA_DOT = MissileMotionObject.THETA_DOT * DEG_TO_RAD # Radians per second.
 	NORMAL_SPECIFIC_FORCE = MissileMotionObject.NORMAL_SPECIFIC_FORCE # Meters per second squared.
 	TOF = MissileMotionObject.TOF # Seconds.
 
@@ -363,7 +371,7 @@ while GO:
 	TGT_VEL = TargetObject.targetRightUpVelocity
 	# SEEKER.
 	SeekerObject.update(
-		THETA_RADS=THETA * DEG_TO_RAD,
+		THETA_RADS=THETA,
 		PSI_RADS=0.0,
 		MSL_POS=POSITION,
 		MSL_VEL=VELOCITY,
@@ -381,11 +389,17 @@ while GO:
 
 	### GUIDANCE AND CONTROL ###
 	# GUIDANCE.
-	COMMAND = 0.0
-	if TOF < MANEUVER_TIME:
-		COMMAND = FIRST_ACCEL_COMMAND_IN_GS
-	else:
-		COMMAND = SECOND_ACCEL_COMMAND_IN_GS
+	GuidanceLaw.update(
+		CLOSING_SPEED=CLOSING_SPEED,
+		MSL_TO_TARGET_RELPOS=MSL_TO_TGT_RELPOS,
+		LINE_OF_SIGHT_RATE=LINE_OF_SIGHT_RATE
+	)
+	COMMAND = GuidanceLaw.COMMAND / GRAVITY
+	# COMMAND = 0.0
+	# if TOF < MANEUVER_TIME:
+	# 	COMMAND = FIRST_ACCEL_COMMAND_IN_GS
+	# else:
+	# 	COMMAND = SECOND_ACCEL_COMMAND_IN_GS
 
 	# CONTROL.
 	KDC = (1 - KR * K3) / (K1 * KR)
@@ -409,6 +423,10 @@ while GO:
 	if MSL_TO_TGT_RELPOS[0] < 0:
 		print(f"POINT OF CLOSEST APPROACH PASSED {MISS_DISTANCE} {MSL_TO_TGT_RELPOS}")
 		GO = False
+
+	# CONSOLE REPORT.
+	if round(TOF, 3).is_integer():
+		print(f"{np.ceil(TOF)} {POSITION} {VELOCITY}")
 
 	# STORE DATA AT CURRENT CONDITIONS
 	DYNAMICS_STATE_CURRENT_DICTIONARY = {
@@ -479,7 +497,45 @@ STOP_INDEX = -1
 COLOR_LIST = colors()
 INDEX = 0
 
+scale = True
+if scale:
+	xMin = min(
+		list(DATA_DYN[START_INDEX:STOP_INDEX]["X"]) + \
+		list(DATA_TGT.iloc[START_INDEX:STOP_INDEX]["TGT_X"])
+	)
+	xMax = max(
+		list(DATA_DYN[START_INDEX:STOP_INDEX]["X"]) + \
+		list(DATA_TGT.iloc[START_INDEX:STOP_INDEX]["TGT_X"])
+	)
+	zMin = min(
+		list(DATA_DYN[START_INDEX:STOP_INDEX]["Z"]) + \
+		list(DATA_TGT.iloc[START_INDEX:STOP_INDEX]["TGT_Z"])
+	)
+	zMax = max(
+		list(DATA_DYN[START_INDEX:STOP_INDEX]["Z"]) + \
+		list(DATA_TGT.iloc[START_INDEX:STOP_INDEX]["TGT_Z"])
+	)
+	BUFFER = 100
+	# PLOT1.set_box_aspect(
+	# 	(
+	# 		np.ptp([xMin - BUFFER, xMax + BUFFER]),
+	# 		np.ptp([zMin - BUFFER, zMax + BUFFER])
+	# 	)
+	# )
+	# PLOT1.set_aspect("float")
+
+	XLIM_RANGE = (xMax + BUFFER) - (xMin - BUFFER)
+	ZLIM_RANGE = (zMax + BUFFER) - (zMin - BUFFER)
+	RATIO = ZLIM_RANGE / XLIM_RANGE
+	
+
 PLOT1 = FIGURE.add_subplot(221)
+if scale:
+	PLOT1.set_xlim([xMin - BUFFER, xMax + BUFFER])
+	PLOT1.set_ylim([zMin - BUFFER, zMax + BUFFER])
+	PLOT1.set_aspect(RATIO)
+	# PLOT1.set_figheight(RATIO)
+	# PLOT1.set_figwidth(1 / RATIO)
 PLOT1.plot(DATA_DYN.iloc[START_INDEX:STOP_INDEX]["X"], DATA_DYN.iloc[START_INDEX:STOP_INDEX]["Z"], label="MSL POS", color=COLOR_LIST[INDEX])
 INDEX += 1
 if DATA_TGT.iloc[STOP_INDEX]["TGT_X"] == DATA_TGT.iloc[START_INDEX]["TGT_X"]:
@@ -489,15 +545,13 @@ else:
 INDEX += 1
 PLOT1.set_xlabel("EAST")
 PLOT1.set_ylabel("UP")
-PLOT1.set_ylim([INITIAL_ALTITUDE-350, INITIAL_ALTITUDE+350])
 PLOT1.set_title("POSITION")
-PLOT1.set_aspect("equal")
 PLOT1.legend(fontsize="xx-small")
 
 PLOT2 = FIGURE.add_subplot(222)
-PLOT2.plot(DATA_DYN.iloc[START_INDEX:STOP_INDEX]["TOF"], DATA_DYN.iloc[START_INDEX:STOP_INDEX]["THETA"] * DEG_TO_RAD, label="THETA RADIANS", color=COLOR_LIST[INDEX])
+PLOT2.plot(DATA_DYN.iloc[START_INDEX:STOP_INDEX]["TOF"], DATA_DYN.iloc[START_INDEX:STOP_INDEX]["THETA"], label="THETA RADIANS", color=COLOR_LIST[INDEX])
 INDEX += 1
-PLOT2.plot(DATA_DYN.iloc[START_INDEX:STOP_INDEX]["TOF"], DATA_DYN.iloc[START_INDEX:STOP_INDEX]["THETA_DOT"] * DEG_TO_RAD, label="THETA DOT RADS PER SEC", color=COLOR_LIST[INDEX])
+PLOT2.plot(DATA_DYN.iloc[START_INDEX:STOP_INDEX]["TOF"], DATA_DYN.iloc[START_INDEX:STOP_INDEX]["THETA_DOT"], label="THETA DOT RADS PER SEC", color=COLOR_LIST[INDEX])
 INDEX += 1
 PLOT2.plot(DATA_DYN.iloc[START_INDEX:STOP_INDEX]["TOF"], DATA_DYN.iloc[START_INDEX:STOP_INDEX]["ALPHA"], label="ALPHA RADIANS", color=COLOR_LIST[INDEX])
 INDEX += 1

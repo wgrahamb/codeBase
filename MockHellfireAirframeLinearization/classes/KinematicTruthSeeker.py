@@ -5,7 +5,7 @@ import numpy as np
 from numpy import array as npa
 from numpy import linalg as la
 
-class MockHellfireKinematicTruthSeeker:
+class KinematicTruthSeeker:
 
 	def __init__(self):
 
@@ -56,7 +56,7 @@ class MockHellfireKinematicTruthSeeker:
 		TEMP1 = np.cross(FLU_MSL_TO_TGT_RELPOS, CLOSING_VEL)
 		TEMP2 = np.dot(FLU_MSL_TO_TGT_RELPOS, FLU_MSL_TO_TGT_RELPOS)
 
-		self.CLOSING_SPEED = la.norm(self.CLOSING_SPEED)
+		self.CLOSING_SPEED = la.norm(CLOSING_VEL)
 		self.MSL_TO_TGT_RELPOS = FLU_MSL_TO_TGT_RELPOS
 		self.LINE_OF_SIGHT_RATE = TEMP1 / TEMP2
 

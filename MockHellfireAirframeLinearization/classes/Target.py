@@ -8,7 +8,7 @@ class Target:
 		self.targetRightUpPosition = INITIAL_TARGET_POSITION
 		self.targetRightUpVelocity = INITIAL_TARGET_VELOCITY
 
-		print("TARGET CONSTRUCTED")
+		print("TARGET LOADED")
 
 	def update(self):
 		deltaPos = self.TIME_STEP * self.targetRightUpVelocity

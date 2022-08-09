@@ -46,5 +46,5 @@ class MockHellfireMassPropertiesAndMotor:
 			if self.FLAG == 0:
 				self.FLAG = 1
 				self.THRUST = 0.0
-				self.XCG = linearInterpolation(timeOfFlight, self.CG_TIME_VALUES, self.CG_VALUES)
+				self.XCG = self.CG_VALUES[-1]
 				self.TRANSVERSE_MOI = (self.MASS * (3 * ((0.5 * self.REFERENCE_DIAMETER) ** 2) + self.REFERENCE_LENGTH ** 2)) / (12) # Kilograms times meters squared.

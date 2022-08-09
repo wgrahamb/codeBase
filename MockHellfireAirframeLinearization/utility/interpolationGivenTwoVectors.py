@@ -22,4 +22,6 @@ def linearInterpolation(x, xx, yy):
                     highIndex = -1
           # print(x, xx[lowIndex], xx[highIndex], yy[lowIndex], yy[highIndex])
           y = yy[lowIndex] + ((x - xx[lowIndex]) * ((yy[highIndex] - yy[lowIndex]) / (xx[highIndex] - xx[lowIndex])))
+          if np.isnan(y):
+                    pause = 0
           return y
