@@ -20,7 +20,7 @@ class MockHellfireDynamicMotionDriver:
 		self.ACCELERATION = np.zeros(2) # Meters per second squared.
 		self.POSITION = INITIAL_POSITION # Meters.
 		self.VELOCITY = INITIAL_VELOCITY # Meters per second.
-		self.THETA = np.arctan2(INITIAL_VELOCITY[1], INITIAL_VELOCITY[0]) # Radians.
+		self.THETA = np.degrees(np.arctan2(INITIAL_VELOCITY[1], INITIAL_VELOCITY[0])) # Radians.
 		self.ALPHA_OLD = 0.0 # Radians per second.
 		self.ALPHA = 0.0 # Radians.
 		self.ALPHA_DOT = 0.0 # Radians per second.
@@ -49,7 +49,6 @@ class MockHellfireDynamicMotionDriver:
 			self.NORMAL_SPECIFIC_FORCE = K1 * (self.E - (self.EDOTDOT / (OMEGA_Z ** 2)))
 
 			# EQUATIONS OF MOTION.
-			
 			self.ACCELERATION = npa([0.0, self.NORMAL_SPECIFIC_FORCE * GRAVITY])
 
 			DELTA_POSITION = self.VELOCITY * DT

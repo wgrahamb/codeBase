@@ -3,6 +3,8 @@
 TO DO:
 
 1) GO THROUGH THE ENTIRE CODE AND CHECK UNITS. ***VERY IMPORTANT***
+	A) MOVE AERODYNAMICS FROM CLASS TO AIRFRAME SIMULATION TO COMPARE WITH THE FIRST TWO.
+	B) THEN PUT BACK IN CLASS.
 2) ANY MODULE THAT IS SET UP TO HANDLE 2D OR 3D, CHANGE TO ONLY 2D FOR UNIFORMITY.
 3) FOR MISSILE MOTION, FIGURE TRANSFORMATION MATRICES.
 4) ADD THRUST TO MOTION MODULE.
@@ -57,7 +59,7 @@ from classes.ProportionalGuidance import ProportionalGuidance
 SIM_TIME_STEP = 0.001 # Seconds.
 MANEUVER_TIME = 1.5 # Seconds.
 BURN_TIME = 3.1 # Seconds.
-MAX_TIME = 30 # Seconds.
+MAX_TIME = 10 # Seconds.
 MM_TO_M = 1.0 / 1000.0
 RAD_TO_DEG = 57.2957795130823
 DEG_TO_RAD = 1.0 / 57.2957795130823
@@ -68,8 +70,8 @@ REFERENCE_LENGTH = 1.85026 # Meters.
 INITIAL_HORIZONTAL_AIRSPEED = 100.0 # Meters per second.
 INITIAL_VERTICAL_AIRSPEED = 10.0 # Meters per second.
 INITIAL_ALTITUDE = 400 # Meters.
-INITIAL_TARGET_POSITION = npa([400.0, INITIAL_ALTITUDE + 0.0])
-INITIAL_TARGET_VELOCITY = npa([0.0, 0.0])
+INITIAL_TARGET_POSITION = npa([400.0, INITIAL_ALTITUDE + 200.0]) # Meters.
+INITIAL_TARGET_VELOCITY = npa([0.0, 0.0]) # Meters per second.
 
 # CREATE CLASSES.
 AtmosphereObject = Atmosphere()
@@ -90,17 +92,17 @@ GuidanceLaw = ProportionalGuidance()
 ### STATE. ###
 ### DYNAMICS
 DYNAMICS_STATE_STORAGE_DICTIONARY = {
-	"COMMANDED_ACCEL": [],
-	"RHO": [],
-	"PRESSURE": [],
-	"SPEED_OF_SOUND": [],
-	"GRAVITY": [],
-	"DYNAMIC_PRESSURE": [],
-	"MACHSPEED": [],
-	"THRUST": [],
-	"XCG": [],
-	"MASS": [],
-	"TRANSVERSE_MOI": [],
+	"COMMANDED_ACCEL": [], # Gs
+	"RHO": [], # Kilograms per meter cubed.
+	"PRESSURE": [], # Pascals.
+	"SPEED_OF_SOUND": [], # Meters per second.
+	"GRAVITY": [], # Meters per second squared.
+	"DYNAMIC_PRESSURE": [], # Pascals.
+	"MACHSPEED": [], # Non dimensional
+	"THRUST": [], # Newtons.
+	"XCG": [], # Meters from nose.
+	"MASS": [], # Kilograms.
+	"TRANSVERSE_MOI": [], # Kilograms times meters squared.
 	"OMEGA_Z": [],
 	"OMEGA_AF": [],
 	"ZETA_AF": [],
@@ -110,45 +112,45 @@ DYNAMICS_STATE_STORAGE_DICTIONARY = {
 	"K3": [],
 	"E": [],
 	"EDOT": [],
-	"UDOT": [],
-	"WDOT": [],
-	"U": [],
-	"W": [],
-	"X": [],
-	"Z": [],
-	"THETA": [],
-	"ALPHA": [],
-	"ALPHA_DOT": [],
-	"THETA_DOT": [],
-	"NORMAL_SPECIFIC_FORCE": [],
-	"TOF": []
+	"UDOT": [], # Meters per second squared.
+	"WDOT": [], # Meters per second squared.
+	"U": [], # Meters per second.
+	"W": [], # Meters per second.
+	"X": [], # Meters.
+	"Z": [], # Meters.
+	"THETA": [], # Radians.
+	"ALPHA": [], # Radians.
+	"ALPHA_DOT": [], # Radians per second.
+	"THETA_DOT": [], # Radians per second.
+	"NORMAL_SPECIFIC_FORCE": [], # Meters per second squared.
+	"TOF": [] # Seconds.
 }
 
 # ATMOSPHERE.
 AtmosphereObject.update(altitudeMeters=INITIAL_ALTITUDE, speedMperSec=INITIAL_HORIZONTAL_AIRSPEED)
-RHO = AtmosphereObject.rho
-PRESSURE = AtmosphereObject.p
-SPEED_OF_SOUND = AtmosphereObject.a
-GRAVITY = AtmosphereObject.gravity
-DYNAMIC_PRESSURE = AtmosphereObject.q
-MACHSPEED = AtmosphereObject.mach
+RHO = AtmosphereObject.rho # Kilograms per meter cubed.
+PRESSURE = AtmosphereObject.p # Pascals.
+SPEED_OF_SOUND = AtmosphereObject.a # Meters per second.
+GRAVITY = AtmosphereObject.gravity # Meters per second squared.
+DYNAMIC_PRESSURE = AtmosphereObject.q # Pascals.
+MACHSPEED = AtmosphereObject.mach # Non dimensional.
 
 # MASS AND MOTOR.
 MassAndMotorProperties.update(timeOfFlight=0.0, pressure=PRESSURE)
-THRUST = MassAndMotorProperties.THRUST
-XCG = MassAndMotorProperties.XCG
-MASS = MassAndMotorProperties.MASS
+THRUST = MassAndMotorProperties.THRUST # Newtons.
+XCG = MassAndMotorProperties.XCG # Meters from nose.
+MASS = MassAndMotorProperties.MASS # Kilograms.
 TRANSVERSE_MOMENT_OF_INERTIA = MassAndMotorProperties.TRANSVERSE_MOI # Kilograms times meters squared.
 
 # AERODYNAMICS
 AerodynamicsObject.update(
-	VELOCITY=npa([INITIAL_HORIZONTAL_AIRSPEED, 0.0]),
-	XCG=XCG,
-	MACHSPEED=MACHSPEED,
-	MASS=MASS,
-	COMMAND=0,
-	DYNAMIC_PRESSURE=DYNAMIC_PRESSURE,
-	TRANSVERSE_MOMENT_OF_INERTIA=TRANSVERSE_MOMENT_OF_INERTIA
+	VELOCITY=npa([INITIAL_HORIZONTAL_AIRSPEED, 0.0]), # Meters per second.
+	XCG=XCG, # Meters from nose.
+	MACHSPEED=MACHSPEED, # Non dimensional.
+	MASS=MASS, # Kilograms.
+	COMMAND=0, # Gs.
+	DYNAMIC_PRESSURE=DYNAMIC_PRESSURE, # Pascals.
+	TRANSVERSE_MOMENT_OF_INERTIA=TRANSVERSE_MOMENT_OF_INERTIA # Kilograms times meters squared.
 )
 OMEGA_Z = AerodynamicsObject.OMEGA_Z
 OMEGA_AF = AerodynamicsObject.OMEGA_AF
@@ -167,19 +169,19 @@ MissileMotionObject.update(
 	K1=K1,
 	TA=TA,
 	K3=K3,
-	DEFLECTION=0.0,
-	GRAVITY=GRAVITY,
-	MAX_TIME=0.0
+	DEFLECTION=0.0, # Degrees.
+	GRAVITY=GRAVITY, # Meters per second.
+	MAX_TIME=0.0 # Seconds.
 )
 E = MissileMotionObject.E
 EDOT = MissileMotionObject.EDOT
 ACCELERATION = MissileMotionObject.ACCELERATION # Meters per second squared.
 POSITION = MissileMotionObject.POSITION # Meters.
 VELOCITY = MissileMotionObject.VELOCITY # Meters per second.
-THETA = MissileMotionObject.THETA # Radians.
+THETA = MissileMotionObject.THETA * DEG_TO_RAD # Radians.
 ALPHA = MissileMotionObject.ALPHA # Radians.
 ALPHA_DOT = MissileMotionObject.ALPHA_DOT # Radians per second.
-THETA_DOT = MissileMotionObject.THETA_DOT # Radians per second.
+THETA_DOT = MissileMotionObject.THETA_DOT * DEG_TO_RAD # Radians per second.
 NORMAL_SPECIFIC_FORCE = MissileMotionObject.NORMAL_SPECIFIC_FORCE # Meters per second squared.
 TOF = MissileMotionObject.TOF # Seconds.
 
@@ -224,20 +226,20 @@ def storeDynamicsState():
 
 ### TARGET STATE
 TARGET_STATE_STORAGE_DICTIONARY = {
-	"TGT_TOF": [],
-	"TGT_X": [],
-	"TGT_Z": [],
-	"TGT_VX": [],
-	"TGT_VZ": [],
-	"CLOSING_SPEED": [],
-	"MSL_TGT_RELPOS": [],
-	"LINE_OF_SIGHT_RATE": []
+	"TGT_TOF": [], # Seconds.
+	"TGT_X": [], # Meters.
+	"TGT_Z": [], # Meters.
+	"TGT_VX": [], # Meters per second.
+	"TGT_VZ": [], # Meters per second.
+	"CLOSING_SPEED": [], # Meters per second.
+	"MSL_TGT_RELPOS": [], # Meters.
+	"LINE_OF_SIGHT_RATE": []# Per second.
 }
 # TARGET.
 TargetObject.update()
-TGT_TOF = TargetObject.targetTimeOfFlight
-TGT_POS = TargetObject.targetRightUpPosition
-TGT_VEL = TargetObject.targetRightUpVelocity
+TGT_TOF = TargetObject.targetTimeOfFlight # Seconds.
+TGT_POS = TargetObject.targetRightUpPosition # Meters.
+TGT_VEL = TargetObject.targetRightUpVelocity # Meters per second.
 # SEEKER.
 SeekerObject.update(
 	THETA_RADS=THETA,
@@ -291,9 +293,9 @@ GuidanceLaw.update(
 	MSL_TO_TARGET_RELPOS=MSL_TO_TGT_RELPOS,
 	LINE_OF_SIGHT_RATE=LINE_OF_SIGHT_RATE
 )
-FIRST_ACCEL_COMMAND_IN_GS = 2 # Gs.
-SECOND_ACCEL_COMMAND_IN_GS = -2 # Gs
-COMMAND = FIRST_ACCEL_COMMAND_IN_GS #Gs.
+# FIRST_ACCEL_COMMAND_IN_GS = 2 # Gs.
+# SECOND_ACCEL_COMMAND_IN_GS = -2 # Gs
+COMMAND = 0.0 #Gs.
 # CONTROL.
 DEFLECTION_COMMAND = 0.0 # Degrees.
 

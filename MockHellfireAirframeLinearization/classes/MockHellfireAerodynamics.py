@@ -64,13 +64,52 @@ class MockHellfireAerodynamics:
 		DELTA_TRIM = (-1 * Y4 * ALPHA_TRIM - Y5 * ALPHA_TRIM * ALPHA_TRIM) / Y6
 		CNA = 2 + 1.5 * self.PLANFORM_AREA * ALPHA_TRIM / self.REFERENCE_AREA + 8 * self.WING_AREA / (BETA * self.REFERENCE_AREA) + 8 * self.TAIL_AREA / (BETA * self.REFERENCE_AREA)
 		CND = 8 * self.TAIL_AREA / (BETA * self.REFERENCE_AREA)
-		ZA = -1 * self.STANDARD_GRAVITY * DYNAMIC_PRESSURE * self.REFERENCE_AREA * CNA / (MASS * VELMAG)
-		ZD = -1 * self.STANDARD_GRAVITY * DYNAMIC_PRESSURE * self.REFERENCE_AREA * CND / (MASS * VELMAG)
+		
+		
+		# ZA = -1 * self.STANDARD_GRAVITY * DYNAMIC_PRESSURE * self.REFERENCE_AREA * CNA / (MASS * VELMAG)
+		ZA = -1 * DYNAMIC_PRESSURE * self.REFERENCE_AREA * CNA / (MASS * VELMAG)
+		
+		"""
+		
+		ZA & ZD
+
+		# With gravity.
+		# ((m/s^2) * (Pascals) * (m^2)) / (kg * m/s^2)
+		# ((m/s^2) * (kg/(m*s^2)) * (m^2)) / (kg * m/s^2)
+
+		# Without gravity.
+		# ((Pascals) * (m^2)) / (kg * m/s)
+		# ((kg/(m*s^2)) * (m^2)) / (kg * m/s)
+		# kg           m^2           1                       kg * m * m * s                        1
+		# m*s^2     1                kg * m/s            m * s * s * kg * m                   s
+
+		"""
+
+		# ZD = -1 * self.STANDARD_GRAVITY * DYNAMIC_PRESSURE * self.REFERENCE_AREA * CND / (MASS * VELMAG)
+		ZD = -1 * DYNAMIC_PRESSURE * self.REFERENCE_AREA * CND / (MASS * VELMAG)
+
+
 		CMAP = 2 * TEMP4 + 1.5 * self.PLANFORM_AREA * ALPHA_TRIM * TEMP3 / self.REFERENCE_AREA + 8 * self.WING_AREA * TEMP1 / (BETA * self.REFERENCE_AREA)
 		CMA = CMAP + 8 * self.TAIL_AREA * TEMP2 / (BETA * self.REFERENCE_AREA)
 		CMD = 8 * self.TAIL_AREA * TEMP2 / (BETA * self.REFERENCE_AREA)
+
+
 		MA = DYNAMIC_PRESSURE * self.REFERENCE_AREA * self.REFERENCE_DIAMETER * CMA / TRANSVERSE_MOMENT_OF_INERTIA
+		
+		"""
+		
+		MA & MD
+
+		Pascals * m^2 * m
+		kg * m2
+
+		kg * m^2 * m                            1
+		m * s^2 * kg * m^2                    s^2
+
+		"""
+		
 		MD = DYNAMIC_PRESSURE * self.REFERENCE_AREA * self.REFERENCE_DIAMETER * CMD / TRANSVERSE_MOMENT_OF_INERTIA
+
 
 		self.OMEGA_Z = np.sqrt((MA * ZD - MD * ZA) / ZD)
 		self.OMEGA_AF = np.sqrt(-1 * MA)
