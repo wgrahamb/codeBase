@@ -9,6 +9,12 @@ from ambiance import Atmosphere as atm
 
 """
 
+COEFFICIENT GUESSES:
+CMA = -5.0 - Per rad.
+CMD = -20.0 - Per rad.
+CNA = 15.0 - Per rad.
+CND = 4.0 - Per rad.
+
 MOCK HELLFIRE DIMENSIONS
 
 REFERENCE_DIAMETER 0.18 M
