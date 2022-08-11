@@ -36,6 +36,7 @@ COEFFICIENT GUESSES:
 
 CMA = -5.0 PER RAD
 CMD = -20.0 PER RAD
+
 CNA = 15.0 PER RAD
 CND = 4.0 PER RAD
 
@@ -92,15 +93,16 @@ class AirframeSimulation:
 		self.AN = 0.67 * self.NOSE_LENGTH * self.REFERENCE_DIAMETER # Meters squared.
 		self.AB = (self.REFERENCE_LENGTH - self.NOSE_LENGTH) * self.REFERENCE_DIAMETER # Meters squared.
 		self.BODY_CENTER_OF_PRESSURE = (0.67 * self.AN * self.NOSE_LENGTH + self.AB * (self.NOSE_LENGTH + 0.5 * (self.REFERENCE_LENGTH - self.NOSE_LENGTH))) / (self.AN + self.AB) # Meters.
-		self.LAST_CG_FROM_NOSE = self.NOSE_LENGTH # Meters.
-		self.FIN_DEFLECTION_DEGREES = -5 # Degrees.
+
+		# WILL BE AN INPUT.
+		self.FIN_DEFLECTION_DEGREES = 0 # Degrees.
 		self.FIN_DEFLECTION_RADIANS = np.radians(self.FIN_DEFLECTION_DEGREES) # Radians.
 
 		### STATE ###
 		# TIME.
 		self.TIME_OF_FLIGHT = 0.0 # Seconds.
 		self.TIME_STEP = 1.0 / 250.0 # Seconds. Variable.
-		self.MAX_TIME = 10 # Seconds.
+		self.MAX_TIME = 40 # Seconds.
 
 		# POSITION.
 		INITIAL_RANGE = 0.0 # Meters.
@@ -147,21 +149,23 @@ class AirframeSimulation:
 		self.G = self.ATMOSPHERE.g
 		self.Q = self.ATMOSPHERE.q
 		self.MACH = self.ATMOSPHERE.mach
-		self.BETA = None # Zarchan - "Normalized Speed"
+		self.BETA = None # Non dimensional >>> Zarchan - "Normalized Speed"
 		if self.MACH > 1:
-			self.BETA = np.sqrt(self.MACH ** 2 - 1) # Non dimensional.
+			self.BETA = np.sqrt(self.MACH ** 2 - 1)
 		else:
-			self.BETA = self.MACH # Non dimensional.
+			self.BETA = self.MACH
 
 		# MASS AND MOTOR PROPERTIES.
+		self.MASS_AND_MOTOR = MockHellfireMassAndMotor()
 		self.MASS = 45
-		self.TRANSVERSE_MOMENT_OF_INERTIA = (self.MASS * (3 * ((0.5 * self.REFERENCE_DIAMETER) ** 2) + self.REFERENCE_LENGTH ** 2)) / (12) # Kilograms times meters squared.
+		self.IYY = (self.MASS * (3 * ((0.5 * self.REFERENCE_DIAMETER) ** 2) + self.REFERENCE_LENGTH ** 2)) / (12) # Kilograms times meters squared.
+		self.CG = self.NOSE_LENGTH # Meters.
 
 		# AERODYNAMICS
-		TEMP1 = (self.LAST_CG_FROM_NOSE - self.WING_CENTER_OF_PRESSURE) / self.REFERENCE_DIAMETER 
-		TEMP2 = (self.LAST_CG_FROM_NOSE - self.CENTER_OF_DEFLECTION_FROM_NOSE) / self.REFERENCE_DIAMETER
-		TEMP3 = (self.LAST_CG_FROM_NOSE - self.BODY_CENTER_OF_PRESSURE) / self.REFERENCE_DIAMETER
-		TEMP4 = (self.LAST_CG_FROM_NOSE - self.NOSE_CENTER_OF_PRESSURE) / self.REFERENCE_DIAMETER
+		TEMP1 = (self.CG - self.WING_CENTER_OF_PRESSURE) / self.REFERENCE_DIAMETER 
+		TEMP2 = (self.CG - self.CENTER_OF_DEFLECTION_FROM_NOSE) / self.REFERENCE_DIAMETER
+		TEMP3 = (self.CG - self.BODY_CENTER_OF_PRESSURE) / self.REFERENCE_DIAMETER
+		TEMP4 = (self.CG - self.NOSE_CENTER_OF_PRESSURE) / self.REFERENCE_DIAMETER
 		Y1 = 2 * TEMP4 + 8 * self.WING_AREA * TEMP1 / (self.BETA * self.REFERENCE_AREA) + 8 * self.TAIL_AREA * TEMP2 / (self.BETA * self.REFERENCE_AREA)
 		Y2 = 1.5 * self.PLANFORM_AREA * TEMP3 / self.REFERENCE_AREA
 		Y3 = 8 * self.TAIL_AREA * TEMP2 * self.FIN_DEFLECTION_RADIANS / (self.BETA * self.REFERENCE_AREA)
@@ -173,8 +177,8 @@ class AirframeSimulation:
 		CMAP = 2 * TEMP4 + 1.5 * self.PLANFORM_AREA * ALPHA_TRIM * TEMP3 / self.REFERENCE_AREA + 8 * self.WING_AREA * TEMP1 / (self.BETA * self.REFERENCE_AREA)
 		CMA = CMAP + 8 * self.TAIL_AREA * TEMP2 / (self.BETA * self.REFERENCE_AREA)
 		CMD = 8 * self.TAIL_AREA * TEMP2 / (self.BETA * self.REFERENCE_AREA)
-		MA = self.Q * self.REFERENCE_AREA * self.REFERENCE_DIAMETER * CMA / self.TRANSVERSE_MOMENT_OF_INERTIA
-		MD = self.Q * self.REFERENCE_AREA * self.REFERENCE_DIAMETER * CMD / self.TRANSVERSE_MOMENT_OF_INERTIA
+		MA = self.Q * self.REFERENCE_AREA * self.REFERENCE_DIAMETER * CMA / self.IYY
+		MD = self.Q * self.REFERENCE_AREA * self.REFERENCE_DIAMETER * CMD / self.IYY
 		self.OMEGA_Z = np.sqrt((MA * ZD - MD * ZA) / ZD)
 		self.OMEGA_AF = np.sqrt(-1 * MA)
 		self.ZETA_AF = ZA * self.OMEGA_AF / (2 * MA)
@@ -192,7 +196,7 @@ class AirframeSimulation:
 			"RNG": self.POSITION[0],
 			"ALT": self.POSITION[1],
 			"THT": self.THETA,
-			"THT_DEG": self.THETA,
+			"THT_DEG": self.THETA_DEG,
 			"THT_DOT": self.THETA_DOT,
 			"THT_DOT_DEG": self.THETA_DOT_DEG,
 			"VEL_HRZ": self.VELOCITY[0],
@@ -202,8 +206,8 @@ class AirframeSimulation:
 			"W": self.BODY_VELOCITY[1],
 			"ACC_HRZ": self.ACCELERATION[0],
 			"ACC_VRT": self.ACCELERATION[1],
-			"U_DOT": self.BODY_VELOCITY[0],
-			"W_DOT": self.BODY_VELOCITY[1],
+			"U_DOT": self.SPECIFIC_FORCE[0],
+			"W_DOT": self.SPECIFIC_FORCE[1],
 			"AOA": self.ALPHA,
 			"AOA_DEG": self.ALPHA_DEG,
 			"AOA_DOT": self.ALPHA_DOT,
@@ -218,7 +222,7 @@ class AirframeSimulation:
 			"MACH": self.ATMOSPHERE.mach,
 
 			# MASS AND MOTOR
-			"T_MOI": self.TRANSVERSE_MOMENT_OF_INERTIA,
+			"T_MOI": self.IYY,
 			"MASS": self.MASS,
 
 			# AERODYNAMICS
@@ -233,7 +237,7 @@ class AirframeSimulation:
 		}
 
 		### LOGGING ###
-		self.LOG_FILE = open(f"MockHellfire_HighFidelityThreeDOF/data_{self.FLAG}.txt", "w")
+		self.LOG_FILE = open(f"MockHellfire_HighFidelityThreeDOF/output/data_{self.FLAG}.txt", "w")
 		HEADER = ""
 		COUNT = len(self.DYNAMICS_STATE.keys())
 		for INDEX, KEY in enumerate(self.DYNAMICS_STATE.keys()):
@@ -262,7 +266,7 @@ class AirframeSimulation:
 			"RNG": self.POSITION[0],
 			"ALT": self.POSITION[1],
 			"THT": self.THETA,
-			"THT_DEG": self.THETA,
+			"THT_DEG": self.THETA_DEG,
 			"THT_DOT": self.THETA_DOT,
 			"THT_DOT_DEG": self.THETA_DOT_DEG,
 			"VEL_HRZ": self.VELOCITY[0],
@@ -272,8 +276,8 @@ class AirframeSimulation:
 			"W": self.BODY_VELOCITY[1],
 			"ACC_HRZ": self.ACCELERATION[0],
 			"ACC_VRT": self.ACCELERATION[1],
-			"U_DOT": self.BODY_VELOCITY[0],
-			"W_DOT": self.BODY_VELOCITY[1],
+			"U_DOT": self.SPECIFIC_FORCE[0],
+			"W_DOT": self.SPECIFIC_FORCE[1],
 			"AOA": self.ALPHA,
 			"AOA_DEG": self.ALPHA_DEG,
 			"AOA_DOT": self.ALPHA_DOT,
@@ -288,7 +292,7 @@ class AirframeSimulation:
 			"MACH": self.ATMOSPHERE.mach,
 
 			# MASS AND MOTOR
-			"T_MOI": self.TRANSVERSE_MOMENT_OF_INERTIA,
+			"T_MOI": self.IYY,
 			"MASS": self.MASS,
 
 			# AERODYNAMICS
@@ -329,24 +333,30 @@ class AirframeSimulation:
 			self.G = self.ATMOSPHERE.g
 			self.Q = self.ATMOSPHERE.q
 			self.MACH = self.ATMOSPHERE.mach
+			self.BETA = None # Non dimensional >>> Zarchan - "Normalized Speed"
+			if self.MACH > 1:
+				self.BETA = np.sqrt(self.MACH ** 2 - 1)
+			else:
+				self.BETA = self.MACH
 
 			# Update dynamics.
 			if self.FLAG == 0:
 				
 				# NORMAL COEFFICIENT AND PITCHING MOMENT COEFFICIENT CALCULATION, NON DIMENSIONAL.
 				CN = 2 * self.ALPHA + (1.5 * self.PLANFORM_AREA * self.ALPHA * self.ALPHA) / self.REFERENCE_AREA + (8 * self.WING_AREA * self.ALPHA) / (self.BETA * self.REFERENCE_AREA) + (8 * self.TAIL_AREA * (self.ALPHA + self.FIN_DEFLECTION_RADIANS)) / (self.BETA * self.REFERENCE_AREA)
-				CM = 2 * self.ALPHA * ((self.LAST_CG_FROM_NOSE - self.NOSE_CENTER_OF_PRESSURE) / self.REFERENCE_DIAMETER) + ((1.5 * self.PLANFORM_AREA * self.ALPHA * self.ALPHA) / self.REFERENCE_AREA) * ((self.LAST_CG_FROM_NOSE - self.BODY_CENTER_OF_PRESSURE) / self.REFERENCE_DIAMETER) + ((8 * self.WING_AREA * self.ALPHA) / (self.BETA * self.REFERENCE_AREA)) * ((self.LAST_CG_FROM_NOSE - self.WING_CENTER_OF_PRESSURE) / self.REFERENCE_DIAMETER) + ((8 * self.TAIL_AREA * (self.ALPHA + self.FIN_DEFLECTION_RADIANS)) / (self.BETA * self.REFERENCE_AREA)) * ((self.LAST_CG_FROM_NOSE - self.CENTER_OF_DEFLECTION_FROM_NOSE) / self.REFERENCE_DIAMETER)
+				CM = 2 * self.ALPHA * ((self.CG - self.NOSE_CENTER_OF_PRESSURE) / self.REFERENCE_DIAMETER) + ((1.5 * self.PLANFORM_AREA * self.ALPHA * self.ALPHA) / self.REFERENCE_AREA) * ((self.CG - self.BODY_CENTER_OF_PRESSURE) / self.REFERENCE_DIAMETER) + ((8 * self.WING_AREA * self.ALPHA) / (self.BETA * self.REFERENCE_AREA)) * ((self.CG - self.WING_CENTER_OF_PRESSURE) / self.REFERENCE_DIAMETER) + ((8 * self.TAIL_AREA * (self.ALPHA + self.FIN_DEFLECTION_RADIANS)) / (self.BETA * self.REFERENCE_AREA)) * ((self.CG - self.CENTER_OF_DEFLECTION_FROM_NOSE) / self.REFERENCE_DIAMETER)
 				
 				# DERIVATIVES.
-				THETA_DOT_DOT = (self.Q * self.REFERENCE_AREA * self.REFERENCE_DIAMETER * CM) / self.TRANSVERSE_MOMENT_OF_INERTIA # Radians per second squared.
+				THETA_DOT_DOT = (self.Q * self.REFERENCE_AREA * self.REFERENCE_DIAMETER * CM) / self.IYY # Radians per second squared.
+
 				NORMAL_ACCEL = (self.Q * self.REFERENCE_AREA * CN) / self.MASS # Meters per second squared.
 				self.SPECIFIC_FORCE = npa([0.0, NORMAL_ACCEL])
+				LOCAL_G = npa([0.0, -1.0 * self.G])
+				BODY_G = self.BODY_TO_RANGE_AND_ALTITUDE @ LOCAL_G
+				self.SPECIFIC_FORCE += BODY_G
 				self.ACCELERATION = self.SPECIFIC_FORCE @ self.BODY_TO_RANGE_AND_ALTITUDE
 
 				# INTEGRATION.
-				self.THETA_DOT += THETA_DOT_DOT * self.TIME_STEP # Radians per second.
-				self.THETA += self.THETA_DOT * self.TIME_STEP # Radians.
-
 				DELTA_POS = self.VELOCITY * self.TIME_STEP
 				self.POSITION += DELTA_POS
 
@@ -354,8 +364,15 @@ class AirframeSimulation:
 				self.VELOCITY += DELTA_VEL
 				self.BODY_VELOCITY = self.BODY_TO_RANGE_AND_ALTITUDE @ self.VELOCITY
 
-				self.ALPHA_DOT = self.THETA_DOT - (NORMAL_ACCEL / self.SPEED) # Radians per second.
+				self.THETA_DOT += THETA_DOT_DOT * self.TIME_STEP # Radians per second.
+				self.THETA += self.THETA_DOT * self.TIME_STEP # Radians.
+				self.THETA_DOT_DEG = np.degrees(self.THETA_DOT)
+				self.THETA_DEG = np.degrees(self.THETA)
+
+				self.ALPHA_DOT = self.THETA_DOT - (self.SPECIFIC_FORCE[1] / self.SPEED) # Radians per second.
 				self.ALPHA += self.ALPHA_DOT * self.TIME_STEP # Radians.
+				self.ALPHA_DOT_DEG = np.degrees(self.ALPHA_DOT)
+				self.ALPHA_DEG = np.degrees(self.ALPHA)
 
 				# RE ORIENT.
 				self.BODY_TO_RANGE_AND_ALTITUDE = ct.BODY_TO_RANGE_AND_ALTITUDE(-self.THETA)
@@ -369,6 +386,10 @@ class AirframeSimulation:
 				# UPDATE TIME OF FLIGHT.
 				self.TIME_OF_FLIGHT += self.TIME_STEP
 
+			# Console report.
+			if round(self.TIME_OF_FLIGHT, 3).is_integer():
+				print(f"{self.TIME_OF_FLIGHT:.2f} {self.POSITION}")
+
 			# Performance and termination check.
 			if self.TIME_OF_FLIGHT > self.MAX_TIME:
 				GO = False
@@ -380,9 +401,7 @@ class AirframeSimulation:
 				GO = False
 				print(f"NAN - {self.TIME_OF_FLIGHT:.2f} {self.POSITION}")
 
-			# Console report.
-			if round(self.TIME_OF_FLIGHT, 3).is_integer():
-				print(f"{self.TIME_OF_FLIGHT:.2f} {self.POSITION}")
+
 
 if __name__ == "__main__":
 
@@ -390,6 +409,8 @@ if __name__ == "__main__":
 	
 	FLAG = 0 >>> SIMPLE LINEAR APPROXIMATIONS
 	FLAG = 1 >>> FIXED COEFFICIENT APPROXIMATIONS
+	FLAG = 2 >>> DIFFERENTIAL EQNS OF MOTION #1
+	FLAG = 3 >>> DIFFERENTIAL EQNS OF MOTION #2
 	
 	"""
 

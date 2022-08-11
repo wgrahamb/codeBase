@@ -1,7 +1,7 @@
 def matPlotLibColors():
 	colors = [
 
-		"palegreen","mediumpurple","orange","red","royalblue",
+		"g","mediumpurple","orange","red","royalblue",
 		"darkgreen","coral","deeppink","cadetblue","blue",
 		"seagreen","blue","cyan","limegreen","y",
 
@@ -37,7 +37,7 @@ def matPlotLibColors():
 		"yellowgreen",
 		"lawngreen",
 		"lightgreen",
-		"g",
+		"palegreen",
 		"mediumseagreen",
 		"mediumaquamarine",
 		"mediumturquoise",
