@@ -698,8 +698,8 @@ if __name__ == "__main__":
 		TIME_STEP=(1.0 / 1000.0),
 		INITIAL_MISSILE_RANGE=0.0,
 		INITIAL_MISSILE_ALTITUDE=0.0,
-		INITIAL_HRZ_VEL=150.0,
-		INITIAL_VRT_VEL=150.0
+		INITIAL_HRZ_VEL=10.0,
+		INITIAL_VRT_VEL=10.0
 	)
 	x.dynamics()
 	x = AirframeSimulation(
@@ -709,8 +709,8 @@ if __name__ == "__main__":
 		TIME_STEP=(1.0 / 1000.0),
 		INITIAL_MISSILE_RANGE=0.0,
 		INITIAL_MISSILE_ALTITUDE=0.0,
-		INITIAL_HRZ_VEL=150.0,
-		INITIAL_VRT_VEL=150.0
+		INITIAL_HRZ_VEL=10.0,
+		INITIAL_VRT_VEL=10.0
 	)
 	x.dynamics()
 	x = AirframeSimulation(
