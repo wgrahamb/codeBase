@@ -4,13 +4,14 @@
 TO DO:
 
 1) GO THROUGH THE ENTIRE CODE AND CHECK UNITS. ***VERY IMPORTANT***
-	A) MOVE AERODYNAMICS FROM CLASS TO AIRFRAME SIMULATION TO COMPARE WITH THE FIRST TWO.
-5) ADD DRAG PROFILE TO AERODYNAMICS.
-7) VOTING SYSTEM FOR DYNAMICS UPDATE.
-8) BASE CLASS - EACH MODULE NEEDS A "NEXT UPDATE TIME."
-8) GUIDANCE AND CONTROL MODULES.
-9) TARGET AND SEEKER MODELS
-9) ADD AN INS.
+	A) MAKE SURE ALL STATE PARAMETERS ARE BEING POPULATED EACH LOOP. ADD GAMMA DOT.
+2) CREATE AN ANIMATION TO WATCH THE ORIENTATION OF THE MISSILE AS IT FLYS.
+3) ADD DRAG PROFILE TO AERODYNAMICS.
+4) VOTING SYSTEM FOR DYNAMICS UPDATE.
+5) BASE CLASS - EACH MODULE NEEDS A "NEXT UPDATE TIME."
+6) TARGET AND SEEKER MODELS.
+7) GUIDANCE AND CONTROL MODULES.
+8) ADD AN I.N.S.
 
 
 MOCK HELLFIRE DIMENSIONS:
@@ -132,6 +133,7 @@ class AirframeSimulation:
 		# ACCELERATION.
 		self.ACCELERATION = npa([0.0, 0.0]) # Meters per second squared.
 		self.SPECIFIC_FORCE = npa([0.0, 0.0]) # Meters per second squared.
+		self.NORMAL_ACCEL = 0.0 # Meters per second squared.
 
 		# THIS IS THE ONLY TIME THETA IS ASSUMED TO BE ALIGNED WITH VELOCITY.
 		self.THETA = returnEl(INITIAL_VERT_SPEED, INITIAL_HORIZ_SPEED) + 0.1 # Radians.
@@ -380,8 +382,8 @@ class AirframeSimulation:
 				# DERIVATIVES.
 				THETA_DOT_DOT = (self.Q * self.REFERENCE_AREA * self.REFERENCE_DIAMETER * CM) / self.IYY # Radians per second squared.
 
-				NORMAL_ACCEL = (self.Q * self.REFERENCE_AREA * CN) / (self.MASS) # Meters per second squared.
-				self.SPECIFIC_FORCE = npa([(self.THRUST / self.MASS), NORMAL_ACCEL])
+				self.NORMAL_ACCEL = (self.Q * self.REFERENCE_AREA * CN) / (self.MASS) # Meters per second squared.
+				self.SPECIFIC_FORCE = npa([(self.THRUST / self.MASS), self.NORMAL_ACCEL])
 				LOCAL_G = npa([0.0, -1.0 * self.G])
 				BODY_G = self.BODY_TO_RANGE_AND_ALTITUDE @ LOCAL_G
 				self.SPECIFIC_FORCE += BODY_G
@@ -390,6 +392,8 @@ class AirframeSimulation:
 			elif self.FLAG == 1:
 
 				# NORMAL COEFFICIENT AND PITCHING MOMENT COEFFICIENT CALCULATION, NON DIMENSIONAL.
+				# CMA = -5.0 # PER RAD
+				# CMD = -20.0 # PER RAD
 				CMA = -20.0 # PER RAD
 				CMD = -5.0 # PER RAD
 
@@ -402,8 +406,8 @@ class AirframeSimulation:
 				# DERIVATIVES.
 				THETA_DOT_DOT = (self.Q * self.REFERENCE_AREA * self.REFERENCE_DIAMETER * CM) / self.IYY # Radians per second squared.
 
-				NORMAL_ACCEL = ((self.Q * self.REFERENCE_AREA * CN) / self.MASS) * self.G # Meters per second squared.
-				self.SPECIFIC_FORCE = npa([(self.THRUST / self.MASS), NORMAL_ACCEL])
+				self.NORMAL_ACCEL = ((self.Q * self.REFERENCE_AREA * CN) / self.MASS) # Meters per second squared.
+				self.SPECIFIC_FORCE = npa([(self.THRUST / self.MASS), self.NORMAL_ACCEL])
 				LOCAL_G = npa([0.0, -1.0 * self.G])
 				BODY_G = self.BODY_TO_RANGE_AND_ALTITUDE @ LOCAL_G
 				self.SPECIFIC_FORCE += BODY_G
@@ -429,6 +433,7 @@ class AirframeSimulation:
 				CMD = 8 * self.TAIL_AREA * TEMP2 / (self.BETA * self.REFERENCE_AREA)
 				MA = self.Q * self.REFERENCE_AREA * self.REFERENCE_DIAMETER * CMA / self.IYY
 				MD = self.Q * self.REFERENCE_AREA * self.REFERENCE_DIAMETER * CMD / self.IYY
+
 				OMEGA_Z = np.sqrt((MA * ZD - MD * ZA) / ZD)
 				OMEGA_AF = np.sqrt(-1 * MA)
 				ZETA_AF = ZA * OMEGA_AF / (2 * MA)
@@ -442,8 +447,8 @@ class AirframeSimulation:
 				self.THETA_DOT_DEG = -ETERM# STATE AND DERIVATIVE
 				self.THETA_DOT = np.radians(self.THETA_DOT_DEG)
 
-				NORMAL_ACCEL = K1 * (self.E - (self.EDOTDOT / (OMEGA_Z ** 2))) * self.G
-				self.SPECIFIC_FORCE = npa([(self.THRUST / self.MASS), NORMAL_ACCEL])
+				self.NORMAL_ACCEL = K1 * (self.E - (self.EDOTDOT / (OMEGA_Z ** 2))) * self.G
+				self.SPECIFIC_FORCE = npa([(self.THRUST / self.MASS), self.NORMAL_ACCEL])
 				LOCAL_G = npa([0.0, -1.0 * self.G])
 				BODY_G = self.BODY_TO_RANGE_AND_ALTITUDE @ LOCAL_G
 				self.SPECIFIC_FORCE += BODY_G
@@ -461,7 +466,8 @@ class AirframeSimulation:
 					BETA = np.sqrt(self.MACH ** 2 - 1) # Non dimensional.
 				else:
 					BETA = self.MACH # Non dimensional.
-				CNTRIM = self.MASS * 0 / (self.Q * self.REFERENCE_AREA)
+				# CNTRIM = self.MASS * COMMAND / (self.Q * self.REFERENCE_AREA)
+				CNTRIM = 8 * self.TAIL_AREA * TEMP2 * self.FIN_DEFLECTION_RADIANS / (self.BETA * self.REFERENCE_AREA)
 				Y1 = 2 + 8 * self.WING_AREA / (BETA * self.REFERENCE_AREA) + 8 * self.TAIL_AREA / (BETA * self.REFERENCE_AREA)
 				Y2 = 1.5 * self.PLANFORM_AREA / self.REFERENCE_AREA
 				Y3 = 8 * self.TAIL_AREA / (BETA * self.REFERENCE_AREA)
@@ -470,7 +476,7 @@ class AirframeSimulation:
 				Y6 = 8 * self.TAIL_AREA * TEMP2 / (BETA * self.REFERENCE_AREA)
 				P2 = Y2 - (Y3 * Y5) / Y6
 				P3 = Y1 - (Y3 * Y4) / Y6
-				ALPHA_TRIM = (-1 * P3 + np.sqrt(P3 * P3 + 4 * P2 * CNTRIM)) / (2 * P2)
+				ALPHA_TRIM = (-P3 + np.sqrt(P3 * P3 + 4 * P2 * CNTRIM)) / (2 * P2)
 				DELTA_TRIM = (-1 * Y4 * ALPHA_TRIM - Y5 * ALPHA_TRIM * ALPHA_TRIM) / Y6
 				CNA = 2 + 1.5 * self.PLANFORM_AREA * ALPHA_TRIM / self.REFERENCE_AREA + 8 * self.WING_AREA / (BETA * self.REFERENCE_AREA) + 8 * self.TAIL_AREA / (BETA * self.REFERENCE_AREA)
 				CND = 8 * self.TAIL_AREA / (BETA * self.REFERENCE_AREA)
@@ -496,8 +502,8 @@ class AirframeSimulation:
 				self.THETA_DOT_DEG = -ETERM# STATE AND DERIVATIVE
 				self.THETA_DOT = np.radians(self.THETA_DOT_DEG)
 
-				NORMAL_ACCEL = K1 * (self.E - (self.EDOTDOT / (OMEGA_Z ** 2))) * self.G
-				self.SPECIFIC_FORCE = npa([(self.THRUST / self.MASS), NORMAL_ACCEL])
+				self.NORMAL_ACCEL = K1 * (self.E - (self.EDOTDOT / (OMEGA_Z ** 2))) * self.G
+				self.SPECIFIC_FORCE = npa([(self.THRUST / self.MASS), self.NORMAL_ACCEL])
 				LOCAL_G = npa([0.0, -1.0 * self.G])
 				BODY_G = self.BODY_TO_RANGE_AND_ALTITUDE @ LOCAL_G
 				self.SPECIFIC_FORCE += BODY_G
@@ -536,7 +542,8 @@ class AirframeSimulation:
 				self.VEL_0 = self.VELOCITY
 
 				# DERIVATIVES.
-				self.AOADOT_1 = self.THETA_DOT - (self.SPECIFIC_FORCE[1] / self.SPEED)
+				GAMMA_DOT =  ((self.SPECIFIC_FORCE[1]) / self.SPEED)
+				self.AOADOT_1 = self.THETA_DOT - GAMMA_DOT
 				self.ALPHA_DOT = self.AOADOT_1
 				self.ALPHA_DOT_DEG = np.degrees(self.ALPHA_DOT)
 				self.EDOT_1 = self.EDOT
@@ -557,6 +564,7 @@ class AirframeSimulation:
 				self.THETA_DOT_DEG = np.degrees(self.THETA_DOT)
 				self.POSITION = self.POS_0 + self.VEL_1 * (self.TIME_STEP / 2.0)
 				self.VELOCITY = self.VEL_0 + self.ACC_1 * (self.TIME_STEP / 2.0)
+				self.SPEED = la.norm(self.VELOCITY)
 
 				# ITERATE INTEGRATION.
 				self.INTEGRATION_PASS += 1
@@ -567,7 +575,8 @@ class AirframeSimulation:
 			elif self.INTEGRATION_PASS == 1:
 
 				# DERIVATIVES.
-				self.AOADOT_2 = self.THETA_DOT - (self.SPECIFIC_FORCE[1] / self.SPEED)
+				GAMMA_DOT =  ((self.SPECIFIC_FORCE[1]) / self.SPEED)
+				self.AOADOT_2 = self.THETA_DOT - GAMMA_DOT
 				self.ALPHA_DOT = self.AOADOT_2
 				self.ALPHA_DOT_DEG = np.degrees(self.ALPHA_DOT)
 				self.EDOT_2 = self.EDOT
@@ -588,6 +597,7 @@ class AirframeSimulation:
 				self.THETA_DOT_DEG = np.degrees(self.THETA_DOT)
 				self.POSITION = self.POS_0 + self.VEL_2 * (self.TIME_STEP / 2.0)
 				self.VELOCITY = self.VEL_0 + self.ACC_2 * (self.TIME_STEP / 2.0)
+				self.SPEED = la.norm(self.VELOCITY)
 
 				# ITERATE INTEGRATION.
 				self.INTEGRATION_PASS += 1
@@ -595,7 +605,8 @@ class AirframeSimulation:
 			elif self.INTEGRATION_PASS == 2:
 
 				# DERIVATIVES.
-				self.AOADOT_3 = self.THETA_DOT - (self.SPECIFIC_FORCE[1] / self.SPEED)
+				GAMMA_DOT =  ((self.SPECIFIC_FORCE[1]) / self.SPEED)
+				self.AOADOT_3 = self.THETA_DOT - GAMMA_DOT
 				self.ALPHA_DOT = self.AOADOT_3
 				self.ALPHA_DOT_DEG = np.degrees(self.ALPHA_DOT)
 				self.EDOT_3 = self.EDOT
@@ -616,6 +627,7 @@ class AirframeSimulation:
 				self.THETA_DOT_DEG = np.degrees(self.THETA_DOT)
 				self.POSITION = self.POS_0 + self.VEL_3 * (self.TIME_STEP)
 				self.VELOCITY = self.VEL_0 + self.ACC_3 * (self.TIME_STEP)
+				self.SPEED = la.norm(self.VELOCITY)
 
 				# ITERATE INTEGRATION.
 				self.INTEGRATION_PASS += 1
@@ -626,7 +638,8 @@ class AirframeSimulation:
 			else:
 
 				# DERIVATIVES.
-				self.AOADOT_4 = self.THETA_DOT - (self.SPECIFIC_FORCE[1] / self.SPEED)
+				GAMMA_DOT =  ((self.SPECIFIC_FORCE[1]) / self.SPEED)
+				self.AOADOT_4 = self.THETA_DOT - GAMMA_DOT
 				self.ALPHA_DOT = self.AOADOT_4
 				self.ALPHA_DOT_DEG = np.degrees(self.ALPHA_DOT)
 				self.EDOT_4 = self.EDOT
@@ -647,6 +660,7 @@ class AirframeSimulation:
 				self.THETA_DOT_DEG = np.degrees(self.THETA_DOT)
 				self.POSITION = self.POS_0 + (self.TIME_STEP / 6.0) * (self.VEL_1 + 2 * self.VEL_2 + 2 * self.VEL_3 + self.VEL_4)
 				self.VELOCITY = self.VEL_0 + (self.TIME_STEP / 6.0) * (self.ACC_1 + 2 * self.ACC_2 + 2 * self.ACC_3 + self.ACC_4)
+				self.SPEED = la.norm(self.VELOCITY)
 
 				# ITERATE INTEGRATION.
 				self.INTEGRATION_PASS = 0
@@ -664,19 +678,19 @@ class AirframeSimulation:
 			# Console report.
 			if round(self.TIME_OF_FLIGHT, 3).is_integer():
 				if self.INTEGRATION_PASS == 0:
-					print(f"{self.TIME_OF_FLIGHT:.2f} {self.POSITION}")
+					print(f"TOF {self.TIME_OF_FLIGHT:.2f} POS {self.POSITION} MACH {self.MACH:.2f}")
 
 			# Performance and termination check.
 			if self.INTEGRATION_PASS == 0:
 				if self.TIME_OF_FLIGHT > self.MAX_TIME:
 					GO = False
-					print(f"MAX TIME - {self.TIME_OF_FLIGHT:.2f} {self.POSITION}\n")
+					print(f"MAX TIME - {self.TIME_OF_FLIGHT:.2f} POS {self.POSITION} MACH {self.MACH:.2f}\n")
 				if self.POSITION[1] < 0:
 					GO = False
-					print(f"GROUND COLLISION - {self.TIME_OF_FLIGHT:.2f} {self.POSITION}\n")
+					print(f"GROUND COLLISION - {self.TIME_OF_FLIGHT:.2f} POS {self.POSITION} MACH {self.MACH:.2f}\n")
 				if np.isnan(np.sum(self.POSITION)):
 					GO = False
-					print(f"NAN - {self.TIME_OF_FLIGHT:.2f} {self.POSITION}\n")
+					print(f"NAN - {self.TIME_OF_FLIGHT:.2f} POS {self.POSITION} MACH {self.MACH:.2f}\n")
 
 
 
@@ -694,8 +708,8 @@ if __name__ == "__main__":
 	x = AirframeSimulation(
 		FLAG=0,
 		FIN_DEFLECTION_DEGREES=-1,
-		MAX_TIME=10,
-		TIME_STEP=(1.0 / 1000.0),
+		MAX_TIME=100,
+		TIME_STEP=(1.0 / 100.0),
 		INITIAL_MISSILE_RANGE=0.0,
 		INITIAL_MISSILE_ALTITUDE=0.0,
 		INITIAL_HRZ_VEL=10.0,
@@ -705,8 +719,8 @@ if __name__ == "__main__":
 	x = AirframeSimulation(
 		FLAG=1,
 		FIN_DEFLECTION_DEGREES=-1,
-		MAX_TIME=10,
-		TIME_STEP=(1.0 / 1000.0),
+		MAX_TIME=100,
+		TIME_STEP=(1.0 / 100.0),
 		INITIAL_MISSILE_RANGE=0.0,
 		INITIAL_MISSILE_ALTITUDE=0.0,
 		INITIAL_HRZ_VEL=10.0,
@@ -716,8 +730,8 @@ if __name__ == "__main__":
 	x = AirframeSimulation(
 		FLAG=2,
 		FIN_DEFLECTION_DEGREES=-1,
-		MAX_TIME=10,
-		TIME_STEP=(1.0 / 1000.0),
+		MAX_TIME=100,
+		TIME_STEP=(1.0 / 100.0),
 		INITIAL_MISSILE_RANGE=0.0,
 		INITIAL_MISSILE_ALTITUDE=0.0,
 		INITIAL_HRZ_VEL=10.0,
@@ -727,8 +741,8 @@ if __name__ == "__main__":
 	x = AirframeSimulation(
 		FLAG=3,
 		FIN_DEFLECTION_DEGREES=-1,
-		MAX_TIME=10,
-		TIME_STEP=(1.0 / 1000.0),
+		MAX_TIME=100,
+		TIME_STEP=(1.0 / 100.0),
 		INITIAL_MISSILE_RANGE=0.0,
 		INITIAL_MISSILE_ALTITUDE=0.0,
 		INITIAL_HRZ_VEL=10.0,
