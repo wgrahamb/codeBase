@@ -23,30 +23,6 @@ startIndex = 0
 stopIndex = -1
 
 # Trajectory.
-
-
-# scale = True
-# trajectory = fig.add_subplot(241, projection="3d")
-# trajectory.set_title("Trajectory")
-# trajectory.set_xlabel("Range")
-# trajectory.set_zlabel("Altitude")
-# if scale:
-# 	xMin = min(list(df.iloc[startIndex:stopIndex]["posE"]))
-# 	xMax = max(list(df.iloc[startIndex:stopIndex]["posE"]))
-# 	zMin = min(list(df.iloc[startIndex:stopIndex]["posU"]))
-# 	zMax = max(list(df.iloc[startIndex:stopIndex]["posU"]))
-# 	trajectory.set_box_aspect(
-# 		(
-# 			np.ptp([xMin - 1000, xMax + 1000]), 
-# 			np.ptp([0 - 1000, 0 + 1000]), 
-# 			np.ptp([zMin, zMax + 1000]),
-# 		)
-# 	)
-# 	trajectory.set_xlim([xMin - 1000, xMax + 1000])
-# 	trajectory.set_ylim([0 - 1000, 0 + 1000])
-# 	trajectory.set_zlim([zMin, zMax + 1000])
-# trajectory.plot(df.iloc[startIndex:stopIndex]["posE"], df.iloc[startIndex:stopIndex]["posN"], df.iloc[startIndex:stopIndex]["posU"], color="b")
-
 trajectory = fig.add_subplot(121, projection="3d")
 trajectory.set_title("Trajectory")
 trajectory.set_xlabel("RANGE (M)")

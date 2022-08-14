@@ -4,13 +4,14 @@ from utility.trapezoidIntegrate import integrate
 class SecondOrderActuator:
 
 	def __init__(self):
+
 		### ACTUATOR ###
 		self.TIME = 0.0 # Seconds.
 		self.TIME_STEP = 1 / 1200.0 # Seconds.
 		self.NEXT_UPDATE_TIME = self.TIME + self.TIME_STEP # Seconds.
 		self.DEFL_LIMIT = 10 # Degrees.
 		self.DEFL_RATE_LIMIT = 25 # Degrees per second.
-		self.WNACT = np.degrees(10) # Degrees per second.
+		self.WNACT = np.degrees(10.0) # Degrees per second.
 		self.ZETACT = 0.7 # Non dimensional.
 		self.DEFLECTION = 0.0 # Degrees.
 		self.DEFLECTION_DOT_DER = 0.0 # Degrees per second.

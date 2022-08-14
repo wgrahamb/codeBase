@@ -48,8 +48,8 @@ missileVel = npa([1000.0, 1000.0])
 missileAcc = npa([0.0, 0.0])
 
 # Target.
-targetPos = npa([50000.0, 50000.0])
-targetVel = npa([-800.0, 0.0])
+targetPos = npa([5000.0, 5000.0])
+targetVel = npa([-80.0, 0.0])
 
 # Simulation control.
 timeStep = 0.001

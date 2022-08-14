@@ -1,6 +1,8 @@
 import numpy as np
 
 def linearInterpolation(x, xx, yy):
+          if x == 0.0:
+                    return yy[0]
           lowIndex = None
           highIndex = None
           index = -1

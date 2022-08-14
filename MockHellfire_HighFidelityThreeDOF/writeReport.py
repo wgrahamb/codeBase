@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 import os
 
-pdfFile = PdfPages("MockHellfire_HighFidelityThreeDOF/MockHellfire_Report.pdf")
+pdfFile = PdfPages("MockHellfire_HighFidelityThreeDOF/MockHellfireREPORT.pdf")
 fig = plt.figure(figsize=(20,20))
 
 def plotAndWrite(xs, ys, labels, header):

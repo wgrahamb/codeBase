@@ -1,72 +1,9 @@
-"""
-
-
-TO DO:
-
-1) GO THROUGH THE ENTIRE CODE AND CHECK UNITS. ***VERY IMPORTANT***
-	A) MAKE SURE ALL STATE PARAMETERS ARE BEING POPULATED EACH LOOP.
-2) ADD A "READ IN STATE" FUNCTION.
-2) CREATE AN ANIMATION TO WATCH THE ORIENTATION OF THE MISSILE AS IT FLYS.
-3) ADD DRAG PROFILE TO AERODYNAMICS.
-4) VOTING SYSTEM FOR DYNAMICS UPDATE.
-5) BASE CLASS - EACH MODULE NEEDS A "NEXT UPDATE TIME."
-6) TARGET AND SEEKER MODELS.
-7) GUIDANCE AND CONTROL MODULES.
-8) ADD AN I.N.S.
-
-
-
-OVERALL STRUCTURE FOR FULL SIMULATION:
-
-DYNAMICS - 
-	VOTING SYSTEM FOR FLIGHT UPDATE.
-	DYNAMICS RUNS TO THE NEXT SIMULATION TIME.
-
-TARGET AND SEEKER - RATE 2400 HZ
-
-ACTUATOR - RATE 1200 HZ
-
-NAVIGATION, GUIDANCE, AND CONTROL. - RATE 600 HZ
-NAVIGATION - TRUTH.
-GUIDANCE -
-	IF SEEKER ON: 
-		PROPORTIONAL GUIDANCE
-		DYNAMIC SEEKER WITH ERROR
-		TARGET STATES
-	IF SEEKER OFF:
-		LINE OF ATTACK GUIDANCE
-		KINEMATIC SEEKER WITH TRUTH
-		WAYPOINT
-CONTROL -
-	I'M PROBABLY GOING TO TRY AND WRITE A PID RATE CONTROLLER. ELSE I WILL USE EXISTING CODE.
-
-
-
-MOCK HELLFIRE DIMENSIONS:
-
-REFERENCE_DIAMETER 0.18 M
-REFERENCE_LENGTH 1.6 M
-NOSE_LENGTH 0.249733 M
-WING_SPAN 66.1175 MM
-WING_TIP_CHORD 91.047 MM
-WING_ROOT_CHORD 0.123564 M
-TAIL_SPAN 71.3548 MM
-TAIL_TIP_CHORD 0.387894 M
-TAIL_ROOT_CHORD 0.48084 M
-DISTANCE_FROM_BASE_OF_NOSE_TO_WING 0.323925 M
-STARTING_CG_FROM_NOSE 0.644605 M
-FINAL_CG_FROM_NOSE 0.249733 M
-EXTENDED_CENTER_OF_DEFLECTION_FROM_NOSE 1.8059 M
-EXTENDED_REFERENCE_LENGTH 1.85026 M
-
-
-"""
-
 
 # MATH CONSTANTS
 MM_TO_M = 1.0 / 1000.0
 RAD_TO_DEG = 57.2957795130823
 DEG_TO_RAD = 1.0 / RAD_TO_DEG
+EPSILON = 0.00000001
 
 # Python libraries.
 import numpy as np
@@ -84,8 +21,6 @@ from utility import coordinateTransformations as ct
 # Classes.
 from classes.Atmosphere import Atmosphere
 from classes.MockHellfireMassAndMotor import MockHellfireMassAndMotor
-from classes.SecondOrderActuator import SecondOrderActuator
-from classes.Target import Target
 
 class AirframeSimulation:
 
@@ -170,6 +105,9 @@ class AirframeSimulation:
 		# POSITIVE ALPHA MEANS NOSE BELOW FREE STREAM VELOCITY.
 		self.BODY_VELOCITY = self.BODY_TO_RANGE_AND_ALTITUDE @ self.VELOCITY
 
+		# CONTROL OUTPUT.
+		self.KDC = 0.0
+
 		### COMPONENTS ###
 		# ATMOSPHERE.
 		self.ATMOSPHERE = Atmosphere()
@@ -220,6 +158,7 @@ class AirframeSimulation:
 			"E": self.E,
 			"E_DOT": self.EDOT,
 			"E_DOT_DOT": self.EDOTDOT,
+			"KDC": self.KDC,
 
 			# ATMOSPHERE
 			"RHO": self.ATMOSPHERE.rho,
@@ -320,6 +259,7 @@ class AirframeSimulation:
 			"E": self.E,
 			"E_DOT": self.EDOT,
 			"E_DOT_DOT": self.EDOTDOT,
+			"KDC": self.KDC,
 
 			# ATMOSPHERE
 			"RHO": self.ATMOSPHERE.rho,
@@ -414,13 +354,14 @@ class AirframeSimulation:
 			K1 = -1 * self.SPEED * ((MA * ZD - ZA * MD) / (1845 * MA)) # Gain.
 			TA = MD / (MA * ZD - MD * ZA) # Time constant. Second.
 			K3 = 1845 * K1 / self.SPEED
+			self.KDC = (1 - 0.1 * K3) / (K1 * 0.1)
 
 			# DERIVATIVES.
 			self.EDOTDOT = (OMEGA_AF ** 2) * (self.FIN_DEFLECTION_DEGREES - self.E - 2 * ZETA_AF * self.EDOT / OMEGA_AF) # DERIVATIVE
 
 			# THETA DOT.
 			ETERM = K3 * (self.E + TA * self.EDOT)
-			self.THETA_DOT_DEG = ETERM# DERIVATIVE
+			self.THETA_DOT_DEG = -ETERM# DERIVATIVE
 			self.THETA_DOT = np.radians(self.THETA_DOT_DEG)
 
 			# KLUDGE DRAG.
@@ -549,7 +490,7 @@ class AirframeSimulation:
 			self.BODY_TO_RANGE_AND_ALTITUDE = ct.BODY_TO_RANGE_AND_ALTITUDE(-self.THETA)
 			self.BODY_VELOCITY = self.BODY_TO_RANGE_AND_ALTITUDE @ self.VELOCITY
 			self.SPEED = la.norm(self.BODY_VELOCITY)
-			self.ALPHA = returnEl(self.BODY_VELOCITY[1], self.BODY_VELOCITY[0])
+			self.ALPHA = -1.0 * returnEl(self.BODY_VELOCITY[1], self.BODY_VELOCITY[0])
 			self.ALPHA_DEG = np.degrees(self.ALPHA)
 
 			# LOG DATA.
@@ -557,104 +498,27 @@ class AirframeSimulation:
 				self.logDynamicsState()
 
 			# Console report.
-			if round(self.TIME_OF_FLIGHT, 3).is_integer():
+			if round(self.TIME_OF_FLIGHT, 4).is_integer():
 				if self.INTEGRATION_PASS == 0:
 					print(f"TOF {self.TIME_OF_FLIGHT:.2f} POS {self.POSITION} MACH {self.MACH:.2f}")
 
 			# Performance and termination check.
 			if self.INTEGRATION_PASS == 0:
-				if self.TIME_OF_FLIGHT > self.MAX_TIME:
+				if self.TIME_OF_FLIGHT >= self.MAX_TIME:
 					GO = False
 					self.LETHALITY = "MAX_TIME"
-					print(f"MAX TIME - {self.TIME_OF_FLIGHT:.2f} POS {self.POSITION} MACH {self.MACH:.2f}\n")
+					# print(f"MAX TIME - {self.TIME_OF_FLIGHT:.8f} POS {self.POSITION} MACH {self.MACH:.2f}\n")
 				if self.POSITION[1] < 0:
 					GO = False
 					self.LETHALITY = "GROUND_COLLISION"
-					print(f"GROUND COLLISION - {self.TIME_OF_FLIGHT:.2f} POS {self.POSITION} MACH {self.MACH:.2f}\n")
+					# print(f"GROUND COLLISION - {self.TIME_OF_FLIGHT:.8f} POS {self.POSITION} MACH {self.MACH:.2f}\n")
 				if np.isnan(np.sum(self.POSITION)):
 					GO = False
 					self.LETHALITY = "NAN"
-					print(f"NAN - {self.TIME_OF_FLIGHT:.2f} POS {self.POSITION} MACH {self.MACH:.2f}\n")
+					# print(f"NAN - {self.TIME_OF_FLIGHT:.8f} POS {self.POSITION} MACH {self.MACH:.2f}\n")
 			
 			# STORE DATA.
 			self.populateDynamicsState()
 
 
-if __name__ == "__main__":
-
-	# Driver.
-	MockHellfireDynamics = AirframeSimulation(
-		INITIAL_MISSILE_RANGE=0.0,
-		INITIAL_MISSILE_ALTITUDE=0.0,
-		INITIAL_HRZ_VEL=10.0,
-		INITIAL_VRT_VEL=20.0
-	)
-
-	# Car.
-	classes = []
-	Actuator = SecondOrderActuator()
-	classes.append(Actuator)
-	HellfireTarget = Target(
-		INITIAL_TARGET_POSITION=npa([3000.0, 3000.0]),
-		INITIAL_TARGET_VELOCITY=np.zeros(2)
-	)
-	classes.append(HellfireTarget)
-
-	TIME_INCREMENT = 2 # SECONDS
-	FIN_COMMAND_1 = -1 # DEGREES
-	FIN_COMMAND_2 = 7.5 # DEGREES
-	MANEUVER = 5 # SECONDS
-	for i in range(10000):
-
-		print("AGAIN")
-
-		TOF = MockHellfireDynamics.getDynamicsState()["TOF"]
-
-		COMMAND = None
-		if TOF < MANEUVER:
-			COMMAND = FIN_COMMAND_1
-		else:
-			COMMAND = FIN_COMMAND_2
-
-		TIME_INCREMENT = None
-
-		print("HELLO")
-
-		NEXT_UPDATE_INDEX = None
-		NEXT_UPDATE_TIME = None
-		for index, c in enumerate(classes):
-			if index == 0:
-				NEXT_UPDATE_TIME = c.NEXT_UPDATE_TIME
-				NEXT_UPDATE_INDEX = index
-			else:
-				if c.NEXT_UPDATE_TIME < NEXT_UPDATE_TIME:
-					NEXT_UPDATE_TIME = c.NEXT_UPDATE_TIME
-					NEXT_UPDATE_INDEX = index
-
-		print("HELLO")
-
-		TIME_INCREMENT = NEXT_UPDATE_TIME - TOF
-		MockHellfireDynamics.dynamics(
-			FLY_FOR_THIS_LONG=TIME_INCREMENT,
-			FIN_DEFL_DEG=COMMAND
-		)
-		print("HELLO")
-
-		# KLUDGE
-		if NEXT_UPDATE_INDEX == 0:
-			classes[NEXT_UPDATE_INDEX].update(COMMAND)
-		elif NEXT_UPDATE_INDEX == 1:
-			classes[NEXT_UPDATE_INDEX].update()
-
-		print("HELLO")
-
-		LETHALITY = MockHellfireDynamics.getDynamicsState()["LETHALITY"]
-		if LETHALITY == "FLYING" or LETHALITY == "MAX_TIME":
-			print("HELLO")
-			continue
-		else:
-			print("HELLO BREAK")
-			break
-
-		print("HELLO")
 
