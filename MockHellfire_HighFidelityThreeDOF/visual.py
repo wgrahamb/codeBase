@@ -23,68 +23,77 @@ startIndex = 0
 stopIndex = -1
 
 # Trajectory.
-trajectory = fig.add_subplot(231)
+
+
+# scale = True
+# trajectory = fig.add_subplot(241, projection="3d")
+# trajectory.set_title("Trajectory")
+# trajectory.set_xlabel("Range")
+# trajectory.set_zlabel("Altitude")
+# if scale:
+# 	xMin = min(list(df.iloc[startIndex:stopIndex]["posE"]))
+# 	xMax = max(list(df.iloc[startIndex:stopIndex]["posE"]))
+# 	zMin = min(list(df.iloc[startIndex:stopIndex]["posU"]))
+# 	zMax = max(list(df.iloc[startIndex:stopIndex]["posU"]))
+# 	trajectory.set_box_aspect(
+# 		(
+# 			np.ptp([xMin - 1000, xMax + 1000]), 
+# 			np.ptp([0 - 1000, 0 + 1000]), 
+# 			np.ptp([zMin, zMax + 1000]),
+# 		)
+# 	)
+# 	trajectory.set_xlim([xMin - 1000, xMax + 1000])
+# 	trajectory.set_ylim([0 - 1000, 0 + 1000])
+# 	trajectory.set_zlim([zMin, zMax + 1000])
+# trajectory.plot(df.iloc[startIndex:stopIndex]["posE"], df.iloc[startIndex:stopIndex]["posN"], df.iloc[startIndex:stopIndex]["posU"], color="b")
+
+trajectory = fig.add_subplot(121, projection="3d")
 trajectory.set_title("Trajectory")
 trajectory.set_xlabel("RANGE (M)")
-trajectory.set_ylabel("ALT (M)")
+trajectory.set_zlabel("ALT (M)")
+
+xs = []
+zs = []
+
 for index, df in enumerate(dfs):
-	trajectory.plot(df.iloc[startIndex:stopIndex]["RNG"], df.iloc[startIndex:stopIndex]["ALT"], label=df.name, color=colors[index], alpha = 0.5)
+	xs += list(df.iloc[startIndex:stopIndex]["RNG"])
+	zs += list(df.iloc[startIndex:stopIndex]["ALT"])
+	trajectory.plot(df.iloc[startIndex:stopIndex]["RNG"], np.zeros(len(df.iloc[startIndex:stopIndex]["RNG"])), df.iloc[startIndex:stopIndex]["ALT"], label=df.name, color=colors.pop(0), alpha = 0.5)
+
+xMin = min(xs)
+xMax = max(xs)
+zMin = min(zs)
+zMax = max(zs)
+trajectory.set_box_aspect(
+	(
+		np.ptp([xMin - 1000, xMax + 1000]), 
+		np.ptp([0 - 1000, 0 + 1000]), 
+		np.ptp([zMin, zMax + 1000]),
+	)
+)
+trajectory.set_xlim([xMin - 1000, xMax + 1000])
+trajectory.set_ylim([0 - 1000, 0 + 1000])
+trajectory.set_zlim([zMin, zMax + 1000])
+
 trajectory.legend(fontsize="xx-small")
 
-# Theta.
-theta = fig.add_subplot(232)
-theta.set_title("THETA DEGREES")
-theta.set_xlabel("TIME OF FLIGHT (S)")
+# Performance.
+performance = fig.add_subplot(122)
+performance.set_title("PITCH")
+performance.set_xlabel("TIME OF FLIGHT (S)")
+performance.set_ylim([-100, 100])
 for index, df in enumerate(dfs):
-	theta.plot(df.iloc[startIndex:stopIndex]["TOF"], df.iloc[startIndex:stopIndex]["THT_DEG"], label=df.name, color=colors[index], alpha = 0.5)
-theta.legend(fontsize="xx-small")
-
-# Theta dot.
-thetaDot = fig.add_subplot(233)
-thetaDot.set_title("THETA DOT DEGREES")
-thetaDot.set_xlabel("TIME OF FLIGHT (S)")
+	performance.plot(df.iloc[startIndex:stopIndex]["TOF"], df.iloc[startIndex:stopIndex]["THT_DEG"], label=df.name + "_THT_DEG", color=colors.pop(0), alpha = 0.5)
 for index, df in enumerate(dfs):
-	thetaDot.plot(df.iloc[startIndex:stopIndex]["TOF"], df.iloc[startIndex:stopIndex]["THT_DOT_DEG"], label=df.name, color=colors[index], alpha = 0.5)
-thetaDot.legend(fontsize="xx-small")
-
-# Normal accel.
-normalAccel = fig.add_subplot(234)
-normalAccel.set_title("NORMAL ACCEL M/S^2")
-normalAccel.set_xlabel("TIME OF FLIGHT (S)")
+	performance.plot(df.iloc[startIndex:stopIndex]["TOF"], df.iloc[startIndex:stopIndex]["THT_DOT_DEG"], label=df.name + "_THT_DOT_DEG", color=colors.pop(0), alpha = 0.5)
 for index, df in enumerate(dfs):
-	normalAccel.plot(df.iloc[startIndex:stopIndex]["TOF"], df.iloc[startIndex:stopIndex]["W_DOT"], label=df.name, color=colors[index], alpha = 0.5)
-normalAccel.legend(fontsize="xx-small")
-
-# Alpha.
-alpha = fig.add_subplot(235)
-alpha.set_title("ALPHA DEGREES")
-alpha.set_xlabel("TIME OF FLIGHT (S)")
+	performance.plot(df.iloc[startIndex:stopIndex]["TOF"], df.iloc[startIndex:stopIndex]["AOA_DEG"], label=df.name + "_AOA_DEG", color=colors.pop(0), alpha = 0.5)
 for index, df in enumerate(dfs):
-	alpha.plot(df.iloc[startIndex:stopIndex]["TOF"], df.iloc[startIndex:stopIndex]["AOA_DEG"], label=df.name, color=colors[index], alpha = 0.5)
-alpha.legend(fontsize="xx-small")
-
-# Alpha dot.
-alphaDot = fig.add_subplot(236)
-alphaDot.set_title("ALPHA DOT DEGREES")
-alphaDot.set_xlabel("TIME OF FLIGHT (S)")
-for index, df in enumerate(dfs):
-	alphaDot.plot(df.iloc[startIndex:stopIndex]["TOF"], df.iloc[startIndex:stopIndex]["AOA_DOT_DEG"], label=df.name, color=colors[index], alpha = 0.5)
-alphaDot.legend(fontsize="xx-small")
+	performance.plot(df.iloc[startIndex:stopIndex]["TOF"], df.iloc[startIndex:stopIndex]["W_DOT"], label=df.name + "_NORM_ACC_M/S^2", color=colors.pop(0), alpha = 0.5)
+performance.legend(fontsize="xx-small")
 
 # Show plot.
 plt.show()
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

@@ -111,6 +111,7 @@ void Aim::aerodynamics()
 	}
 	//coefficients in body coordinates (guarding against negative values)
 	double cos_alpha=cos(alpha);
+
 	double sin_alpha=sin(alpha);
 	caaim=cdaim*cos_alpha-claim*sin_alpha;
 	cnpaim=cdaim*sin_alpha+claim*cos_alpha;

@@ -26,7 +26,7 @@ class MockHellfireMassAndMotor:
 		self.FLAG = 0
 		self.TRANSVERSE_MOI = (self.MASS * (3 * ((0.5 * self.REFERENCE_DIAMETER) ** 2) + self.REFERENCE_LENGTH ** 2)) / (12) # Kilograms times meters squared.
 		self.THRUST_TIME_VALUES = np.linspace(0.0, self.BURN_TIME, 100)
-		self.THRUST_VALUES = np.linspace(4000.0, 6000.0, 100)
+		self.THRUST_VALUES = np.linspace(3000.0, 5500.0, 100)
 		self.CG_TIME_VALUES = np.linspace(0.0, self.BURN_TIME, 100)
 		self.CG_VALUES = np.linspace(STARTING_CG_FROM_NOSE, LAST_CG_FROM_NOSE, 100)
 

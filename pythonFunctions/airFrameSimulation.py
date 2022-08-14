@@ -50,7 +50,7 @@ alpha = 0.0
 thetaDot = 0.0
 time = 0.0
 timeStep = 0.001
-maxTime = 4
+maxTime = 40
 loopOneStorage = {
 	"TIME OF FLIGHT": [],
 	"ALPHA": [],
@@ -118,7 +118,7 @@ alpha = 0.0
 thetaDot = 0.0
 time = 0.0
 timeStep = 0.001
-maxTime = 4
+maxTime = 40
 loopTwoStorage = {
 	"TIME OF FLIGHT": [],
 	"ALPHA": [],

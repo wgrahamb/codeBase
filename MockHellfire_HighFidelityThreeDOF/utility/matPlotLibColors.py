@@ -15,7 +15,7 @@ def matPlotLibColors():
 		"slategrey",
 		"navy",
 		"darkorchid",
-		"k"
+		"k",
 		"plum",
 		"m",
 		"mediumvioletred",
