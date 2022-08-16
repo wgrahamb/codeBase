@@ -1,0 +1,18 @@
+
+
+
+
+
+2) Do a clean up on sixDofModel.
+3) Five dof sim needs a clean up, bad.
+4) Six dof py needs a clean up, bad.
+5) Organize three dofs.
+
+
+
+
+
+
+
+
+

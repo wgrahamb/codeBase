@@ -3,6 +3,15 @@ from numpy import array as npa
 import numpy.linalg as la
 
 # Input: Azimuth and Elevation in radians.
+def BODY_TO_RANGE_AND_ALTITUDE(THETA):
+	R = npa(
+		[
+			[np.cos(THETA), -1.0 * np.sin(THETA)],
+			[np.sin(THETA), np.cos(THETA)]
+		]
+	)
+	return R
+
 def FLIGHTPATH_TO_LOCAL_TM(AZIMUTH, ELEVATION):
 	FP_TO_L_TM = npa(
 		[

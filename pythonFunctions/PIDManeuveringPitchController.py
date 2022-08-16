@@ -8,6 +8,7 @@ from numpy import linalg as la
 from ambiance import Atmosphere as atm
 from interpolationGivenTwoVectors import linearInterpolation
 
+
 np.set_printoptions(suppress=True, precision=2)
 
 # Constants.
@@ -44,11 +45,11 @@ TEMP4 = (centerOfGravityFromNose - noseCenterOfPressure) / refDiameter
 # Missile.
 missileTof = 0.0
 missilePos = npa([0.0, 0.0])
-missileVel = npa([1000.0, 1000.0])
+missileVel = npa([400.0, 1000.0])
 missileAcc = npa([0.0, 0.0])
 
 # Target.
-targetPos = npa([5000.0, 5000.0])
+targetPos = npa([30000.0, 10000.0])
 targetVel = npa([-80.0, 0.0])
 
 # Simulation control.
@@ -61,7 +62,8 @@ eDot = 0
 while go:
 
 	# Target update.
-	targetAcc = np.random.randint(-250, 1, 2)
+	# targetAcc = np.random.randint(-250, 1, 2)
+	targetAcc = np.zeros(2)
 	targetVel += (targetAcc * timeStep)
 	targetPos += (targetVel * timeStep)
 
@@ -98,9 +100,9 @@ while go:
 	T1 = np.cross(rightUpInterceptorToIntercept, rightUpInterceptorToInterceptVel)
 	T2 = np.dot(rightUpInterceptorToIntercept, rightUpInterceptorToIntercept)
 	omega = T1 / T2
-	normalAccCommand = 4 * omega * rightUpInterceptorToInterceptVelMag
+	normalAccCommand = 2 * omega * rightUpInterceptorToInterceptVelMag
 	accCommMag = np.abs(normalAccCommand)
-	limit = 75
+	limit = 10
 	if accCommMag > limit:
 		new = limit * np.sign(normalAccCommand)
 		normalAccCommand = new
@@ -134,14 +136,13 @@ while go:
 	CMAP = 2 * TEMP4 + 1.5 * planformArea * alphaTrim * TEMP3 / refArea + 8 * wingArea * TEMP1 / (beta * refArea)
 	CMA = CMAP + 8 * tailArea * TEMP2 / (beta * refArea)
 	CMD = 8 * tailArea * TEMP2 / (beta * refArea)
-
 	ZA = -1 * gravity * dynamicPressure * refArea * CNA / (weight * velMag)
 	ZD = -1 * gravity * dynamicPressure * refArea * CND / (weight * velMag)
 	MA = dynamicPressure * refArea * refDiameter * CMA / transverseMomentOfInertia
 	MD = dynamicPressure * refArea * refDiameter * CMD / transverseMomentOfInertia
 
 	# Control
-	KR = 0.1
+	KR = 0.15
 	K1 = -1 * velMag * ((MA * ZD - ZA * MD) / (1845 * MA))
 	TA = MD / (MA * ZD - MD * ZA)
 	K3 = 1845 * K1 / velMag # 1845 = Some kind of gain.
@@ -158,7 +159,7 @@ while go:
 	omegaAF = np.sqrt(-1 * MA)
 	zetaAF = ZA * omegaAF / (2 * MA)
 	eDotDot = (omegaAF ** 2) * (deflection - e - 2 * zetaAF * eDot / omegaAF)
-	normalAccel = K1 * (e - (eDotDot / (omegaZ ** 2)))
+	normalAccel = K1 * (e - (eDotDot / (omegaZ ** 2))) * gravity
 	e += timeStep * eDot
 	eDot += timeStep * eDotDot
 	e = (e + eOld + timeStep * eDot) / 2
@@ -179,7 +180,7 @@ while go:
 	simData["TX"].append(targetPos[0])
 	simData["TY"].append(targetPos[1])
 	simData["COMMAND"].append(normalAccCommand)
-	simData["ACHIEVED"].append(normalAccel)
+	simData["ACHIEVED"].append(normalAccel / gravity)
 
 	# Console report.
 	if round(missileTof, 3).is_integer():
@@ -198,8 +199,8 @@ trajectory.legend()
 
 accels = fig.add_subplot(122)
 # accels.set_ylim([-30, 30])
-accels.plot(simData["TOF"], simData["COMMAND"], label="Acceleration command (m/s^2).", color="r")
-accels.plot(simData["TOF"], simData["ACHIEVED"], label="Acceleration achieved (m/s^2).", color="b")
+accels.plot(simData["TOF"], simData["COMMAND"], label="Acceleration command (Gs).", color="r")
+accels.plot(simData["TOF"], simData["ACHIEVED"], label="Acceleration achieved (Gs).", color="b")
 accels.legend()
 
 # plt.get_current_fig_manager().full_screen_toggle()
