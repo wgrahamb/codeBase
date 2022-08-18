@@ -106,6 +106,7 @@ while go:
 	if accCommMag > limit:
 		new = limit * np.sign(normalAccCommand)
 		normalAccCommand = new
+	normalAccCommand = 0.0
 
 	# Atmosphere.
 	altitude = missilePos[1] # Feet.
