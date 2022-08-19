@@ -5,7 +5,7 @@ from numpy import linalg as la
 np.set_printoptions(suppress=True, precision=2)
 
 # Utility.
-from utility.returnAzAndElevation import returnEl
+from utility.returnAzAndElevation import returnAngle
 from utility import coordinateTransformations as ct
 
 # Classes.
@@ -107,7 +107,7 @@ TOF = 0.0 # Seconds.
 POS_0 = INITIAL_POS # Meters.
 VEL_0 = INITIAL_VEL # Meters per second.
 SPECIFIC_FORCE = np.zeros(2) # Meters per second squared..
-T_0 = returnEl(VEL_0[1], VEL_0[0]) # Radians.
+T_0 = returnAngle(VEL_0[1], VEL_0[0]) # Radians.
 TDOT_0 = 0.0 # Radians per second.
 THETA_TO_LOCAL = ct.BODY_TO_RANGE_AND_ALTITUDE(-1.0 * T_0) # Non dimensional.
 SPEED = la.norm(VEL_0) # Meters per second.
@@ -240,7 +240,7 @@ while GO:
 	THETA_TO_LOCAL = ct.BODY_TO_RANGE_AND_ALTITUDE(-1.0 * T_0)
 	SPEED = la.norm(VEL_0)
 	VEL_B = THETA_TO_LOCAL @ VEL_0
-	ALPHA = -1.0 * returnEl(VEL_B[1], VEL_B[0])
+	ALPHA = -1.0 * returnAngle(VEL_B[1], VEL_B[0])
 
 	# NORMAL COEFFICIENT AND PITCHING MOMENT COEFFICIENT CALCULATION, NON DIMENSIONAL.
 	CN = 2 * ALPHA + \

@@ -5,7 +5,7 @@ def returnAzAndElevation(arr):
 	el = np.arctan2(arr[2], np.sqrt(arr[0] ** 2 + arr[1] ** 2))
 	return az, el
 
-def returnEl(y, x):
+def returnAngle(y, x):
 	el = np.arctan2(y, x)
 	return el
 
