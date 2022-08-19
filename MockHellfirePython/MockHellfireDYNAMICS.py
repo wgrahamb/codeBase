@@ -85,7 +85,7 @@ BETA = None # "Normalized Speed" - Zarchan. I don't know what this is. Can't fin
 if MACH > 1:
 	BETA = np.sqrt(MACH ** 2 - 1) # Non dimensional.
 else:
-	BETA = 0.1 # Non dimensional.
+	BETA = MACH # Non dimensional.
 
 # MASS AND MOTOR PROPERTIES. ###############################################################################
 MASS_AND_MOTOR = MockHellfireMassAndMotor()

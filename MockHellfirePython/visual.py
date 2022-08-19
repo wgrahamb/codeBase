@@ -40,7 +40,12 @@ if scale:
 	trajectory.set_xlim([xMin - 1000, xMax + 1000])
 	trajectory.set_ylim([yMin - 1000, yMax + 1000])
 	trajectory.set_zlim([zMin, zMax + 1000])
-trajectory.plot(df.iloc[startIndex:stopIndex]["POS_0X"], np.linspace(0, 0.000000000001, len(df.iloc[startIndex:stopIndex]["POS_0X"])), df.iloc[startIndex:stopIndex]["POS_0Y"], color=colors.pop(0))
+trajectory.plot(
+	df.iloc[startIndex:stopIndex]["POS_0X"],
+	np.linspace(0, 0.000000000001, len(df.iloc[startIndex:stopIndex]["POS_0X"])),
+	df.iloc[startIndex:stopIndex]["POS_0Y"],
+	color=colors.pop(0)
+)
 
 # Pitch.
 pitch = fig.add_subplot(122)
