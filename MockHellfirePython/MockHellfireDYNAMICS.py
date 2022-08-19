@@ -42,9 +42,9 @@ RAD_TO_DEG = 57.2957795130823
 # INPUTS. ###############################################################################
 TIME_STEP = 0.01 # Seconds.
 MAX_TIME = 100 # Seconds.
-INITIAL_POS = npa([0.0, 10.0])
-INITIAL_VEL = npa([10.0, 10.0])
-FIN_DEFLECTION_DEGREES = 2 # Degrees.
+INITIAL_POS = npa([0.0, 10.0]) # Meters.
+INITIAL_VEL = npa([10.0, 15.0]) # Meters per second.
+FIN_DEFLECTION_DEGREES = -2.5 # Degrees.
 FIN_DEFLECTION_RADIANS = np.radians(FIN_DEFLECTION_DEGREES) # Radians.
 
 # MOCK HELLFIRE PARAMETERS. ###############################################################################
