@@ -1984,17 +1984,17 @@ Matrix cad_tdi84(const double &lon,const double &lat,const double &alt
 
 Matrix cad_tei(const double &time)
 {
-    Matrix TEI(3,3);
+   Matrix TEI(3,3);
 
-    double xi=WEII3*time+GW_CLONG;
-          double sxi=sin(xi);
-          double cxi=cos(xi);
-    
-          TEI.identity();
-    TEI.assign_loc(0,0, cxi); TEI.assign_loc(0,1, sxi);
-          TEI.assign_loc(1,0,-sxi); TEI.assign_loc(1,1, cxi);
+   double xi=WEII3*time+GW_CLONG;
+   double sxi=sin(xi);
+   double cxi=cos(xi);
 
-          return TEI;
+   TEI.identity();
+   TEI.assign_loc(0,0, cxi); TEI.assign_loc(0,1, sxi);
+   TEI.assign_loc(1,0,-sxi); TEI.assign_loc(1,1, cxi);
+
+   return TEI;
 }
 ///////////////////////////////////////////////////////////////////////////////
 //Returns the T.M. of geographic wrt earth coordinates, TGE

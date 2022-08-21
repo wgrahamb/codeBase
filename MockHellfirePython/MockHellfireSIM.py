@@ -19,7 +19,6 @@ import MockHellfireDYNAMICS5DOF as DYN
 
 TO DO:
 REAL MOTOR MODEL.
-DICTIONARY FOR CLASSES.
 ROTATING, ELLIPTICAL EARTH MODEL.
 GEOPOTENTIAL GRAVITY MODEL.
 GUIDANCE AND CONTROL.
@@ -34,34 +33,36 @@ DEG_TO_RAD = 1.0 / RAD_TO_DEG
 EPSILON = 0.0000000001
 
 if __name__ == "__main__":
-	
+
 	# Dynamics.
 	LLA0 = npa([38.8719, 77.0563, 0.0])
 	POS0 = np.zeros(3)
-	AZ0 = -45
+	AZ0 = 0
 	EL0 = 45
 	SPD0 = 10
 	ID = "MOCK_HELLFIRE5DOF"
 	MSL = DYN.Construct5DOFMissile(POS0, AZ0, EL0, SPD0, ID)
 
 	# Actuators.
-	PITCH_ACT = SecondOrderActuator("PITCH_DEFL")
-	YAW_ACT = SecondOrderActuator("YAW_DEFL")
+	COMPONENTS = {
+		"PITCH_ACT": SecondOrderActuator("PITCH_DEFL"),
+		"YAW_ACT": SecondOrderActuator("YAW_DEFL"),
+	}
 
 	# Sim control.
 	TIME_INCREMENT = None
-	
+
 	# Simple Guidance and Control.
-	MANEUVER1 = 10 # Seconds.
+	MANEUVER1 = 20 # Seconds.
 	MANEUVER2 = 40
 	PITCH_FIN_COMMAND = None
 	YAW_FIN_COMMAND = None
-	PITCHCOMMAND1 = -4 # Degrees.
+	PITCHCOMMAND1 = -1 # Degrees.
 	YAWCOMMAND1 = 0 # Degrees.
 	PITCHCOMMAND2 = 0 # Degrees.
-	YAWCOMMAND2 = 4 # Degrees.
+	YAWCOMMAND2 = 2 # Degrees.
 	PITCHCOMMAND3 = 0 # Degrees.
-	YAWCOMMAND3 = 0 # Degrees.
+	YAWCOMMAND3 = -4 # Degrees.
 
 	LAST_TIME = 0
 	while MSL["LETHALITY"] == "FLYING" or MSL["LETHALITY"] == "MAX_TIME":
@@ -81,11 +82,15 @@ if __name__ == "__main__":
 			YAW_FIN_COMMAND = YAWCOMMAND3
 
 		# Get next update time.
-		N = PITCH_ACT.NEXT_UPDATE_TIME
-		N_ID = "PITCH_ACT"
-		if YAW_ACT.NEXT_UPDATE_TIME < N:
-			N = YAW_ACT.NEXT_UPDATE_TIME
-			N_ID = "YAW_ACT"
+		N = 0.0
+		N_ID = ""
+		for index, key in enumerate(COMPONENTS.keys()):
+			if index == 0:
+				N = COMPONENTS[f"{key}"].NEXT_UPDATE_TIME
+				N_ID = key
+			elif COMPONENTS[f"{key}"].NEXT_UPDATE_TIME < N:
+				N = COMPONENTS[f"{key}"].NEXT_UPDATE_TIME
+				N_ID = key
 
 		# Update dynamics.
 		TIME_INCREMENT = N - TOF
@@ -93,15 +98,15 @@ if __name__ == "__main__":
 			MSL = DYN.Fly5DOF(
 				MSL_INPUT=MSL,
 				FLY_FOR_THIS_LONG=TIME_INCREMENT,
-				PITCH_FIN_DEFL_DEG_INPUT=PITCH_ACT.DEFLECTION,
-				YAW_FIN_DEFL_DEG_INPUT=YAW_ACT.DEFLECTION
+				PITCH_FIN_DEFL_DEG_INPUT=COMPONENTS["PITCH_ACT"].DEFLECTION,
+				YAW_FIN_DEFL_DEG_INPUT=COMPONENTS["YAW_ACT"].DEFLECTION
 			)
 
-		# Update components.
+		# Update components. Would like to make this bit more terse.
 		if N_ID == "PITCH_ACT":
-			PITCH_ACT.update(PITCH_FIN_COMMAND)
+			COMPONENTS["PITCH_ACT"].update(PITCH_FIN_COMMAND)
 		elif N_ID == "YAW_ACT":
-			YAW_ACT.update(YAW_FIN_COMMAND)
+			COMPONENTS["YAW_ACT"].update(YAW_FIN_COMMAND)
 
 		# Console report.
 		CHECK = round(TOF, 3).is_integer()

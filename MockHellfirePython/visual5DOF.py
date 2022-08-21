@@ -19,6 +19,7 @@ fig = plt.figure(figsize=(20, 20))
 # Trajectory
 scale = True
 trajectory = fig.add_subplot(221, projection="3d")
+trajectory.view_init(elev=30, azim=135)
 trajectory.set_title("Trajectory")
 trajectory.set_xlabel("East")
 trajectory.set_ylabel("North")

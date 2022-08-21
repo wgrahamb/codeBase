@@ -239,7 +239,9 @@ void Round3::init_newton()
 	WEII.assign_loc(1,0,WEII3);
 
 	//initialization with geographic variables	
-	if(minit==0){
+	if(minit==0)
+	{
+
 		//calculating initial vehicle position in Earth coordinates
 		double radius=-(alt+REARTH);
 		SBIG.assign_loc(2,0,radius);
@@ -255,7 +257,7 @@ void Round3::init_newton()
 		psivg=psivgx*RAD;
 		thtvg=thtvgx*RAD;
 
-		//georgaphic velocity
+		//geogaphic velocity
 		VBEG.cart_from_pol(dvbe,psivg,thtvg);
 		
 		//TM of inertial wrt geopraphic coordinates
@@ -269,7 +271,8 @@ void Round3::init_newton()
 
 	}
 	//initialization with orbital elements
-	else if(minit==1){
+	else if(minit==1)
+	{
 
 		//inertial position and velocity
 		parabola_flag=cad_in_orb(SBII,VBII,semi,ecc,inclx,lon_anodex,arg_perix,true_anomx);

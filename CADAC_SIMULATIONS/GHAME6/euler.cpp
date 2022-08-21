@@ -17,7 +17,8 @@
 
 void Round6::def_euler()
 {
-	//Definition and initialization of module-variables
+
+    //Definition and initialization of module-variables
     round6[160].init("ppx",0,"Body roll angular vel wrt Earth in body axes - deg/s","euler","out","plot");
     round6[161].init("qqx",0,"Body pitch angular vel wrt Earth in body axes - deg/s","euler","out","plot");
     round6[162].init("rrx",0,"Body yaw angular vel wrt Earth in body axes - deg/s","euler","out","plot");
@@ -25,6 +26,7 @@ void Round6::def_euler()
     round6[164].init("WBIB",0,0,0,"Ang vel of veh wrt inertial frame, body axes - rad/s","euler","state","");
     round6[165].init("WBIBD",0,0,0,"Ang vel of veh wrt inertl frame, deriv - rad/s^2","euler","state","");
     round6[166].init("WBII",0,0,0,"Vehicle's inertial angular vel in inertial coord - rad/s^2","euler","out","");
+
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -33,7 +35,6 @@ void Round6::def_euler()
 //
 //030424 Created by Peter H Zipfel
 ///////////////////////////////////////////////////////////////////////////////
-
 void Round6::init_euler()
 {
 	//local variable 
@@ -62,13 +63,13 @@ void Round6::init_euler()
 	//initialization
 	round6[164].gets_vec(WBIB);
 }
+
 ///////////////////////////////////////////////////////////////////////////////
 //Euler module
 //Member function of class 'Round6'
 //
 //030424 Created by Peter H Zipfel
 ///////////////////////////////////////////////////////////////////////////////
-
 void Round6::euler(double int_step)
 {
 	//local variable 
