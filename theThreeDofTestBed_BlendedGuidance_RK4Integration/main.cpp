@@ -124,7 +124,7 @@ void guidance()
 		double lineOfAttack[3];
 		lineOfAttack[0] = forwardLeftUpMissileToInterceptPositionUnitVector[0] - 0.3;
 		lineOfAttack[1] = forwardLeftUpMissileToInterceptPositionUnitVector[1] - 0.3;
-		lineOfAttack[2] = -0.5;
+		lineOfAttack[2] = 0.5;
 		double forwardLeftUpMissileToInterceptLineOfAttackVel[3];
 		vectorProjection(lineOfAttack, missileBodyVelocity, forwardLeftUpMissileToInterceptLineOfAttackVel);
 		double G = 1 - exp(-0.001 * forwardLeftUpMissileToInterceptPositionMagnitude);

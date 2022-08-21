@@ -8,11 +8,11 @@ class SecondOrderActuator:
 
 		### ACTUATOR ###
 		self.TIME = 0.0 # Seconds.
-		self.TIME_STEP = 1 / 600.0 # Seconds.
+		self.TIME_STEP = 1 / 300.0 # Seconds.
 		self.NEXT_UPDATE_TIME = self.TIME + self.TIME_STEP # Seconds.
 		self.DEFL_LIMIT = 10 # Degrees.
 		self.DEFL_RATE_LIMIT = 0.01 # Degrees per second.
-		self.WNACT = np.degrees(1.0) # Degrees per second.
+		self.WNACT = np.degrees(0.25) # Degrees per second.
 		self.ZETACT = 0.7 # Non dimensional.
 		self.DEFLECTION = 0.0 # Degrees.
 		self.DEFLECTION_DOT_DER = 0.0 # Degrees per second.

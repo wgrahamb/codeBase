@@ -19,6 +19,7 @@ import MockHellfireDYNAMICS5DOF as DYN
 
 TO DO:
 REAL MOTOR MODEL.
+DICTIONARY FOR CLASSES.
 ROTATING, ELLIPTICAL EARTH MODEL.
 GEOPOTENTIAL GRAVITY MODEL.
 GUIDANCE AND CONTROL.
@@ -30,14 +31,14 @@ INS. FROM ZIPFEL.
 MM_TO_M = 1.0 / 1000.0
 RAD_TO_DEG = 57.2957795130823
 DEG_TO_RAD = 1.0 / RAD_TO_DEG
-EPSILON = 0.00000001
+EPSILON = 0.0000000001
 
 if __name__ == "__main__":
 	
 	# Dynamics.
 	LLA0 = npa([38.8719, 77.0563, 0.0])
 	POS0 = np.zeros(3)
-	AZ0 = -25
+	AZ0 = -45
 	EL0 = 45
 	SPD0 = 10
 	ID = "MOCK_HELLFIRE5DOF"
@@ -51,13 +52,16 @@ if __name__ == "__main__":
 	TIME_INCREMENT = None
 	
 	# Simple Guidance and Control.
-	MANEUVER = 15 # Seconds.
+	MANEUVER1 = 10 # Seconds.
+	MANEUVER2 = 40
 	PITCH_FIN_COMMAND = None
 	YAW_FIN_COMMAND = None
-	PITCHCOMMAND1 = -2 # Degrees.
-	YAWCOMMAND1 = -4 # Degrees.
-	PITCHCOMMAND2 = -1 # Degrees.
+	PITCHCOMMAND1 = -4 # Degrees.
+	YAWCOMMAND1 = 0 # Degrees.
+	PITCHCOMMAND2 = 0 # Degrees.
 	YAWCOMMAND2 = 4 # Degrees.
+	PITCHCOMMAND3 = 0 # Degrees.
+	YAWCOMMAND3 = 0 # Degrees.
 
 	LAST_TIME = 0
 	while MSL["LETHALITY"] == "FLYING" or MSL["LETHALITY"] == "MAX_TIME":
@@ -66,12 +70,15 @@ if __name__ == "__main__":
 		TOF = MSL["STATE"]["TOF"]
 
 		# Basic guidance and control.
-		if TOF < MANEUVER:
+		if TOF < MANEUVER1:
 			PITCH_FIN_COMMAND = PITCHCOMMAND1
 			YAW_FIN_COMMAND = YAWCOMMAND1
-		else:
+		elif TOF < MANEUVER2:
 			PITCH_FIN_COMMAND = PITCHCOMMAND2
 			YAW_FIN_COMMAND = YAWCOMMAND2
+		else:
+			PITCH_FIN_COMMAND = PITCHCOMMAND3
+			YAW_FIN_COMMAND = YAWCOMMAND3
 
 		# Get next update time.
 		N = PITCH_ACT.NEXT_UPDATE_TIME
@@ -102,6 +109,7 @@ if __name__ == "__main__":
 			X = MSL["STATE"]["POS_0X"]
 			Y = MSL["STATE"]["POS_0Y"]
 			Z = MSL["STATE"]["POS_0Z"]
-			print(f"TOF {TOF:.3} ENU {X:.2f} {Y:.2f} {Z:.2f}")
+			MACH = MSL["STATE"]["MACH"]
+			print(f"TOF {TOF:.3} ENU {X:.2f} {Y:.2f} {Z:.2f} {MACH:.2f}")
 			LAST_TIME = TOF
 
