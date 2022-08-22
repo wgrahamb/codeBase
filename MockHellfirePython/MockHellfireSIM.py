@@ -96,7 +96,7 @@ if __name__ == "__main__":
 		TIME_INCREMENT = N - TOF
 		if TIME_INCREMENT > EPSILON:
 			MSL = DYN.Fly5DOF(
-				MSL_INPUT=MSL,
+				MISSILE_INPUT_DICT=MSL,
 				FLY_FOR_THIS_LONG=TIME_INCREMENT,
 				PITCH_FIN_DEFL_DEG_INPUT=COMPONENTS["PITCH_ACT"].DEFLECTION,
 				YAW_FIN_DEFL_DEG_INPUT=COMPONENTS["YAW_ACT"].DEFLECTION
@@ -115,6 +115,6 @@ if __name__ == "__main__":
 			Y = MSL["STATE"]["POS_0Y"]
 			Z = MSL["STATE"]["POS_0Z"]
 			MACH = MSL["STATE"]["MACH"]
-			print(f"TOF {TOF:.3} ENU {X:.2f} {Y:.2f} {Z:.2f} {MACH:.2f}")
+			print(f"TOF {TOF:.3} ENU {X:.2f} {Y:.2f} {Z:.2f} MACH {MACH:.2f}")
 			LAST_TIME = TOF
 

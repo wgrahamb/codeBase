@@ -32,6 +32,8 @@ TAIL_TIP_CHORD 0.387894 M
 TAIL_ROOT_CHORD 0.48084 M
 DISTANCE_FROM_BASE_OF_NOSE_TO_WING 0.323925 M
 STARTING_CG_FROM_NOSE 0.644605 m
+CENTER_OF_DEFLECTION_FROM_NOSE (1.8059 M - 0.249733 M)
+
 UNCORRECTED_CENTER_OF_DEFLECTION_FROM_NOSE 1.8059 M
 UNCORRECTED_REFERENCE_LENGTH 1.85026 m
 
@@ -136,14 +138,14 @@ def Construct5DOFMissile(
 	return MISSILE
 
 def Fly5DOF(
-	MSL_INPUT,
+	MISSILE_INPUT_DICT,
 	FLY_FOR_THIS_LONG,
 	PITCH_FIN_DEFL_DEG_INPUT,
 	YAW_FIN_DEFL_DEG_INPUT
 ):
 
 	# CONSTANT INPUT. ###############################################################################
-	MSL = copy.copy(MSL_INPUT)
+	MSL = copy.copy(MISSILE_INPUT_DICT)
 
 	# PROCESS INPUT. ###############################################################################
 	PITCH_FIN_DEFL_DEG = PITCH_FIN_DEFL_DEG_INPUT # Degrees.
@@ -377,17 +379,16 @@ def Fly5DOF(
 
 			# END CHECK.
 			if TOF > MAX_TIME:
-				# print(f"MAX TIME - TOF : {TOF:.2f}, ENU : {POS_0}, MACH : {MACH:.2f}")
 				MSL["LETHALITY"] = "MAX_TIME"
-				GO = False
+				return MSL
 			if POS_0[2] < 0.0:
 				print(f"GROUND - TOF : {TOF:.2f}, ENU : {POS_0}, MACH : {MACH:.2f}")
 				MSL["LETHALITY"] = "GROUND"
-				GO = False
+				return MSL
 			if np.isnan(np.sum(POS_0)):
 				print(f"NAN - TOF : {TOF:.2f}, ENU : {POS_0}, MACH : {MACH:.2f}")
 				MSL["LETHALITY"] = "NAN"
-				GO = False
+				return MSL
 
 			# BEGIN INTEGRATION PASS.
 			STATE_P0 = POS_0
@@ -452,8 +453,6 @@ def Fly5DOF(
 			EDOT_0 = STATE_EDOT0 + (TIME_STEP / 6.0) * (EDOTDOT1 + 2 * EDOTDOT2 + 2 * EDOTDOT3 + EDOTDOT4)
 
 			INTEGRATION_PASS = 0
-
-	return MSL
 
 
 

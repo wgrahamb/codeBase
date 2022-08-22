@@ -1461,7 +1461,7 @@ Matrix cad_grav84(Matrix SBII,const double &time)
 
           cad_geoc_in(lonc,latc,altc, SBII,time);
           double dbi=SBII.absolute();
-    double dum1=GM/(dbi*dbi);
+          double dum1=GM/(dbi*dbi);
           double dum2=3*sqrt(5.);
           double dum3=pow((SMAJOR_AXIS/dbi),2);
           double gravg1=-dum1*dum2*C20*dum3*sin(latc)*cos(latc);
