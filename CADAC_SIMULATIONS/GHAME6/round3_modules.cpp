@@ -257,7 +257,7 @@ void Round3::init_newton()
 		psivg=psivgx*RAD;
 		thtvg=thtvgx*RAD;
 
-		//geogaphic velocity
+		//geographic velocity
 		VBEG.cart_from_pol(dvbe,psivg,thtvg);
 		
 		//TM of inertial wrt geopraphic coordinates
@@ -299,6 +299,7 @@ void Round3::init_newton()
 		thtvgx=thtvg*DEG;
 		lonx=lon*DEG;
 		latx=lat*DEG;
+
 	}
 
 	//saving initial position for later use
@@ -386,14 +387,20 @@ void Round3::newton(double int_step)
 	GRAV.assign_loc(2,0,grav);
 
 	//integrating inertial state variables
+
+	// DERIVATIVE
 	Matrix NEXT_ACC=TIG*((TGV*FSPV)+GRAV);
+
+	// STATE INTEGRATION.
 	Matrix NEXT_VEL=integrate(NEXT_ACC,ABII,VBII,int_step);
 	SBII=integrate(NEXT_VEL,VBII,SBII,int_step);
+
+	// UPDATE STATE.
 	ABII=NEXT_ACC;
 	VBII=NEXT_VEL;
 
 	//getting lon, lat and alt
-		cad_geo84_in(lon,lat,alt, SBII,time);			  
+	cad_geo84_in(lon,lat,alt, SBII,time);			  
 	lonx=lon*DEG;
 	latx=lat*DEG;
 	altx=alt/1000;
