@@ -89,7 +89,7 @@ def Construct5DOFMissile(
 	MISSILE = {
 
 		"IDENTITY": ID,
-		"LOGFILE": open(f"MockHellfirePython/{ID}.txt", "w"),
+		"LOGFILE": open(f"MockHellfirePython/output/{ID}.txt", "w"),
 		"LETHALITY": "FLYING",
 		"ATMOS": ATMOS,
 		"MASS_AND_MOTOR": MASS_AND_MOTOR,

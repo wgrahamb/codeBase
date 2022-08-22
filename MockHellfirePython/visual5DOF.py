@@ -6,7 +6,7 @@ from utility.matPlotLibColors import matPlotLibColors
 RAD_TO_DEG = 57.2957795130823
 
 # Setup.
-f1 = r"MockHellfirePython/MOCK_HELLFIRE5DOF.txt"
+f1 = r"MockHellfirePython/output/MOCK_HELLFIRE5DOF.txt"
 viewFile = f1
 df = pd.read_csv(open(f"{viewFile}"), delimiter=" ")
 for index, header in enumerate(df.columns):
@@ -73,8 +73,8 @@ fins = fig.add_subplot(224)
 fins.set_title("Fins")
 fins.set_xlabel("TOF")
 fins.set_ylabel("Degrees")
-pitchFinsDF = pd.read_csv(open(f"MockHellfirePython/PITCH_DEFL.txt"), delimiter=" ")
-yawFinsDF = pd.read_csv(open(f"MockHellfirePython/YAW_DEFL.txt"), delimiter=" ")
+pitchFinsDF = pd.read_csv(open(f"MockHellfirePython/output/PITCH_DEFL.txt"), delimiter=" ")
+yawFinsDF = pd.read_csv(open(f"MockHellfirePython/output/YAW_DEFL.txt"), delimiter=" ")
 fins.plot(pitchFinsDF.iloc[startIndex:stopIndex]["TIME"], pitchFinsDF.iloc[startIndex:stopIndex]["COMMAND"], label="Pitch Command", color=colors.pop(0))
 fins.plot(pitchFinsDF.iloc[startIndex:stopIndex]["TIME"], pitchFinsDF.iloc[startIndex:stopIndex]["DEFL"], label="Pitch Deflection", color=colors.pop(0))
 fins.plot(yawFinsDF.iloc[startIndex:stopIndex]["TIME"], yawFinsDF.iloc[startIndex:stopIndex]["COMMAND"], label="Yaw Command", color=colors.pop(0))

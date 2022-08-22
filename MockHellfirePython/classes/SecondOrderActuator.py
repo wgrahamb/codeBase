@@ -12,7 +12,7 @@ class SecondOrderActuator:
 		self.NEXT_UPDATE_TIME = self.TIME + self.TIME_STEP # Seconds.
 		self.DEFL_LIMIT = 10 # Degrees.
 		self.DEFL_RATE_LIMIT = 0.01 # Degrees per second.
-		self.WNACT = np.degrees(0.5) # Degrees per second.
+		self.WNACT = np.degrees(1.0) # Degrees per second.
 		self.ZETACT = 0.7 # Non dimensional.
 		self.DEFLECTION = 0.0 # Degrees.
 		self.DEFLECTION_DOT_DER = 0.0 # Degrees per second.
@@ -20,7 +20,7 @@ class SecondOrderActuator:
 		self.DEFLECTION_DOT_DOT = 0.0 #  # Degrees per second.squared.
 		self.FLAG = 0
 
-		self.LOGFILE = open(f"MockHellfirePython/{ID}.txt", "w")
+		self.LOGFILE = open(f"MockHellfirePython/output/{ID}.txt", "w")
 
 		self.STATE = {
 			"TIME": self.TIME,

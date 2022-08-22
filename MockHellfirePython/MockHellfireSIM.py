@@ -1,10 +1,6 @@
 # Python libraries.
-import time
-import copy
 import numpy as np
 from numpy import array as npa
-from numpy import linalg as la
-import pymap3d
 np.set_printoptions(suppress=True, precision=2)
 
 # Utility.
@@ -43,7 +39,7 @@ if __name__ == "__main__":
 	ID = "MOCK_HELLFIRE5DOF"
 	MSL = DYN.Construct5DOFMissile(POS0, AZ0, EL0, SPD0, ID)
 
-	# Actuators.
+	# Components.
 	COMPONENTS = {
 		"PITCH_ACT": SecondOrderActuator("PITCH_DEFL"),
 		"YAW_ACT": SecondOrderActuator("YAW_DEFL"),
