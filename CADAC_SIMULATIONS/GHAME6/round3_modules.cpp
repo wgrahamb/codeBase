@@ -400,7 +400,7 @@ void Round3::newton(double int_step)
 	VBII=NEXT_VEL;
 
 	//getting lon, lat and alt
-	cad_geo84_in(lon,lat,alt, SBII,time);			  
+	cad_geo84_in(lon,lat,alt, SBII,time);
 	lonx=lon*DEG;
 	latx=lat*DEG;
 	altx=alt/1000;
