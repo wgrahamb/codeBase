@@ -26,9 +26,12 @@ DEG_TO_RAD = 0.01745329251994319833
 
 TO DO:
 
+CHECK ECEF VELOCITY CALCULATION
 ECI TO LLA
 LLA TO ECI
 ECI GRAV
+CHECK
+IMPLEMENT IN LOOP
 
 """
 
@@ -138,7 +141,7 @@ class threeDofSim:
 		print("BODY VELOCITY FROM ECI VELOCITY :", self.ECI_TO_FLU @ (self.ECIVEL - ECIVEL_DUE_TO_ROTATION))
 
 		# GUIDANCE.
-		self.FLU_REL_POS = self.ENU_TO_FLU @ (self.WAYPOINT - np.zeros(3))
+		self.FLU_REL_POS = self.ENU_TO_FLU @ (self.WAYPOINT - np.zeros(3)) # METERS
 		self.NORM_COMM = 0.0 # METERS PER SECOND^2
 		self.SIDE_COMM = 0.0 # METERS PER SECOND^2
 
@@ -252,7 +255,7 @@ class threeDofSim:
 
 	def guidance(self):
 
-		# PROPORTIONAL NAVIGATION
+		# PROPORTIONAL GUIDANCE
 		self.FLU_REL_POS = self.ENU_TO_FLU @ (self.WAYPOINT - self.ENUPOS) # METERS
 		FLU_REL_POS_U = unitvector(self.FLU_REL_POS) # ND
 		CLOSING_VEL = -1 * self.VEL_B # METERS PER SECOND
@@ -265,8 +268,9 @@ class threeDofSim:
 		self.SIDE_COMM = COMMAND[1] # METERS PER SECOND^2
 		ACC_MAG = la.norm(npa([self.SIDE_COMM, self.NORM_COMM])) # METER PER SECOND^2
 		TRIG_RATIO = np.arctan2(self.NORM_COMM, self.SIDE_COMM) # ND
-		if ACC_MAG > 50:
-			ACC_MAG = 50# METERS PER SECOND^2
+		MANEUVER_LIMIT = 50 # METERS PER SECOND^2
+		if ACC_MAG > MANEUVER_LIMIT:
+			ACC_MAG = MANEUVER_LIMIT # METERS PER SECOND^2
 		self.SIDE_COMM = ACC_MAG * np.cos(TRIG_RATIO) # METERS PER SECOND^2
 		self.NORM_COMM = ACC_MAG * np.sin(TRIG_RATIO) # METERS PER SECOND^2
 
@@ -279,7 +283,7 @@ class threeDofSim:
 		self.ENUPOS += DELTA_POS # METERS
 		DELTA_VEL = self.ENUACC * self.DT # METERS PER SECOND
 		self.ENUVEL += DELTA_VEL # METERS PER SECOND
-		self.TOF += self.DT
+		self.TOF += self.DT # SECONDS.
 
 	def attitude(self):
 
@@ -288,10 +292,10 @@ class threeDofSim:
 
 		# ROTATING EARTH HERE.
 
-	def intercept(self):
+	def endCheck(self):
+
 		self.MISS_DIST = la.norm(self.FLU_REL_POS)
 
-	def endCheck(self):
 		if self.ENUPOS[2] < 0.0:
 			self.LETHALITY = endChecks.groundCollision
 			self.GO = False
@@ -315,7 +319,6 @@ class threeDofSim:
 		self.derivative()
 		self.integrate()
 		self.attitude()
-		self.intercept()
 		self.endCheck()
 
 	def main(self):
