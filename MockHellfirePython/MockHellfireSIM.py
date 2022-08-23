@@ -53,12 +53,12 @@ if __name__ == "__main__":
 	MANEUVER2 = 40
 	PITCH_FIN_COMMAND = None
 	YAW_FIN_COMMAND = None
-	PITCHCOMMAND1 = -1 # Degrees.
+	PITCHCOMMAND1 = -3 # Degrees.
 	YAWCOMMAND1 = 0 # Degrees.
-	PITCHCOMMAND2 = 2 # Degrees.
-	YAWCOMMAND2 = 2 # Degrees.
-	PITCHCOMMAND3 = 0 # Degrees.
-	YAWCOMMAND3 = -4 # Degrees.
+	PITCHCOMMAND2 = -2 # Degrees.
+	YAWCOMMAND2 = 0 # Degrees.
+	PITCHCOMMAND3 = 5 # Degrees.
+	YAWCOMMAND3 = 0 # Degrees.
 
 	LAST_TIME = 0
 	while MSL["LETHALITY"] == "FLYING" or MSL["LETHALITY"] == "MAX_TIME":
