@@ -1,6 +1,7 @@
 # INCLUDED WITH PYTHON
 import time
 from enum import Enum
+import copy
 
 # PIP INSTALLED LIBRARIES
 import matplotlib.pyplot as plt
@@ -10,8 +11,6 @@ from numpy import linalg as la
 import pandas as pd
 import pymap3d
 
-# pymap3d.ecef2enu()
-
 # GRAHAM'S FUNCTIONS
 from coordinateTransformations import FLIGHTPATH_TO_LOCAL_TM
 from unitVector import unitvector
@@ -20,6 +19,18 @@ from returnAzAndElevation import returnAzAndElevation
 # CONSTANTS.
 WEII3 = 7.292115e-5 # Rotation speed of earth. Radians per second.
 REARTH = 6370987.308 # Meters.
+SMALL = 9.999999999999999547e-08
+DEG_TO_RAD = 0.01745329251994319833
+
+"""
+
+TO DO:
+
+ECI TO LLA
+LLA TO ECI
+ECI GRAV
+
+"""
 
 class endChecks(Enum):
 	intercept = 1
@@ -77,62 +88,63 @@ class threeDofSim:
 		# LLA.
 		LLA0[0] = np.radians(LLA0[0])
 		LLA0[1] = np.radians(LLA0[1])
-		self.GEODETIC = LLA0
 		self.GEODETIC0 = LLA0
+		self.GEODETIC = LLA0
 
 		# ECEF.
 		self.ECEFPOS0 = np.zeros(3)
 		self.ECEFPOS = np.zeros(3)
 		self.ECEFVEL = np.zeros(3)
-		self.ECEFtoFLU = np.zeros((3, 3))
+		self.ECEF_TO_FLU = np.zeros((3, 3))
 
 		self.ECEFPOS = self.LLA_TO_ECEF(LLA0)
 		self.ECEFPOS0 = self.ECEFPOS
 		ECEF_AZ, ECEF_EL = returnAzAndElevation(self.ECEFPOS)
-		self.ECEFtoFLU = FLIGHTPATH_TO_LOCAL_TM(ECEF_AZ, -ECEF_EL)
+		self.ECEF_TO_FLU = FLIGHTPATH_TO_LOCAL_TM(ECEF_AZ, -ECEF_EL)
 		self.ECEFVEL = self.SPEED_AND_FPA_TO_CARTESIAN(la.norm(INPUT_ENU_VEL), ECEF_AZ, -ECEF_EL)
-		# # Check TM by rotating Ecef vel into body vel. 
-		# # Should be equivalent to self.VEL_B
-		# TEMP = self.ECEFtoFLU @ self.ECEFVEL
 
 		# ENU.
 		self.ENUPOS0 = np.zeros(3)
 		self.ENUPOS = np.zeros(3)
 		self.ENUVEL = np.zeros(3)
-		self.ENUtoFLU = np.zeros((3, 3))
+		self.ENU_TO_FLU = np.zeros((3, 3))
 
 		ECEF_DISPLACEMENT = self.ECEFPOS - self.ECEFPOS0
 		self.ENUPOS = self.ECEF_DISPLACEMENT_TO_ENU(ECEF_DISPLACEMENT, self.GEODETIC0[0], self.GEODETIC0[1])
 		self.ENUPOS0 = self.ENUPOS
 		self.ENUVEL = INPUT_ENU_VEL
 		ENU_AZ, ENU_EL = returnAzAndElevation(INPUT_ENU_VEL) # RADIANS
-		self.ENUtoFLU = FLIGHTPATH_TO_LOCAL_TM(ENU_AZ, -ENU_EL) # ND
-		self.VEL_B = self.ENUtoFLU @ INPUT_ENU_VEL # METERS PER SECOND
+		self.ENU_TO_FLU = FLIGHTPATH_TO_LOCAL_TM(ENU_AZ, -ENU_EL) # ND
+		self.VEL_B = self.ENU_TO_FLU @ INPUT_ENU_VEL # METERS PER SECOND
 
 		# ECI.
 		self.ECIPOS0 = np.zeros(3)
 		self.ECIPOS = np.zeros(3)
 		self.ECIVEL = np.zeros(3)
-		self.ECItoFLU = np.zeros((3, 3))
+		self.ECI_TO_FLU = np.zeros((3, 3))
 
-		self.ROTATION_TO_ECEF = self.ROTATION_TO_EARTH(self.TOF)
-		self.ECIPOS = self.ROTATION_TO_ECEF.transpose() @ self.ECEFPOS # STATE
+		self.ECI_TO_ECEF = self.ECI_TO_ECEF_TM(self.TOF)
+		self.ECIPOS = self.ECI_TO_ECEF.transpose() @ self.ECEFPOS # STATE
 		self.ECIPOS0 = self.ECIPOS
-		TEMP = self.ROTATION_TO_ECEF.transpose() @ self.ECEFVEL
+		TEMP = self.ECI_TO_ECEF.transpose() @ self.ECEFVEL
 		OMEGA = npa([0.0, 0.0, WEII3])
-		LOCALVEL = np.cross(OMEGA, self.ECIPOS)
-		self.ECIVEL = TEMP + LOCALVEL
+		ECIVEL_DUE_TO_ROTATION = np.cross(OMEGA, self.ECIPOS)
+		self.ECIVEL = TEMP + ECIVEL_DUE_TO_ROTATION
+		self.ECI_TO_FLU = self.ECEF_TO_FLU @ self.ECI_TO_ECEF
+
+		# Test to make sure matrices are initialized correctly.
+		print("BODY VELOCITY FROM ENU VELOCITY :", self.ENU_TO_FLU @ INPUT_ENU_VEL)
+		print("BODY VELOCITY FROM ECEF VELOCITY :", self.ECEF_TO_FLU @ self.ECEFVEL)
+		print("BODY VELOCITY FROM ECI VELOCITY :", self.ECI_TO_FLU @ (self.ECIVEL - ECIVEL_DUE_TO_ROTATION))
 
 		# GUIDANCE.
-		self.FLU_REL_POS = self.ENUtoFLU @ (self.WAYPOINT - np.zeros(3))
+		self.FLU_REL_POS = self.ENU_TO_FLU @ (self.WAYPOINT - np.zeros(3))
 		self.NORM_COMM = 0.0 # METERS PER SECOND^2
 		self.SIDE_COMM = 0.0 # METERS PER SECOND^2
 
-		# DERIVATIVE DERIVATIVE.
+		# DERIVATIVE.
 		self.ENUACC = np.zeros(3) # METERS PER SECOND^2
 		self.SPECIFIC_FORCE = np.zeros(3) # METERS PER SECOND^2
-
-		pause = 0
 
 	@staticmethod
 	def ECEF_DISPLACEMENT_TO_ENU(RELPOS, LAT0, LON0):
@@ -142,6 +154,31 @@ class threeDofSim:
 		U = -1.0 * np.sin(LAT0) * TEMP + np.cos(LAT0) * RELPOS[2]
 		ENU = npa([E, N, U])
 		return ENU
+
+	@staticmethod
+	def SPEED_AND_FPA_TO_CARTESIAN(SPEED, AZ, EL): # Meters per second, radians, radians.
+		RET = npa(
+			[
+				np.cos(EL) * np.cos(AZ),
+				np.cos(EL) * np.sin(AZ),
+				-1.0 * np.sin(EL)
+			]
+		) * SPEED # METERS / SECOND
+		return RET
+
+	@staticmethod
+	def ECI_TO_ECEF_TM(TIME): # Seconds from launch.
+		GW_CLONG = 0.0 # Greenwich celestial longitude at start of flight. Radians.
+		WEII3 = 7.292115e-5 # Rotation speed of earth. Radians per second.
+		TEI = np.eye(3) # TM
+		XI = WEII3 * TIME + GW_CLONG
+		SXI = np.sin(XI)
+		CXI = np.cos(XI)
+		TEI[0, 0] = CXI
+		TEI[0, 1] = SXI
+		TEI[1, 0] = -1.0 * SXI
+		TEI[1, 1] = CXI
+		return TEI
 
 	# Only called once. Then in reverse order for the rest of the sim.
 	@staticmethod
@@ -167,34 +204,56 @@ class threeDofSim:
 		return ECEF
 
 	@staticmethod
-	def ROTATION_TO_EARTH(time): # Seconds from launch.
+	def ECI_TO_LLA(LLA, ECIPOS, TIME): # Inertial Pos - Meters, Time - Seconds from launch.
+		LLAREF = copy.deepcopy(LLA)
 		GW_CLONG = 0.0 # Greenwich celestial longitude at start of flight. Radians.
 		WEII3 = 7.292115e-5 # Rotation speed of earth. Radians per second.
-		TEI = np.eye(3) # TM
-		XI = WEII3 * time + GW_CLONG
-		SXI = np.sin(XI)
-		CXI = np.cos(XI)
-		TEI[0, 0] = CXI
-		TEI[0, 1] = SXI
-		TEI[1, 0] = -1.0 * SXI
-		TEI[1, 1] = CXI
-		return TEI
-
-	@staticmethod
-	def SPEED_AND_FPA_TO_CARTESIAN(SPEED, AZ, EL): # Meters per second, radians, radians.
-		RET = npa(
-			[
-				np.cos(EL) * np.cos(AZ),
-				np.cos(EL) * np.sin(AZ),
-				-1.0 * np.sin(EL)
-			]
-		) * SPEED # METERS / SECOND
-		return RET
+		SMAJOR_AXIS = 6378137.0 # Meters.
+		FLATTENING = 0.00333528106000000003
+		COUNT = 0
+		LAT0 = 0.0
+		ALAMDA = 0.0
+		DBI = la.norm(ECIPOS)
+		LATG = np.arcsin(ECIPOS[2] / DBI)
+		GO = True
+		while GO:
+			LAT0 = LLAREF[0]
+			R0 = SMAJOR_AXIS * \
+				(
+					1.0 - \
+					(FLATTENING * (1.0 - np.cos(2.0 * LAT0)) / 2.0) + \
+					(5.0 * (FLATTENING ** 2) * (1.0 - np.cos(4 * LAT0)) / 16.0)
+				)
+			LLAREF[2] = DBI - R0
+			DD = FLATTENING * np.sin(2 * LAT0) * (1.0 - FLATTENING / 2.0 - LLAREF[2] / R0)
+			LLAREF[0] = LATG + DD
+			COUNT += 1
+			if COUNT > 100:
+				print("GEODETIC LATITUDE DOES NOT CONVERGE")
+				return
+			if np.abs(LLAREF[0] - LAT0) < SMALL:
+				break
+		SBII1 = ECIPOS[0]
+		SBII2 = ECIPOS[1]
+		DUM4 = np.arcsin(SBII2 / np.sqrt(SBII1 ** 2 + SBII2 ** 2))
+		if SBII1 >= 0.0 and SBII2 >= 0.0:
+			ALAMDA = DUM4
+		if SBII1 < 0.0 and SBII2 >= 0.0:
+			ALAMDA = (180.0 * DEG_TO_RAD) - DUM4
+		if SBII1 < 0.0 and SBII2 < 0.0:
+			ALAMDA = (180.0 * DEG_TO_RAD) - DUM4
+		if SBII1 > 0.0 and SBII2 < 0.0:
+			ALAMDA = (360.0 * DEG_TO_RAD) + DUM4
+		LLAREF[1] = ALAMDA - WEII3 * TIME - GW_CLONG
+		if LLAREF[1] > (180.0 * DEG_TO_RAD):
+			TEMP = -1.0 * (360.0 * DEG_TO_RAD) - LLAREF[1]
+			LLAREF[1] = TEMP
+		return LLAREF
 
 	def guidance(self):
 
 		# PROPORTIONAL NAVIGATION
-		self.FLU_REL_POS = self.ENUtoFLU @ (self.WAYPOINT - self.ENUPOS) # METERS
+		self.FLU_REL_POS = self.ENU_TO_FLU @ (self.WAYPOINT - self.ENUPOS) # METERS
 		FLU_REL_POS_U = unitvector(self.FLU_REL_POS) # ND
 		CLOSING_VEL = -1 * self.VEL_B # METERS PER SECOND
 		CLOSING_SPEED = la.norm(CLOSING_VEL) # METERS PER SECOND
@@ -213,7 +272,7 @@ class threeDofSim:
 
 	def derivative(self):
 		self.SPECIFIC_FORCE = npa([0.0, self.SIDE_COMM, self.NORM_COMM]) # METERS PER SECOND^2
-		self.ENUACC = self.SPECIFIC_FORCE @ self.ENUtoFLU # METERS PER SECOND^2
+		self.ENUACC = self.SPECIFIC_FORCE @ self.ENU_TO_FLU # METERS PER SECOND^2
 
 	def integrate(self):
 		DELTA_POS = self.ENUVEL * self.DT # METERS
@@ -225,7 +284,7 @@ class threeDofSim:
 	def attitude(self):
 
 		ENU_AZ, ENU_EL = returnAzAndElevation(self.ENUVEL) # RADIANS
-		self.ENUtoFLU = FLIGHTPATH_TO_LOCAL_TM(ENU_AZ, -ENU_EL) # ND
+		self.ENU_TO_FLU = FLIGHTPATH_TO_LOCAL_TM(ENU_AZ, -ENU_EL) # ND
 
 		# ROTATING EARTH HERE.
 

@@ -1260,7 +1260,7 @@ double cad_distance(const double &lon1,const double &lat1,const double &lon2,con
 //
 //030414 Created from FORTRAN by Peter H Zipfel
 ///////////////////////////////////////////////////////////////////////////////
-void cad_geo84_in(double &lon,double &lat,double &alt, Matrix SBII,const double &time)			  
+void cad_geo84_in(double &lon,double &lat,double &alt, Matrix SBII,const double &time)
 {
           int count(0);
           double lat0(0);
@@ -1274,7 +1274,7 @@ void cad_geo84_in(double &lon,double &lat,double &alt, Matrix SBII,const double 
           //iterating to calculate geodetic latitude and altitude
           do{
                     lat0=lat;
-                    double r0=SMAJOR_AXIS*(1.-FLATTENING*(1.-cos(2.*lat0))/2.+5.*pow(FLATTENING,2)*(1.-cos(4.*lat0))/16.); //eq 4-21
+                    double r0 = SMAJOR_AXIS * (1. - FLATTENING * (1. - cos(2. * lat0)) / 2. + 5. * pow(FLATTENING, 2) * (1. - cos(4. * lat0)) / 16.); //eq 4-21
                     alt=dbi-r0;
                     double dd=FLATTENING*sin(2.*lat0)*(1.-FLATTENING/2.-alt/r0); //eq 4-15
                     lat=latg+dd;
