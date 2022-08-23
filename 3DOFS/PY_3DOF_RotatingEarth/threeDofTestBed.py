@@ -15,6 +15,10 @@ from coordinateTransformations import FLIGHTPATH_TO_LOCAL_TM
 from unitVector import unitvector
 from returnAzAndElevation import returnAzAndElevation
 
+# CONSTANTS.
+WEII3 = 7.292115e-5 # Rotation speed of earth. Radians per second.
+REARTH = 6370987.308
+
 class endChecks(Enum):
 	intercept = 1
 	flying = 0
@@ -26,7 +30,7 @@ class endChecks(Enum):
 
 class threeDofSim:
 
-	def __init__(self, mslVel, LLA0):
+	def __init__(self, INPUT_ENU_VEL, LLA0):
 
 		########################################################################################################################
 		#
@@ -55,7 +59,7 @@ class threeDofSim:
 		########################################################################################################################
 
 		# SIM CONTROL.
-		self.wallClockStart = time.time()
+		self.WALL_CLOCK_START = time.time()
 		self.GO = True
 		self.DT = 0.01 # SECONDS
 		self.MAX_T = 40 # SECONDS
@@ -63,11 +67,11 @@ class threeDofSim:
 		# WAYPOINT.
 		self.WAYPOINT = npa([3000.0, 0.0, 3000.0]) # METERS
 
-		# STATE.
+		# ORIGINAL STATE.
 		self.TOF = 0.0 # SECONDS
 		self.LETHALITY = endChecks.flying # ND
 		self.POS = np.zeros(3) # METERS
-		self.VEL = mslVel # METERS PER SECOND
+		self.VEL = INPUT_ENU_VEL # METERS PER SECOND
 
 		# ATTITUDE.
 		AZ, EL = returnAzAndElevation(self.VEL) # RADIANS
@@ -79,24 +83,39 @@ class threeDofSim:
 		self.NORM_COMM = 0.0 # METERS PER SECOND^2
 		self.SIDE_COMM = 0.0 # METERS PER SECOND^2
 
-		# DERIVATIVES.
+		# ORIGINAL DERIVATIVE.
 		self.ACC = np.zeros(3) # METERS PER SECOND^2
 		self.SPECIFIC_FORCE = np.zeros(3) # METERS PER SECOND^2
 
+		# STATE FOR ROTATING EARTH.
+		self.ECIPOS = np.zeros(3)
+		self.ECIVEL = np.zeros(3)
+
 		# ROTATING EARTH.
-		self.REARTH = 6370987.308
-		self.RADIUS = -1.0 * (LLA0[2] + self.REARTH)
+		self.RADIUS = -1.0 * (LLA0[2] + REARTH)
+
+		# LLA.
 		self.GEODETIC = LLA0
 
-		self.ECEF = np.zeros(3)
-		self.ECEF[2] = self.RADIUS
+		# ECEF.
 		self.LLA_TO_ECEF = self.LAT_LON_TO_ECEF_TM(np.radians(LLA0[1]), np.radians(LLA0[0]))
-		self.ECEF0 = self.LLA_TO_ECEF.transpose() @ self.ECEF
-		self.ECEF = self.ECEF0
+		self.ECEFPOS = self.LLA_TO_ECEF.transpose() @ npa([0.0, 0.0, self.RADIUS])
+		ECEFAZ, ECEFEL = returnAzAndElevation(self.ECEFPOS)
+		self.ECEFtoFLU = FLIGHTPATH_TO_LOCAL_TM(ECEFAZ, -ECEFEL)
+		self.ECEFVEL = self.SPEED_AND_FPA_TO_CARTESIAN(la.norm(INPUT_ENU_VEL), ECEFAZ, -ECEFEL)
 
-		self.ENU0 = self.ECEF - self.ECEF0
+		# ENU.
+		# self.ENU0 = self.ECEFPOS - self.ECEFPOS0
+
+		# ECI.
 		self.ROTATION_TO_ECEF = self.ROTATION_TO_EARTH(self.TOF)
-		self.ECI0 = self.ROTATION_TO_ECEF.transpose() @ self.ECEF0 # STATE
+		self.ECIPOS = self.ROTATION_TO_ECEF.transpose() @ self.ECEFPOS # STATE
+		TEMP1 = self.ROTATION_TO_ECEF.transpose() @ self.ECEFVEL
+		TEMP2 = npa([0.0, 0.0, WEII3])
+		LOCALVEL = np.cross(TEMP2, self.ECIPOS)
+		self.ECIVEL = TEMP1 + LOCALVEL
+
+		pause = 0
 
 	@staticmethod
 	def LAT_LON_TO_ECEF_TM(longitude, latitude): # Radians, Radians.
@@ -117,7 +136,7 @@ class threeDofSim:
 		return TGE
 
 	@staticmethod
-	def ROTATION_TO_EARTH(time):
+	def ROTATION_TO_EARTH(time): # Seconds from launch.
 		GW_CLONG = 0.0 # Greenwich celestial longitude at start of flight. Radians.
 		WEII3 = 7.292115e-5 # Rotation speed of earth. Radians per second.
 		TEI = np.eye(3) # TM
@@ -129,6 +148,17 @@ class threeDofSim:
 		TEI[1, 0] = -1.0 * sin_xi
 		TEI[1, 1] = cos_xi
 		return TEI
+
+	@staticmethod
+	def SPEED_AND_FPA_TO_CARTESIAN(SPEED, AZ, EL): # Meters per second, radians, radians.
+		RET = npa(
+			[
+				np.cos(EL) * np.cos(AZ),
+				np.cos(EL) * np.sin(AZ),
+				-1.0 * np.sin(EL)
+			]
+		) * SPEED # METERS / SECOND
+		return RET
 
 	def guidance(self):
 		# PROPORTIONAL NAVIGATION
@@ -205,14 +235,14 @@ class threeDofSim:
 		wallClockEnd = time.time()
 		print(f"TIME {self.TOF:.3f} : EAST {self.POS[0]:.2f}, NORTH {self.POS[1]:.2f}, UP {self.POS[2]:.2f}, BODY ACC {self.SPECIFIC_FORCE}")
 		print(f"SIMULATION RESULT : {self.LETHALITY.name}, MISS DISTANCE : {self.missDistance:.4f} {self.FLU_REL_POS} METERS")
-		print(f"SIMULATION RUN TIME : {wallClockEnd - self.wallClockStart} SECONDS")
+		print(f"SIMULATION RUN TIME : {wallClockEnd - self.WALL_CLOCK_START} SECONDS")
 
 
 
 if __name__ == "__main__":
 	np.set_printoptions(suppress=True, precision=4)
 	x = threeDofSim(
-		mslVel=npa([150.0, 50.0, 300.0]),
+		INPUT_ENU_VEL=npa([150.0, 50.0, 300.0]),
 		LLA0=npa([38.8719, 77.0563, 0.0])
 	)
 	x.main()
