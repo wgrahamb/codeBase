@@ -55,7 +55,7 @@ if __name__ == "__main__":
 	YAW_FIN_COMMAND = None
 	PITCHCOMMAND1 = -1 # Degrees.
 	YAWCOMMAND1 = 0 # Degrees.
-	PITCHCOMMAND2 = 0 # Degrees.
+	PITCHCOMMAND2 = 2 # Degrees.
 	YAWCOMMAND2 = 2 # Degrees.
 	PITCHCOMMAND3 = 0 # Degrees.
 	YAWCOMMAND3 = -4 # Degrees.

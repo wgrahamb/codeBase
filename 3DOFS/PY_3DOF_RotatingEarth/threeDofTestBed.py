@@ -54,51 +54,49 @@ class threeDofSim:
 		#
 		########################################################################################################################
 
-		# SIM CONTROL
+		# SIM CONTROL.
 		self.wallClockStart = time.time()
-		self.go = True
-		self.timeStep = 0.01 # SECONDS
-		self.maxTime = 40 # SECONDS
+		self.GO = True
+		self.DT = 0.01 # SECONDS
+		self.MAX_T = 40 # SECONDS
 		
-		# PREDICTED INTERCEPT POINT
-		self.pip = npa([3000.0, 0.0, 3000.0]) # METERS
-
-		# MISSILE
+		# WAYPOINT.
+		self.WAYPOINT = npa([3000.0, 0.0, 3000.0]) # METERS
 
 		# STATE.
-		self.mslTof = 0.0 # SECONDS
-		self.lethality = endChecks.flying # ND
-		self.mslPos = np.zeros(3) # METERS
-		self.mslVel = mslVel # METERS PER SECOND
+		self.TOF = 0.0 # SECONDS
+		self.LETHALITY = endChecks.flying # ND
+		self.POS = np.zeros(3) # METERS
+		self.VEL = mslVel # METERS PER SECOND
 
 		# ATTITUDE.
-		mslAz, mslEl = returnAzAndElevation(self.mslVel) # RADIANS
-		self.mslLocalOrient = FLIGHTPATH_TO_LOCAL_TM(mslAz, -mslEl) # ND
-		self.mslBodyVel = self.mslLocalOrient @ self.mslVel # METERS PER SECOND
+		AZ, EL = returnAzAndElevation(self.VEL) # RADIANS
+		self.ENUtoFLU = FLIGHTPATH_TO_LOCAL_TM(AZ, -EL) # ND
+		self.VEL_B = self.ENUtoFLU @ self.VEL # METERS PER SECOND
 
 		# GUIDANCE.
-		self.forwardLeftUpMslToInterceptRelPos = self.mslLocalOrient @ (self.pip - self.mslPos)
-		self.normCommand = 0.0 # METERS PER SECOND^2
-		self.sideCommand = 0.0 # METERS PER SECOND^2
+		self.FLU_REL_POS = self.ENUtoFLU @ (self.WAYPOINT - self.POS)
+		self.NORM_COMM = 0.0 # METERS PER SECOND^2
+		self.SIDE_COMM = 0.0 # METERS PER SECOND^2
 
 		# DERIVATIVES.
-		self.mslAcc = np.zeros(3) # METERS PER SECOND^2
-		self.mslBodyAcc = np.zeros(3) # METERS PER SECOND^2
+		self.ACC = np.zeros(3) # METERS PER SECOND^2
+		self.SPECIFIC_FORCE = np.zeros(3) # METERS PER SECOND^2
 
 		# ROTATING EARTH.
-		REARTH = 6370987.308
-		RADIUS = self.mslPos[1] + REARTH
-		ECEF = np.zeros(3)
-		ECEF[2] = RADIUS
-		LLA_TO_ECEF = self.LAT_LON_TO_ECEF_TM(
-			np.radians(LLA0[1]),
-			np.radians(LLA0[0])
-		)
-		ECEF_TO_LLA = LLA_TO_ECEF.transpose()
-		ECEF0 = ECEF_TO_LLA @ ECEF
+		self.REARTH = 6370987.308
+		self.RADIUS = -1.0 * (LLA0[2] + self.REARTH)
+		self.GEODETIC = LLA0
 
-		print(pymap3d.geodetic2ecef(LLA0[0], LLA0[1], LLA0[2]))
-		print(ECEF0)
+		self.ECEF = np.zeros(3)
+		self.ECEF[2] = self.RADIUS
+		self.LLA_TO_ECEF = self.LAT_LON_TO_ECEF_TM(np.radians(LLA0[1]), np.radians(LLA0[0]))
+		self.ECEF0 = self.LLA_TO_ECEF.transpose() @ self.ECEF
+		self.ECEF = self.ECEF0
+
+		self.ENU0 = self.ECEF - self.ECEF0
+		self.ROTATION_TO_ECEF = self.ROTATION_TO_EARTH(self.TOF)
+		self.ECI0 = self.ROTATION_TO_ECEF.transpose() @ self.ECEF0 # STATE
 
 	@staticmethod
 	def LAT_LON_TO_ECEF_TM(longitude, latitude): # Radians, Radians.
@@ -118,84 +116,95 @@ class threeDofSim:
 		TGE[2, 2] = -1.0 * SLAT
 		return TGE
 
-	def timeOfFlight(self):
-		self.mslTof += self.timeStep
+	@staticmethod
+	def ROTATION_TO_EARTH(time):
+		GW_CLONG = 0.0 # Greenwich celestial longitude at start of flight. Radians.
+		WEII3 = 7.292115e-5 # Rotation speed of earth. Radians per second.
+		TEI = np.eye(3) # TM
+		xi = WEII3 * time + GW_CLONG
+		sin_xi = np.sin(xi)
+		cos_xi = np.cos(xi)
+		TEI[0, 0] = cos_xi
+		TEI[0, 1] = sin_xi
+		TEI[1, 0] = -1.0 * sin_xi
+		TEI[1, 1] = cos_xi
+		return TEI
 
 	def guidance(self):
 		# PROPORTIONAL NAVIGATION
-		self.forwardLeftUpMslToInterceptRelPos = self.mslLocalOrient @ (self.pip - self.mslPos)
-		forwardLeftUpMslToInterceptRelPosU = unitvector(self.forwardLeftUpMslToInterceptRelPos) # ND
-		closingVel = -1 * self.mslBodyVel # METERS PER SECOND
+		self.FLU_REL_POS = self.ENUtoFLU @ (self.WAYPOINT - self.POS) # METERS
+		forwardLeftUpMslToInterceptRelPosU = unitvector(self.FLU_REL_POS) # ND
+		closingVel = -1 * self.VEL_B # METERS PER SECOND
 		closingVelMag = la.norm(closingVel) # METERS PER SECOND
-		TEMP1 = np.cross(self.forwardLeftUpMslToInterceptRelPos, closingVel)
-		TEMP2 = np.dot( self.forwardLeftUpMslToInterceptRelPos, self.forwardLeftUpMslToInterceptRelPos)
+		TEMP1 = np.cross(self.FLU_REL_POS, closingVel)
+		TEMP2 = np.dot( self.FLU_REL_POS, self.FLU_REL_POS)
 		lineOfSightRate = TEMP1 / TEMP2 # RADIANS PER SECOND
 		command = np.cross(-1 * 4 * closingVelMag * forwardLeftUpMslToInterceptRelPosU, lineOfSightRate) # METERS PER SECOND^2
-		self.normCommand = command[2] # METERS PER SECOND^2
-		self.sideCommand = command[1] # METERS PER SECOND^2
-		accMag = la.norm(npa([self.sideCommand, self.normCommand])) # METER PER SECOND^2
-		trigonometricRatio = np.arctan2(self.normCommand, self.sideCommand) # ND
+		self.NORM_COMM = command[2] # METERS PER SECOND^2
+		self.SIDE_COMM = command[1] # METERS PER SECOND^2
+		accMag = la.norm(npa([self.SIDE_COMM, self.NORM_COMM])) # METER PER SECOND^2
+		trigonometricRatio = np.arctan2(self.NORM_COMM, self.SIDE_COMM) # ND
 		if accMag > 50:
 			accMag = 50# METERS PER SECOND^2
-		self.sideCommand = accMag * np.cos(trigonometricRatio) # METERS PER SECOND^2
-		self.normCommand = accMag * np.sin(trigonometricRatio) # METERS PER SECOND^2
+		self.SIDE_COMM = accMag * np.cos(trigonometricRatio) # METERS PER SECOND^2
+		self.NORM_COMM = accMag * np.sin(trigonometricRatio) # METERS PER SECOND^2
 
 	def derivative(self):
-		self.mslBodyAcc = npa([0.0, self.sideCommand, self.normCommand]) # METERS PER SECOND^2
-		self.mslAcc = self.mslBodyAcc @ self.mslLocalOrient # METERS PER SECOND^2
+		self.SPECIFIC_FORCE = npa([0.0, self.SIDE_COMM, self.NORM_COMM]) # METERS PER SECOND^2
+		self.ACC = self.SPECIFIC_FORCE @ self.ENUtoFLU # METERS PER SECOND^2
 
 	def integrate(self):
-		deltaPos = self.mslVel * self.timeStep # METERS
-		self.mslPos += deltaPos # METERS
-		deltaVel = self.mslAcc * self.timeStep # METERS PER SECOND
-		self.mslVel += deltaVel # METERS PER SECOND
+		deltaPos = self.VEL * self.DT # METERS
+		self.POS += deltaPos # METERS
+		deltaVel = self.ACC * self.DT # METERS PER SECOND
+		self.VEL += deltaVel # METERS PER SECOND
+		self.TOF += self.DT
 
-	def orient(self):
+	def attitude(self):
 
-		mslAz, mslEl = returnAzAndElevation(self.mslVel) # RADIANS
-		self.mslLocalOrient = FLIGHTPATH_TO_LOCAL_TM(mslAz, -mslEl) # ND
+		mslAz, mslEl = returnAzAndElevation(self.VEL) # RADIANS
+		self.ENUtoFLU = FLIGHTPATH_TO_LOCAL_TM(mslAz, -mslEl) # ND
 
 		# ROTATING EARTH HERE.
 
 	def intercept(self):
-		self.missDistance = la.norm(self.forwardLeftUpMslToInterceptRelPos)
+		self.missDistance = la.norm(self.FLU_REL_POS)
 
 	def endCheck(self):
-		if self.mslPos[2] < 0.0:
-			self.lethality = endChecks.groundCollision
-			self.go = False
+		if self.POS[2] < 0.0:
+			self.LETHALITY = endChecks.groundCollision
+			self.GO = False
 		elif self.missDistance < 5.0:
-			self.lethality = endChecks.intercept
-			self.go = False
-		elif self.forwardLeftUpMslToInterceptRelPos[0] < 0.0:
-			self.lethality = endChecks.pointOfClosestApproachPassed
-			self.go = False
-		elif np.isnan(np.sum(self.mslPos)):
-			self.lethality = endChecks.notANumber
-			self.go = False
-		elif self.mslTof > self.maxTime:
-			self.lethality = endChecks.maxTimeExceeded
-			self.go = False
-		elif self.lethality == endChecks.forcedSimTermination:
-			self.go = False
+			self.LETHALITY = endChecks.intercept
+			self.GO = False
+		elif self.FLU_REL_POS[0] < 0.0:
+			self.LETHALITY = endChecks.pointOfClosestApproachPassed
+			self.GO = False
+		elif np.isnan(np.sum(self.POS)):
+			self.LETHALITY = endChecks.notANumber
+			self.GO = False
+		elif self.TOF > self.MAX_T:
+			self.LETHALITY = endChecks.maxTimeExceeded
+			self.GO = False
+		elif self.LETHALITY == endChecks.forcedSimTermination:
+			self.GO = False
 
 	def fly(self):
-		self.timeOfFlight()
 		self.guidance()
 		self.derivative()
 		self.integrate()
-		self.orient()
+		self.attitude()
 		self.intercept()
 		self.endCheck()
 
 	def main(self):
-		while self.go:
+		while self.GO:
 			self.fly()
-			if round(self.mslTof, 3).is_integer():
-				print(f"TIME {self.mslTof:.3f} : EAST {self.mslPos[0]:.2f}, NORTH {self.mslPos[1]:.2f}, UP {self.mslPos[2]:.2f}, BODY ACC {self.mslBodyAcc}")
+			if round(self.TOF, 3).is_integer():
+				print(f"TIME {self.TOF:.3f} : EAST {self.POS[0]:.2f}, NORTH {self.POS[1]:.2f}, UP {self.POS[2]:.2f}, BODY ACC {self.SPECIFIC_FORCE}")
 		wallClockEnd = time.time()
-		print(f"TIME {self.mslTof:.3f} : EAST {self.mslPos[0]:.2f}, NORTH {self.mslPos[1]:.2f}, UP {self.mslPos[2]:.2f}, BODY ACC {self.mslBodyAcc}")
-		print(f"SIMULATION RESULT : {self.lethality.name}, MISS DISTANCE : {self.missDistance:.4f} {self.forwardLeftUpMslToInterceptRelPos} METERS")
+		print(f"TIME {self.TOF:.3f} : EAST {self.POS[0]:.2f}, NORTH {self.POS[1]:.2f}, UP {self.POS[2]:.2f}, BODY ACC {self.SPECIFIC_FORCE}")
+		print(f"SIMULATION RESULT : {self.LETHALITY.name}, MISS DISTANCE : {self.missDistance:.4f} {self.FLU_REL_POS} METERS")
 		print(f"SIMULATION RUN TIME : {wallClockEnd - self.wallClockStart} SECONDS")
 
 
