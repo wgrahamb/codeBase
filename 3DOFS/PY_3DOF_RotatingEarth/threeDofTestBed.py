@@ -80,7 +80,7 @@ class threeDofSim:
 		self.DT = 0.01 # SECONDS
 		self.MAX_T = 40 # SECONDS
 
-		# WAYPOINT.
+		# WAYPOINT IN ENU.
 		self.WAYPOINT = npa([3000.0, 0.0, 3000.0]) # METERS
 
 		# ROTATING EARTH #####################################################
@@ -325,16 +325,16 @@ class threeDofSim:
 		while self.GO:
 			self.fly()
 			if round(self.TOF, 3).is_integer():
-				print(f"TIME {self.TOF:.3f} : EAST {self.ENUPOS[0]:.2f}, NORTH {self.ENUPOS[1]:.2f}, UP {self.ENUPOS[2]:.2f}, BODY ACC {self.SPECIFIC_FORCE}")
+				print(f"TOF {self.TOF:.3f}, ENU {self.ENUPOS}, SPECIFIC FORCE {self.SPECIFIC_FORCE}")
 		wallClockEnd = time.time()
-		print(f"TIME {self.TOF:.3f} : EAST {self.ENUPOS[0]:.2f}, NORTH {self.ENUPOS[1]:.2f}, UP {self.ENUPOS[2]:.2f}, BODY ACC {self.SPECIFIC_FORCE}")
+		print(f"TOF {self.TOF:.3f}, ENU {self.ENUPOS}, SPECIFIC FORCE {self.SPECIFIC_FORCE}")
 		print(f"SIMULATION RESULT : {self.LETHALITY.name}, MISS DISTANCE : {self.MISS_DIST:.4f} {self.FLU_REL_POS} METERS")
 		print(f"SIMULATION RUN TIME : {wallClockEnd - self.WALL_CLOCK_START} SECONDS")
 
 
 
 if __name__ == "__main__":
-	np.set_printoptions(suppress=True, precision=4)
+	np.set_printoptions(suppress=True, precision=2)
 	x = threeDofSim(
 		INPUT_ENU_VEL=npa([150.0, 50.0, 300.0]),
 		LLA0=npa([38.8719, 77.0563, 0.0])
