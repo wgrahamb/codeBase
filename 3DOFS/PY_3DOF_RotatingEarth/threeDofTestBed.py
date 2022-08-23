@@ -24,35 +24,9 @@ class endChecks(Enum):
 	maxTimeExceeded = -4
 	forcedSimTermination = -5
 
-class ROTATING_ELLIPTICAL_EARTH:
-
-	def __init__(self, LLA0):
-
-		self.ORIGIN = LLA0
-		self.GEODETIC = LLA0
-		self.ECEF = pymap3d.geodetic2ecef(
-			self.GEODETIC[0],
-			self.GEODETIC[1],
-			self.GEODETIC[2]
-		)
-		self.ENU = pymap3d.ecef2enu(
-			self.ECEF[0],
-			self.ECEF[1],
-			self.ECEF[2],
-			self.GEODETIC[0],
-			self.GEODETIC[1],
-			self.GEODETIC[2]
-		)
-
-		self.ECI = self.ECEF
-		self.TIME = 0.0
-
-	def update(self):
-		pass
-
 class threeDofSim:
 
-	def __init__(self):
+	def __init__(self, mslVel, LLA0):
 
 		########################################################################################################################
 		#
@@ -90,18 +64,59 @@ class threeDofSim:
 		self.pip = npa([3000.0, 0.0, 3000.0]) # METERS
 
 		# MISSILE
+
+		# STATE.
 		self.mslTof = 0.0 # SECONDS
 		self.lethality = endChecks.flying # ND
 		self.mslPos = np.zeros(3) # METERS
-		self.mslVel = npa([200.0, 0.0, 100.0]) # METERS PER SECOND
+		self.mslVel = mslVel # METERS PER SECOND
+
+		# ATTITUDE.
 		mslAz, mslEl = returnAzAndElevation(self.mslVel) # RADIANS
 		self.mslLocalOrient = FLIGHTPATH_TO_LOCAL_TM(mslAz, -mslEl) # ND
 		self.mslBodyVel = self.mslLocalOrient @ self.mslVel # METERS PER SECOND
+
+		# GUIDANCE.
 		self.forwardLeftUpMslToInterceptRelPos = self.mslLocalOrient @ (self.pip - self.mslPos)
 		self.normCommand = 0.0 # METERS PER SECOND^2
 		self.sideCommand = 0.0 # METERS PER SECOND^2
+
+		# DERIVATIVES.
 		self.mslAcc = np.zeros(3) # METERS PER SECOND^2
 		self.mslBodyAcc = np.zeros(3) # METERS PER SECOND^2
+
+		# ROTATING EARTH.
+		REARTH = 6370987.308
+		RADIUS = self.mslPos[1] + REARTH
+		ECEF = np.zeros(3)
+		ECEF[2] = RADIUS
+		LLA_TO_ECEF = self.LAT_LON_TO_ECEF_TM(
+			np.radians(LLA0[1]),
+			np.radians(LLA0[0])
+		)
+		ECEF_TO_LLA = LLA_TO_ECEF.transpose()
+		ECEF0 = ECEF_TO_LLA @ ECEF
+
+		print(pymap3d.geodetic2ecef(LLA0[0], LLA0[1], LLA0[2]))
+		print(ECEF0)
+
+	@staticmethod
+	def LAT_LON_TO_ECEF_TM(longitude, latitude): # Radians, Radians.
+		TGE = np.zeros((3, 3))
+		CLON = np.cos(longitude)
+		SLON = np.sin(longitude)
+		CLAT = np.cos(latitude)
+		SLAT = np.sin(latitude)
+		TGE[0, 0] = -1.0 * SLAT * CLON
+		TGE[0, 1] = -1.0 * SLAT * SLON
+		TGE[0, 2] = CLAT
+		TGE[1, 0] = -1.0 * SLON
+		TGE[1, 1] = CLON
+		TGE[1, 2] = 0.0
+		TGE[2, 0] = -1.0 * CLAT * CLON
+		TGE[2, 1] = -1.0 * CLAT * SLON
+		TGE[2, 2] = -1.0 * SLAT
+		return TGE
 
 	def timeOfFlight(self):
 		self.mslTof += self.timeStep
@@ -125,17 +140,22 @@ class threeDofSim:
 		self.sideCommand = accMag * np.cos(trigonometricRatio) # METERS PER SECOND^2
 		self.normCommand = accMag * np.sin(trigonometricRatio) # METERS PER SECOND^2
 
-	def integrate(self):
+	def derivative(self):
 		self.mslBodyAcc = npa([0.0, self.sideCommand, self.normCommand]) # METERS PER SECOND^2
 		self.mslAcc = self.mslBodyAcc @ self.mslLocalOrient # METERS PER SECOND^2
-		deltaVel = self.mslAcc * self.timeStep # METERS PER SECOND
-		self.mslVel += deltaVel # METERS PER SECOND
+
+	def integrate(self):
 		deltaPos = self.mslVel * self.timeStep # METERS
 		self.mslPos += deltaPos # METERS
+		deltaVel = self.mslAcc * self.timeStep # METERS PER SECOND
+		self.mslVel += deltaVel # METERS PER SECOND
 
 	def orient(self):
+
 		mslAz, mslEl = returnAzAndElevation(self.mslVel) # RADIANS
 		self.mslLocalOrient = FLIGHTPATH_TO_LOCAL_TM(mslAz, -mslEl) # ND
+
+		# ROTATING EARTH HERE.
 
 	def intercept(self):
 		self.missDistance = la.norm(self.forwardLeftUpMslToInterceptRelPos)
@@ -162,6 +182,7 @@ class threeDofSim:
 	def fly(self):
 		self.timeOfFlight()
 		self.guidance()
+		self.derivative()
 		self.integrate()
 		self.orient()
 		self.intercept()
@@ -181,5 +202,8 @@ class threeDofSim:
 
 if __name__ == "__main__":
 	np.set_printoptions(suppress=True, precision=4)
-	x = threeDofSim()
+	x = threeDofSim(
+		mslVel=npa([150.0, 50.0, 300.0]),
+		LLA0=npa([38.8719, 77.0563, 0.0])
+	)
 	x.main()
