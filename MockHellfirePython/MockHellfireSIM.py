@@ -14,6 +14,7 @@ import MockHellfireDYNAMICS5DOF as DYN
 """
 
 TO DO:
+CORIOLOS AND CENTRIFUGAL FORCE.
 REAL MOTOR MODEL.
 GUIDANCE AND CONTROL.
 INS. FROM ZIPFEL.
@@ -52,10 +53,10 @@ if __name__ == "__main__":
 	PITCH_FIN_COMMAND = None
 	YAW_FIN_COMMAND = None
 	PITCHCOMMAND1 = -3 # Degrees.
-	YAWCOMMAND1 = 0 # Degrees.
+	YAWCOMMAND1 = 1 # Degrees.
 	PITCHCOMMAND2 = -2 # Degrees.
-	YAWCOMMAND2 = 0 # Degrees.
-	PITCHCOMMAND3 = 5 # Degrees.
+	YAWCOMMAND2 = -1 # Degrees.
+	PITCHCOMMAND3 = 0 # Degrees.
 	YAWCOMMAND3 = 0 # Degrees.
 
 	LAST_TIME = 0
