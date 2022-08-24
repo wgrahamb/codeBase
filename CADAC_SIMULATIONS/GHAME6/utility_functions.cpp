@@ -1274,7 +1274,12 @@ void cad_geo84_in(double &lon,double &lat,double &alt, Matrix SBII,const double 
           //iterating to calculate geodetic latitude and altitude
           do{
                     lat0=lat;
-                    double r0 = SMAJOR_AXIS * (1. - FLATTENING * (1. - cos(2. * lat0)) / 2. + 5. * pow(FLATTENING, 2) * (1. - cos(4. * lat0)) / 16.); //eq 4-21
+                    double r0 = SMAJOR_AXIS * 
+                    (
+                        1. -
+                        FLATTENING * (1. - cos(2. * lat0)) / 2. +
+                        5. * pow(FLATTENING, 2) * (1. - cos(4. * lat0)) / 16.
+                    ); //eq 4-21
                     alt=dbi-r0;
                     double dd=FLATTENING*sin(2.*lat0)*(1.-FLATTENING/2.-alt/r0); //eq 4-15
                     lat=latg+dd;
@@ -1497,7 +1502,7 @@ Matrix cad_in_geo84(const double lon,const double lat,const double alt
           Matrix SBID(3,1);
 
           //deflection of the normal, dd, and length of earth's radius to ellipse surface, R0
-    double r0=SMAJOR_AXIS*(1.-FLATTENING*(1.-cos(2.*lat))/2.+5.*pow(FLATTENING,2)*(1.-cos(4.*lat))/16.); //eq 4-21
+          double r0=SMAJOR_AXIS*(1.-FLATTENING*(1.-cos(2.*lat))/2.+5.*pow(FLATTENING,2)*(1.-cos(4.*lat))/16.); //eq 4-21
           double dd=FLATTENING*sin(2.*lat)*(1.-FLATTENING/2.-alt/r0); //eq 4-15
 
           //vehicle's displacement vector from earth's center SBID(3x1) in geodetic coord.
@@ -1507,7 +1512,7 @@ Matrix cad_in_geo84(const double lon,const double lat,const double alt
           SBID.assign_loc(2,0,-dbi*cos(dd));
 
           //celestial longitude of vehicle at simulation 'time' 
-    double lon_cel=GW_CLONG+WEII3*time+lon;
+         double lon_cel=GW_CLONG+WEII3*time+lon;
           
           //vehicle's displacement vector in inertial coord. SBII(3x1)=TID(3x3)xSBID(3x3)
           double slat=sin(lat);
@@ -1517,9 +1522,9 @@ Matrix cad_in_geo84(const double lon,const double lat,const double alt
           double sbid1=SBID.get_loc(0,0);
           double sbid2=SBID.get_loc(1,0);
           double sbid3=SBID.get_loc(2,0);
-    double sbii1=-slat*clon*sbid1-clat*clon*sbid3;
-    double sbii2=-slat*slon*sbid1-clat*slon*sbid3;
-    double sbii3=clat*sbid1-slat*sbid3;
+          double sbii1=-slat*clon*sbid1-clat*clon*sbid3;
+          double sbii2=-slat*slon*sbid1-clat*slon*sbid3;
+          double sbii3=clat*sbid1-slat*sbid3;
           SBII.build_vec3(sbii1,sbii2,sbii3);
 
           return SBII;

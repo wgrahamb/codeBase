@@ -11,6 +11,8 @@ from numpy import linalg as la
 import pandas as pd
 import pymap3d
 
+pymap3d.ecef2enuv()
+
 # GRAHAM'S FUNCTIONS
 from coordinateTransformations import FLIGHTPATH_TO_LOCAL_TM
 from unitVector import unitvector
@@ -27,9 +29,7 @@ DEG_TO_RAD = 0.01745329251994319833
 TO DO:
 
 CHECK ECEF VELOCITY CALCULATION
-ECI TO LLA
-LLA TO ECI
-ECI GRAV
+ECEF GRAV
 CHECK
 IMPLEMENT IN LOOP
 
@@ -94,31 +94,30 @@ class threeDofSim:
 		self.GEODETIC0 = LLA0
 		self.GEODETIC = LLA0
 
-		# ECEF.
-		self.ECEFPOS0 = np.zeros(3)
-		self.ECEFPOS = np.zeros(3)
-		self.ECEFVEL = np.zeros(3)
-		self.ECEF_TO_FLU = np.zeros((3, 3))
-
-		self.ECEFPOS = self.LLA_TO_ECEF(LLA0)
-		self.ECEFPOS0 = self.ECEFPOS
-		ECEF_AZ, ECEF_EL = returnAzAndElevation(self.ECEFPOS)
-		self.ECEF_TO_FLU = FLIGHTPATH_TO_LOCAL_TM(ECEF_AZ, -ECEF_EL)
-		self.ECEFVEL = self.SPEED_AND_FPA_TO_CARTESIAN(la.norm(INPUT_ENU_VEL), ECEF_AZ, -ECEF_EL)
-
 		# ENU.
 		self.ENUPOS0 = np.zeros(3)
 		self.ENUPOS = np.zeros(3)
 		self.ENUVEL = np.zeros(3)
 		self.ENU_TO_FLU = np.zeros((3, 3))
 
-		ECEF_DISPLACEMENT = self.ECEFPOS - self.ECEFPOS0
-		self.ENUPOS = self.ECEF_DISPLACEMENT_TO_ENU(ECEF_DISPLACEMENT, self.GEODETIC0[0], self.GEODETIC0[1])
 		self.ENUPOS0 = self.ENUPOS
 		self.ENUVEL = INPUT_ENU_VEL
 		ENU_AZ, ENU_EL = returnAzAndElevation(INPUT_ENU_VEL) # RADIANS
 		self.ENU_TO_FLU = FLIGHTPATH_TO_LOCAL_TM(ENU_AZ, -ENU_EL) # ND
 		self.VEL_B = self.ENU_TO_FLU @ INPUT_ENU_VEL # METERS PER SECOND
+
+		# ECEF.
+		self.ECEFPOS0 = np.zeros(3)
+		self.ECEFPOS = np.zeros(3)
+		self.ECEFVEL = np.zeros(3)
+		self.ECEF_TO_FLU = np.zeros((3, 3))
+		
+		self.ECEFPOS = self.LLA_TO_ECEF(LLA0)
+		self.ECEFPOS0 = self.ECEFPOS
+		
+		ECEF_AZ, ECEF_EL = returnAzAndElevation(self.ECEFPOS) # WRONG.
+		self.ECEF_TO_FLU = FLIGHTPATH_TO_LOCAL_TM(ECEF_AZ, -ECEF_EL)
+		self.ECEFVEL = self.SPEED_AND_FPA_TO_CARTESIAN(la.norm(INPUT_ENU_VEL), ECEF_AZ, -ECEF_EL)
 
 		# ECI.
 		self.ECIPOS0 = np.zeros(3)
@@ -139,6 +138,13 @@ class threeDofSim:
 		print("BODY VELOCITY FROM ENU VELOCITY :", self.ENU_TO_FLU @ INPUT_ENU_VEL)
 		print("BODY VELOCITY FROM ECEF VELOCITY :", self.ECEF_TO_FLU @ self.ECEFVEL)
 		print("BODY VELOCITY FROM ECI VELOCITY :", self.ECI_TO_FLU @ (self.ECIVEL - ECIVEL_DUE_TO_ROTATION))
+		print(LLA0)
+		x = self.ECI_TO_LLA(self.ECIPOS, self.TOF)
+		print(x)
+		y = self.LLA_TO_ECI(x, self.TOF)
+		print(self.ECIPOS)
+		print(y)
+		print(self.ECI_TO_LLA(y, self.TOF))
 
 		# GUIDANCE.
 		self.FLU_REL_POS = self.ENU_TO_FLU @ (self.WAYPOINT - np.zeros(3)) # METERS
@@ -207,8 +213,8 @@ class threeDofSim:
 		return ECEF
 
 	@staticmethod
-	def ECI_TO_LLA(LLA, ECIPOS, TIME): # Inertial Pos - Meters, Time - Seconds from launch.
-		LLAREF = copy.deepcopy(LLA)
+	def ECI_TO_LLA(ECIPOS, TIME): # Inertial Pos - Meters, Time - Seconds from launch.
+		LLAREF = np.zeros(3)
 		GW_CLONG = 0.0 # Greenwich celestial longitude at start of flight. Radians.
 		WEII3 = 7.292115e-5 # Rotation speed of earth. Radians per second.
 		SMAJOR_AXIS = 6378137.0 # Meters.
@@ -218,6 +224,7 @@ class threeDofSim:
 		ALAMDA = 0.0
 		DBI = la.norm(ECIPOS)
 		LATG = np.arcsin(ECIPOS[2] / DBI)
+		LLAREF[0] = LATG
 		GO = True
 		while GO:
 			LAT0 = LLAREF[0]
@@ -249,9 +256,39 @@ class threeDofSim:
 			ALAMDA = (360.0 * DEG_TO_RAD) + DUM4
 		LLAREF[1] = ALAMDA - WEII3 * TIME - GW_CLONG
 		if LLAREF[1] > (180.0 * DEG_TO_RAD):
-			TEMP = -1.0 * (360.0 * DEG_TO_RAD) - LLAREF[1]
+			TEMP = -1.0 * ((360.0 * DEG_TO_RAD) - LLAREF[1])
 			LLAREF[1] = TEMP
 		return LLAREF
+
+	@staticmethod
+	def LLA_TO_ECI(LLA, TIME):
+		LLAREF = copy.deepcopy(LLA)
+		GW_CLONG = 0.0 # Greenwich celestial longitude at start of flight. Radians.
+		WEII3 = 7.292115e-5 # Rotation speed of earth. Radians per second.
+		SMAJOR_AXIS = 6378137.0 # Meters.
+		FLATTENING = 0.00333528106000000003
+		SBII = np.zeros(3)
+		SBID = np.zeros(3)
+		R0 = SMAJOR_AXIS * \
+			(
+				1.0 - \
+				(FLATTENING * (1.0 - np.cos(2.0 * LLAREF[0])) / 2.0) + \
+				(5.0 * (FLATTENING ** 2) * (1.0 - np.cos(4 * LLAREF[0])) / 16.0)
+			)
+		DD = FLATTENING * np.sin(2 * LLAREF[0]) * (1.0 - FLATTENING / 2.0 - LLAREF[2] / R0)
+		DBI = R0 + LLAREF[2]
+		SBID[0] = -1.0 * DBI * np.sin(DD)
+		SBID[1] = 0.0
+		SBID[2] = -1.0 * DBI * np.cos(DD)
+		LON_CEL = GW_CLONG + WEII3 * TIME + LLAREF[1]
+		SLAT = np.sin(LLAREF[0])
+		CLAT = np.cos(LLAREF[0])
+		SLON = np.sin(LON_CEL)
+		CLON = np.cos(LON_CEL)
+		SBII[0] = -1.0 * SLAT * CLON * SBID[0] - CLAT * CLON * SBID[2]
+		SBII[1] = -1.0 * SLAT * SLON * SBID[0] - CLAT * SLON * SBID[2]
+		SBII[2] = CLAT * SBID[0] - SLAT * SBID[2]
+		return SBII
 
 	def guidance(self):
 
