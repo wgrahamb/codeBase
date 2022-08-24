@@ -96,7 +96,8 @@ class threeDofSim:
 			"W_DOT": None,
 			"TGT_E": None,
 			"TGT_N": None,
-			"TGT_U": None
+			"TGT_U": None,
+			"LETHALITY": None
 		}
 
 		# LLA.
@@ -308,7 +309,8 @@ class threeDofSim:
 			"W_DOT": self.SPECIFIC_FORCE[2],
 			"TGT_E": self.WAYPOINT[0],
 			"TGT_N": self.WAYPOINT[1],
-			"TGT_U": self.WAYPOINT[2]
+			"TGT_U": self.WAYPOINT[2],
+			"LETHALITY": self.LETHALITY.name
 
 		}
 		return STATE
@@ -451,9 +453,9 @@ class threeDofSim:
 			self.ENUDerivative()
 			self.ENUIntegrate()
 			self.ENUAttitude()
+		self.endCheck()
 		self.STATE = self.populateState()
 		lf.writeData(self.STATE, self.LOGFILE)
-		self.endCheck()
 
 	def main(self):
 		while self.GO:
