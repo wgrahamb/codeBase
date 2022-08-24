@@ -4,7 +4,6 @@ import copy
 import numpy as np
 from numpy import array as npa
 from numpy import linalg as la
-import pymap3d
 np.set_printoptions(suppress=True, precision=2)
 
 # Utility.
@@ -138,14 +137,14 @@ def Construct5DOFMissile(
 	return MISSILE
 
 def Fly5DOF(
-	MISSILE_INPUT_DICT,
+	MISSILE_INPUT_STATE_DICT,
 	FLY_FOR_THIS_LONG,
 	PITCH_FIN_DEFL_DEG_INPUT,
 	YAW_FIN_DEFL_DEG_INPUT
 ):
 
 	# CONSTANT INPUT. ###############################################################################
-	MSL = copy.copy(MISSILE_INPUT_DICT)
+	MSL = copy.copy(MISSILE_INPUT_STATE_DICT)
 
 	# PROCESS INPUT. ###############################################################################
 	PITCH_FIN_DEFL_DEG = PITCH_FIN_DEFL_DEG_INPUT # Degrees.

@@ -1,15 +1,11 @@
 # INCLUDED WITH PYTHON
 import time
 from enum import Enum
-import copy
 
 # PIP INSTALLED LIBRARIES
-import matplotlib.pyplot as plt
 import numpy as np
 from numpy import array as npa
 from numpy import linalg as la
-import pandas as pd
-import pymap3d
 
 # GRAHAM'S FUNCTIONS
 from coordinateTransformations import FLIGHTPATH_TO_LOCAL_TM
@@ -75,10 +71,7 @@ class threeDofSim:
 		# ROTATING EARTH #####################################################
 
 		self.ROTATING_EARTH = ROTATING_EARTH_FLAG
-		if self.ROTATING_EARTH:
-			print(ID)
-		else:
-			print(ID)
+		print(ID)
 
 		# STATE.
 		self.TOF = 0.0 # SECONDS
@@ -267,7 +260,6 @@ class threeDofSim:
 
 	@staticmethod
 	def LLA_TO_ECI(LLA, TIME):
-		LLAREF = copy.deepcopy(LLA)
 		GW_CLONG = 0.0 # Greenwich celestial longitude at start of flight. Radians.
 		WEII3 = 7.292115e-5 # Rotation speed of earth. Radians per second.
 		SMAJOR_AXIS = 6378137.0 # Meters.
@@ -277,17 +269,17 @@ class threeDofSim:
 		R0 = SMAJOR_AXIS * \
 			(
 				1.0 - \
-				(FLATTENING * (1.0 - np.cos(2.0 * LLAREF[0])) / 2.0) + \
-				(5.0 * (FLATTENING ** 2) * (1.0 - np.cos(4 * LLAREF[0])) / 16.0)
+				(FLATTENING * (1.0 - np.cos(2.0 * LLA[0])) / 2.0) + \
+				(5.0 * (FLATTENING ** 2) * (1.0 - np.cos(4 * LLA[0])) / 16.0)
 			)
-		DD = FLATTENING * np.sin(2 * LLAREF[0]) * (1.0 - FLATTENING / 2.0 - LLAREF[2] / R0)
-		DBI = R0 + LLAREF[2]
+		DD = FLATTENING * np.sin(2 * LLA[0]) * (1.0 - FLATTENING / 2.0 - LLA[2] / R0)
+		DBI = R0 + LLA[2]
 		SBID[0] = -1.0 * DBI * np.sin(DD)
 		SBID[1] = 0.0
 		SBID[2] = -1.0 * DBI * np.cos(DD)
-		LON_CEL = GW_CLONG + WEII3 * TIME + LLAREF[1]
-		SLAT = np.sin(LLAREF[0])
-		CLAT = np.cos(LLAREF[0])
+		LON_CEL = GW_CLONG + WEII3 * TIME + LLA[1]
+		SLAT = np.sin(LLA[0])
+		CLAT = np.cos(LLA[0])
 		SLON = np.sin(LON_CEL)
 		CLON = np.cos(LON_CEL)
 		SBII[0] = -1.0 * SLAT * CLON * SBID[0] - CLAT * CLON * SBID[2]
@@ -311,7 +303,6 @@ class threeDofSim:
 			"TGT_N": self.WAYPOINT[1],
 			"TGT_U": self.WAYPOINT[2],
 			"LETHALITY": self.LETHALITY.name
-
 		}
 		return STATE
 
