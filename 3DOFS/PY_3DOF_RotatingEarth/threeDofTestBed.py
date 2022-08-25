@@ -45,13 +45,13 @@ class threeDofSim:
 		# ARRAY 1 >>> LOOKING DOWN THE NOZZLE OF THE INTERCEPTOR, THIS POINTS OUT THE LEFT HAND SIDE
 		# ARRAY 2 >>> LOOKING DOWN THE NOZZLE OF THE INTERCEPTOR, THIS POINTS OUT THE TOP SIDE OF THE INTERCEPTOR
 		#                           POSITIVE NORMAL
-		#                                         |
-		#                                         |
-		#                                         |
+		#                                        |
+		#                                        |
+		#                                        |
 		#  POSITIVE SIDE -----------O----------- NEGATIVE SIDE
-		#                                         |
-		#                                         |
-		#                                         |
+		#                                        |
+		#                                        |
+		#                                        |
 		#                          NEGATIVE NORMAL
 		#
 		# NEGATIVE AXIS IS COMING OUT OF THE SCREEN STRAIGHT AT YOU
