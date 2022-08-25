@@ -50,7 +50,7 @@ struct Missile
 	// Missile state.
 	bool ballistic = false;
 	bool launch = true; // Launch command. True for now, will be needed for fire control.
-	double TIME_STEP = 0.001;
+	double TIME_STEP = (1.0 / 600.0);
 	double HALF_TIME_STEP = TIME_STEP * 0.5;
 	double timeOfFlight = 0.0; // Seconds.
 	double missileENUToFLUMatrix[3][3]; // Non dimensional.
@@ -119,19 +119,19 @@ struct Missile
 	double FIN1DEFL = 0.0; // Fin deflection. Radians.
 	double FIN1DEFL_D = 0.0; // Fin deflection derived. Radians.
 	double FIN1DEFL_DOT = 0.0; // Fin rate. Radians per second.
-	double FIN1DEFL_DOTDOT = 0.0; // Fin rate derived. Radians per second^2.
+	double FIN1DEFL_DOT_D = 0.0; // Fin rate derived. Radians per second^2.
 	double FIN2DEFL = 0.0; // Fin deflection. Radians.
 	double FIN2DEFL_D = 0.0; // Fin deflection derived. Radians.
 	double FIN2DEFL_DOT = 0.0; // Fin rate. Radians per second.
-	double FIN2DEFL_DOTDOT = 0.0; // Fin rate derived. Radians per second^2.
+	double FIN2DEFL_DOT_D = 0.0; // Fin rate derived. Radians per second^2.
 	double FIN3DEFL = 0.0; // Fin deflection. Radians.
 	double FIN3DEFL_D = 0.0; // Fin deflection derived. Radians.
 	double FIN3DEFL_DOT = 0.0; // Fin rate. Radians per second.
-	double FIN3DEFL_DOTDOT = 0.0; // Fin rate derived. Radians per second^2.
+	double FIN3DEFL_DOT_D = 0.0; // Fin rate derived. Radians per second^2.
 	double FIN4DEFL = 0.0; // Fin deflection. Radians.
 	double FIN4DEFL_D = 0.0; // Fin deflection derived. Radians.
 	double FIN4DEFL_DOT = 0.0; // Fin rate. Radians per second.
-	double FIN4DEFL_DOTDOT = 0.0; // Fin rate derived. Radians per second^2.
+	double FIN4DEFL_DOT_D = 0.0; // Fin rate derived. Radians per second^2.
 	double pitchFinDeflection = 0.0; // Radians.
 	double yawFinDeflection = 0.0; // Radians.
 	double rollFinDeflection = 0.0; // Radians.

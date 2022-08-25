@@ -79,50 +79,26 @@ def Construct5DOFMissile(
 	THRUST = MASS_AND_MOTOR.THRUST # Newtons.
 
 	# STATE. ###############################################################################
-	INITIAL_AZ = np.radians(INITIAL_AZIMUTH) # RADIANS.
-	INITIAL_EL = np.radians(INITIAL_ELEVATION) # RADIANS.
+	# BODY BEGINS UNPERTURBED
 	TOF = 0.0 # Seconds.
-	FPA_TO_LOCAL = ct.ORIENTATION_TO_LOCAL_TM(0.0, -INITIAL_EL, INITIAL_AZ)
-	ENUVEL = INITIAL_AIRSPEED * (FPA_TO_LOCAL[0])
-	SPECIFIC_FORCE = np.zeros(3) # Meters per second squared..
-	E_0 = npa([0.0, INITIAL_EL, INITIAL_AZ]) # Radians.
-	EDOT_0 = np.zeros(3) # Radians per second.
-	SPEED = la.norm(ENUVEL) # Meters per second.
-	VEL_B = FPA_TO_LOCAL @ ENUVEL # Body velocity.
-	ALPHA, SIDESLIP = returnAlphaAndBeta(VEL_B)
-
-	# ORIGIN ###############################################################################
-	LLA0 = np.zeros(3)
-	ENU0 = np.zeros(3)
-	ECEF0 = np.zeros(3)
-	ECI0 = np.zeros(3)
-
-	# LOCATION ###############################################################################
-	LLA = np.zeros(3)
-	ENUPOS = INITIAL_POSITION
-	ENUVEL = ENUVEL
-	ENU_TO_FLU = np.zeros((3, 3))
-	ECEFPOS = np.zeros(3)
-	ECEFVEL = np.zeros(3)
-	ECEF_TO_ENU = np.zeros((3, 3))
-	ECEF_TO_FLU = np.zeros((3, 3))
-	ECIPOS = np.zeros(3)
-	ECIVEL = np.zeros(3)
-	ECI_TO_ECEF = np.zeros((3, 3))
-	ECI_TO_FLU = np.zeros((3, 3))
+	SPEED = INITIAL_AIRSPEED # Meters per second.
+	SPECIFIC_FORCE = np.zeros(3) # Meters per second squared.
+	ALPHA = 0.0
+	SIDESLIP = 0.0
+	BODY_RATE= np.zeros(3)
 
 	# LLA.
-	LLA = npa([np.radians(INITIAL_LLA[0]), np.radians(INITIAL_LLA[1]), INITIAL_LLA[2]]) # Convert to lat, lon to radians.
-	LLA0 = LLA
+	LLA = npa([np.radians(INITIAL_LLA[0]), np.radians(INITIAL_LLA[1]), INITIAL_LLA[2]])
 
 	# ENU.
-	ENUPOS = ENUPOS
-	ENUPOS0 = ENUPOS
-	ENUVEL = ENUVEL
-	ENU_AZ, ENU_EL = returnAzAndElevation(ENUVEL) # RADIANS
-	ENU_TO_FLU = ct.FLIGHTPATH_TO_LOCAL_TM(ENU_AZ, -ENU_EL) # ND
+	ENUPOS = np.zeros(3)
+	INITIAL_AZ = np.radians(INITIAL_AZIMUTH) # RADIANS.
+	INITIAL_EL = np.radians(INITIAL_ELEVATION) # RADIANS.
+	ENU_TO_FLU = ct.ORIENTATION_TO_LOCAL_TM(0.0, -INITIAL_EL, INITIAL_AZ)
+	ENUVEL = INITIAL_AIRSPEED * (ENU_TO_FLU[0])
+	ENUEULER = npa([0.0, INITIAL_EL, INITIAL_AZ])
 	VEL_B = ENU_TO_FLU @ ENUVEL # METERS PER SECOND
-
+	
 	# ECEF.
 	ECEFPOS = ct.LLA_TO_ECI(LLA, TOF) # Can use this function for initial earth position.
 	ECEFPOS0 = ECEFPOS
@@ -133,14 +109,9 @@ def Construct5DOFMissile(
 	)
 	ECEF_TO_FLU = ENU_TO_FLU @ ECEF_TO_ENU
 	ECEFVEL = VEL_B @ ECEF_TO_FLU
+	ECEFEULER = ct.EULER_FROM_DCM(ECEF_TO_FLU)
 
 	# ECI.
-	ECIPOS0 = np.zeros(3)
-	ECIPOS = np.zeros(3)
-	ECIVEL = np.zeros(3)
-	ECI_TO_ECEF = np.zeros((3, 3))
-	ECI_TO_FLU = np.zeros((3, 3))
-
 	ECIPOS = ct.LLA_TO_ECI(LLA, TOF)
 	ECI_TO_ECEF = ct.ECI_TO_ECEF_TM(TOF)
 	TEMP = ECI_TO_ECEF.transpose() @ ECEFVEL
@@ -148,6 +119,7 @@ def Construct5DOFMissile(
 	ECIVEL_DUE_TO_ROTATION = np.cross(OMEGA, ECIPOS)
 	ECIVEL = TEMP + ECIVEL_DUE_TO_ROTATION
 	ECI_TO_FLU = ECEF_TO_FLU @ ECI_TO_ECEF
+	ECIEULER = ct.EULER_FROM_DCM(ECI_TO_FLU)
 
 	# DATA. ###############################################################################
 	MISSILE = {
@@ -157,6 +129,7 @@ def Construct5DOFMissile(
 		"LETHALITY": "FLYING",
 		"ATMOS": ATMOS,
 		"MASS_AND_MOTOR": MASS_AND_MOTOR,
+		"ECEFPOS0": ECEFPOS0,
 		"TRANSFORMATION_MATRICES":{
 			
 			"ENU_TO_FLU": ENU_TO_FLU,
@@ -182,46 +155,49 @@ def Construct5DOFMissile(
 			"BETA": BETA,
 
 			"TOF": TOF,
-			"POS_0X": ENUPOS[0],
-			"POS_0Y": ENUPOS[1],
-			"POS_0Z": ENUPOS[2],
-			"VEL_0X": ENUVEL[0],
-			"VEL_0Y": ENUVEL[1], 
-			"VEL_0Z": ENUVEL[2], 
 			"SPEED": SPEED,
 			"UDOT_0": SPECIFIC_FORCE[0],
 			"VDOT_0": SPECIFIC_FORCE[1],
 			"WDOT_0": SPECIFIC_FORCE[2],
 			"ALPHA": ALPHA,
 			"SIDESLIP": SIDESLIP,
-			"PHI_0": E_0[0],
-			"THT_0": E_0[1],
-			"PSI_0": E_0[2],
-			"PHIDOT_0": EDOT_0[0],
-			"THTDOT_0": EDOT_0[1],
-			"PSIDOT_0": EDOT_0[2],
+			"PRATE": BODY_RATE[0],
+			"QRATE": BODY_RATE[1],
+			"RRATE": BODY_RATE[2],
 
 			"LAT": LLA[0],
 			"LON": LLA[1],
 			"ALT": LLA[2],
-			"EPOS": ENUPOS[0],
-			"NPOS": ENUPOS[1],
-			"UPOS": ENUPOS[2],
-			"EVEL": ENUVEL[0],
-			"NVEL": ENUVEL[1],
-			"UVEL": ENUVEL[2],
+
+			"ENUPOSX": ENUPOS[0],
+			"ENUPOSY": ENUPOS[1],
+			"ENUPOSZ": ENUPOS[2],
+			"ENUVELX": ENUVEL[0],
+			"ENUVELY": ENUVEL[1],
+			"ENUVELZ": ENUVEL[2],
+			"ENUPHI": ENUEULER[0],
+			"ENUTHT": ENUEULER[1],
+			"ENUPSI": ENUEULER[2],
+
 			"ECEFPOSX": ECEFPOS[0],
 			"ECEFPOSY": ECEFPOS[1],
 			"ECEFPOSZ": ECEFPOS[2],
 			"ECEFVELX": ECEFVEL[0],
 			"ECEFVELY": ECEFVEL[1],
 			"ECEFVELZ": ECEFVEL[2],
+			"ECEFPHI": ECEFEULER[0],
+			"ECEFTHT": ECEFEULER[1],
+			"ECEFPSI": ECEFEULER[2],
+
 			"ECIPOSX": ECIPOS[0],
 			"ECIPOSY": ECIPOS[1],
 			"ECIPOSZ": ECIPOS[2],
 			"ECIVELX": ECIVEL[0],
 			"ECIVELY": ECIVEL[1],
 			"ECIVELZ": ECIVEL[2],
+			"ECIPHI": ECIEULER[0],
+			"ECITHT": ECIEULER[1],
+			"ECIPSI": ECIEULER[2],
 
 		}
 
@@ -268,14 +244,6 @@ def Fly5DOF(
 	BETA = MSL["STATE"]["BETA"]
 
 	TOF = MSL["STATE"]["TOF"]
-	POS_0 = np.zeros(3)
-	POS_0[0] = MSL["STATE"]["POS_0X"]
-	POS_0[1] = MSL["STATE"]["POS_0Y"]
-	POS_0[2] = MSL["STATE"]["POS_0Z"]
-	VEL_0 = np.zeros(3)
-	VEL_0[0] = MSL["STATE"]["VEL_0X"]
-	VEL_0[1] = MSL["STATE"]["VEL_0Y"]
-	VEL_0[2] = MSL["STATE"]["VEL_0Z"]
 	SPEED = MSL["STATE"]["SPEED"]
 	SPECIFIC_FORCE = np.zeros(3)
 	SPECIFIC_FORCE[0] = MSL["STATE"]["UDOT_0"]
@@ -283,28 +251,29 @@ def Fly5DOF(
 	SPECIFIC_FORCE[2] = MSL["STATE"]["WDOT_0"]
 	ALPHA = MSL["STATE"]["ALPHA"]
 	SIDESLIP = MSL["STATE"]["SIDESLIP"]
-	E_0 = np.zeros(3)
-	E_0[0] = MSL["STATE"]["PHI_0"]
-	E_0[1] = MSL["STATE"]["THT_0"]
-	E_0[2] = MSL["STATE"]["PSI_0"]
-	EDOT_0 = np.zeros(3)
-	EDOT_0[0] = MSL["STATE"]["PHIDOT_0"]
-	EDOT_0[1] = MSL["STATE"]["THTDOT_0"]
-	EDOT_0[2] = MSL["STATE"]["PSIDOT_0"]
+	BODY_RATE = np.zeros(3)
+	BODY_RATE[0] = MSL["STATE"]["PRATE"]
+	BODY_RATE[1] = MSL["STATE"]["QRATE"]
+	BODY_RATE[2] = MSL["STATE"]["RRATE"]
 
 	LLA = np.zeros(3)
 	LLA[0] = MSL["STATE"]["LAT"]
 	LLA[1] = MSL["STATE"]["LON"]
 	LLA[2] = MSL["STATE"]["ALT"]
+
 	ENUPOS = np.zeros(3)
-	ENUPOS[0] = MSL["STATE"]["EPOS"]
-	ENUPOS[1] = MSL["STATE"]["NPOS"]
-	ENUPOS[2] = MSL["STATE"]["UPOS"]
+	ENUPOS[0] = MSL["STATE"]["ENUPOSX"]
+	ENUPOS[1] = MSL["STATE"]["ENUPOSY"]
+	ENUPOS[2] = MSL["STATE"]["ENUPOSZ"]
 	ENUVEL = np.zeros(3)
-	ENUVEL[0] = MSL["STATE"]["EVEL"]
-	ENUVEL[1] = MSL["STATE"]["NVEL"]
-	ENUVEL[2] = MSL["STATE"]["UVEL"]
-	ENU_TO_FLU = MSL["TRANSFORMATION_MATRICES"]["ENU_TO_FLU"]
+	ENUVEL[0] = MSL["STATE"]["ENUVELX"]
+	ENUVEL[1] = MSL["STATE"]["ENUVELY"]
+	ENUVEL[2] = MSL["STATE"]["ENUVELZ"]
+	ENUEULER = np.zeros(3)
+	ENUEULER[0] = MSL["STATE"]["ENUPHI"]
+	ENUEULER[1] = MSL["STATE"]["ENUTHT"]
+	ENUEULER[2] = MSL["STATE"]["ENUPSI"]
+
 	ECEFPOS = np.zeros(3)
 	ECEFPOS[0] = MSL["STATE"]["ECEFPOSX"]
 	ECEFPOS[1] = MSL["STATE"]["ECEFPOSY"]
@@ -313,8 +282,11 @@ def Fly5DOF(
 	ECEFVEL[0] = MSL["STATE"]["ECEFVELX"]
 	ECEFVEL[1] = MSL["STATE"]["ECEFVELY"]
 	ECEFVEL[2] = MSL["STATE"]["ECEFVELZ"]
-	ECEF_TO_ENU = MSL["TRANSFORMATION_MATRICES"]["ECEF_TO_ENU"]
-	ECEF_TO_FLU = MSL["TRANSFORMATION_MATRICES"]["ECEF_TO_FLU"]
+	ECEFEULER = np.zeros(3)
+	ECEFEULER[0] = MSL["STATE"]["ECEFPHI"]
+	ECEFEULER[1] = MSL["STATE"]["ECEFTHT"]
+	ECEFEULER[2] = MSL["STATE"]["ECEFPSI"]
+
 	ECIPOS = np.zeros(3)
 	ECIPOS[0] = MSL["STATE"]["ECIPOSX"]
 	ECIPOS[1] = MSL["STATE"]["ECIPOSY"]
@@ -323,35 +295,43 @@ def Fly5DOF(
 	ECIVEL[0] = MSL["STATE"]["ECIVELX"]
 	ECIVEL[1] = MSL["STATE"]["ECIVELY"]
 	ECIVEL[2] = MSL["STATE"]["ECIVELZ"]
+	ECIEULER = np.zeros(3)
+	ECIEULER[0] = MSL["STATE"]["ECIPHI"]
+	ECIEULER[1] = MSL["STATE"]["ECITHT"]
+	ECIEULER[2] = MSL["STATE"]["ECIPSI"]
+
+	ENU_TO_FLU = MSL["TRANSFORMATION_MATRICES"]["ENU_TO_FLU"]
+	ECEF_TO_ENU = MSL["TRANSFORMATION_MATRICES"]["ECEF_TO_ENU"]
+	ECEF_TO_FLU = MSL["TRANSFORMATION_MATRICES"]["ECEF_TO_FLU"]
 	ECI_TO_ECEF = MSL["TRANSFORMATION_MATRICES"]["ECI_TO_ECEF"]
 	ECI_TO_FLU = MSL["TRANSFORMATION_MATRICES"]["ECI_TO_FLU"]
 
 	# INTEGRATION. ###############################################################################
 	INTEGRATION_PASS = 0
-	STATE_P0 = POS_0
-	STATE_V0 = VEL_0
-	STATE_E0 = E_0
-	STATE_EDOT0 = EDOT_0
+	STATE_P0 = np.zeros(3)
+	STATE_V0 = np.zeros(3)
+	STATE_W0 = np.zeros(3)
+	STATE_WDOT0 = np.zeros(3)
 
-	V1 = np.zeros(2)
-	A1 = np.zeros(2)
-	EDOT1 = 0.0
-	EDOTDOT1 = 0.0
+	V1 = np.zeros(3)
+	A1 = np.zeros(3)
+	WDOT1 = np.zeros(3)
+	WDOTDOT1 = np.zeros(3)
 
-	V2 = np.zeros(2)
-	A2 = np.zeros(2)
-	EDOT2 = 0.0
-	EDOTDOT2 = 0.0
+	V2 = np.zeros(3)
+	A2 = np.zeros(3)
+	WDOT2 = np.zeros(3)
+	WDOTDOT2 = np.zeros(3)
 
-	V3 = np.zeros(2)
-	A3 = np.zeros(2)
-	EDOT3 = 0.0
-	EDOTDOT3 = 0.0
+	V3 = np.zeros(3)
+	A3 = np.zeros(3)
+	WDOT3 = np.zeros(3)
+	WDOTDOT3 = np.zeros(3)
 
-	V4 = np.zeros(2)
-	A4 = np.zeros(2)
-	EDOT4 = 0.0
-	EDOTDOT4 = 0.0
+	V4 = np.zeros(3)
+	A4 = np.zeros(3)
+	WDOT4 = np.zeros(3)
+	WDOTDOT4 = np.zeros(3)
 
 	# AIRFRAME. ###############################################################################
 	CD_LOOKUP = [0.1, 0.5]
@@ -398,46 +378,49 @@ def Fly5DOF(
 			"BETA": BETA,
 
 			"TOF": TOF,
-			"POS_0X": POS_0[0],
-			"POS_0Y": POS_0[1],
-			"POS_0Z": POS_0[2],
-			"VEL_0X": VEL_0[0],
-			"VEL_0Y": VEL_0[1], 
-			"VEL_0Z": VEL_0[2], 
 			"SPEED": SPEED,
 			"UDOT_0": SPECIFIC_FORCE[0],
 			"VDOT_0": SPECIFIC_FORCE[1],
 			"WDOT_0": SPECIFIC_FORCE[2],
 			"ALPHA": ALPHA,
 			"SIDESLIP": SIDESLIP,
-			"PHI_0": E_0[0],
-			"THT_0": E_0[1],
-			"PSI_0": E_0[2],
-			"PHIDOT_0": EDOT_0[0],
-			"THTDOT_0": EDOT_0[1],
-			"PSIDOT_0": EDOT_0[2],
+			"PRATE": BODY_RATE[0],
+			"QRATE": BODY_RATE[1],
+			"RRATE": BODY_RATE[2],
 
 			"LAT": LLA[0],
 			"LON": LLA[1],
 			"ALT": LLA[2],
-			"EPOS": ENUPOS[0],
-			"NPOS": ENUPOS[1],
-			"UPOS": ENUPOS[2],
-			"EVEL": ENUVEL[0],
-			"NVEL": ENUVEL[1],
-			"UVEL": ENUVEL[2],
+
+			"ENUPOSX": ENUPOS[0],
+			"ENUPOSY": ENUPOS[1],
+			"ENUPOSZ": ENUPOS[2],
+			"ENUVELX": ENUVEL[0],
+			"ENUVELY": ENUVEL[1],
+			"ENUVELZ": ENUVEL[2],
+			"ENUPHI": ENUEULER[0],
+			"ENUTHT": ENUEULER[1],
+			"ENUPSI": ENUEULER[2],
+
 			"ECEFPOSX": ECEFPOS[0],
 			"ECEFPOSY": ECEFPOS[1],
 			"ECEFPOSZ": ECEFPOS[2],
 			"ECEFVELX": ECEFVEL[0],
 			"ECEFVELY": ECEFVEL[1],
 			"ECEFVELZ": ECEFVEL[2],
+			"ECEFPHI": ECEFEULER[0],
+			"ECEFTHT": ECEFEULER[1],
+			"ECEFPSI": ECEFEULER[2],
+
 			"ECIPOSX": ECIPOS[0],
 			"ECIPOSY": ECIPOS[1],
 			"ECIPOSZ": ECIPOS[2],
 			"ECIVELX": ECIVEL[0],
 			"ECIVELY": ECIVEL[1],
 			"ECIVELZ": ECIVEL[2],
+			"ECIPHI": ECIEULER[0],
+			"ECITHT": ECIEULER[1],
+			"ECIPSI": ECIEULER[2],
 
 		}
 
@@ -445,10 +428,11 @@ def Fly5DOF(
 
 	# LOOP. ###############################################################################
 	GO = True
+	ROTATING_EARTH_FLAG = False
 	while GO:
 
 		# ATMOSPHERE.
-		MSL["ATMOS"].update(POS_0[2], SPEED)
+		MSL["ATMOS"].update(LLA[2], SPEED)
 		RHO = MSL["ATMOS"].rho # Kilograms per meter cubed.
 		Q = MSL["ATMOS"].q # Pascals.
 		P = MSL["ATMOS"].p # Pascals.
@@ -480,9 +464,8 @@ def Fly5DOF(
 		BODY_DRAG = (WIND_TO_BODY @ WIND_DRAG_FORCE) / MASS # Meters per second squared.
 
 		# ATTITUDE.
-		FPA_TO_LOCAL = ct.ORIENTATION_TO_LOCAL_TM(E_0[0], -1.0 * E_0[1], E_0[2])
-		SPEED = la.norm(VEL_0)
-		VEL_B = FPA_TO_LOCAL @ VEL_0
+		SPEED = la.norm(ENUVEL)
+		VEL_B = ENU_TO_FLU @ ENUVEL
 		ALPHA, SIDESLIP = returnAlphaAndBeta(VEL_B)
 		ALPHA *= -1
 		SIDESLIP *= -1
@@ -497,7 +480,6 @@ def Fly5DOF(
 			((8 * WING_AREA * SIDESLIP) / (BETA * REFERENCE_AREA)) * ((XCG - WING_CENTER_OF_PRESSURE) / REFERENCE_DIAMETER) + \
 			((8 * TAIL_AREA * (SIDESLIP + YAW_FIN_DEFL_RAD)) / \
 			(BETA * REFERENCE_AREA)) * ((XCG - CENTER_OF_DEFLECTION_FROM_NOSE) / REFERENCE_DIAMETER)
-
 		CZ = 2 * ALPHA + \
 			(1.5 * PLANFORM_AREA * ALPHA * ALPHA) / REFERENCE_AREA + \
 			(8 * WING_AREA * ALPHA) / (BETA * REFERENCE_AREA) + \
@@ -508,24 +490,73 @@ def Fly5DOF(
 			((8 * TAIL_AREA * (ALPHA + PITCH_FIN_DEFL_RAD)) / \
 			(BETA * REFERENCE_AREA)) * ((XCG - CENTER_OF_DEFLECTION_FROM_NOSE) / REFERENCE_DIAMETER)
 
+		"""
+		
+		TRANSFORMATION MATRICES.
+		UPDATE ORDER.
+
+		ECI_TO_ECEF = np.zeros((3, 3))
+		LLA = np.zeros(3)
+		ECEFPOS = np.zeros(3)
+		ECEFVEL = np.zeros(3)
+		ECEF_TO_ENU = np.zeros((3, 3))
+		ENUPOS = np.zeros(3)
+		ENUVEL = np.zeros(3)
+		ENU_TO_FLU = np.zeros((3, 3))
+		ECEF_TO_FLU = np.zeros((3, 3))
+		ECI_TO_FLU = np.zeros((3, 3))
+
+		"""
+
+		# ECI TO ECEF MATRIX.
+		ECI_TO_ECEF = ct.ECI_TO_ECEF_TM(TOF)
+		OMEGA = npa([0.0, 0.0, WEII3])
+		ECIVEL_DUE_TO_ROTATION = np.cross(OMEGA, ECIPOS)
+
+		# LLA.
+		LLA = ct.ECI_TO_LLA(ECIPOS, TOF)
+
+		# ECEF STATE AND ECEF TO ENU MATRIX.
+		ECEFPOS = ECI_TO_ECEF @ ECIPOS
+		ECEFVEL = ECI_TO_ECEF @ (ECIVEL - ECIVEL_DUE_TO_ROTATION)
+		ECEF_TO_ENU = ct.ORIENTATION_TO_LOCAL_TM(
+			0.0,
+			(np.pi / 2.0) + LLA[0],
+			LLA[1]
+		)
+
+		# ENU STATE AND ENU TO BODY MATRIX..
+		ENUPOS = ECEF_TO_ENU @ (ECEFPOS - MSL["ECEFPOS0"])
+		ENUVEL = ECEF_TO_ENU @ ECEFVEL
+		ENU_AZ, ENU_EL = returnAzAndElevation(ENUVEL)
+		ENU_TO_FLU = ct.FLIGHTPATH_TO_LOCAL_TM(ENU_AZ, -1.0 * ENU_EL)
+		ENUEULER = npa([0.0, ENU_EL, ENU_AZ])
+
+		# ECEF TO BODY MATRIX.
+		ECEF_TO_FLU = ENU_TO_FLU @ ECEF_TO_ENU
+		ECEFEULER = ct.EULER_FROM_DCM(ECEF_TO_FLU)
+
+		# ECI TO BODY MATRIX.
+		ECI_TO_FLU = ECEF_TO_FLU @ ECI_TO_ECEF
+
 		# DERIVATIVES.
-		EDOTDOT_0 = np.zeros(3)
-		EDOTDOT_0[0] = 0.0
-		EDOTDOT_0[1] = (Q * REFERENCE_AREA * REFERENCE_DIAMETER * CM) / TMOI
-		EDOTDOT_0[2] = (Q * REFERENCE_AREA * REFERENCE_DIAMETER * CN) / TMOI
+		BODYRATEDOT = np.zeros(3)
+		BODYRATEDOT[0] = 0.0
+		BODYRATEDOT[1] = (Q * REFERENCE_AREA * REFERENCE_DIAMETER * CM) / TMOI
+		BODYRATEDOT[2] = (Q * REFERENCE_AREA * REFERENCE_DIAMETER * CN) / TMOI
 		SPECIFIC_FORCE[0] = THRUST / MASS
 		SPECIFIC_FORCE[1] = (Q * REFERENCE_AREA * CY) / MASS
 		SPECIFIC_FORCE[2] = (Q * REFERENCE_AREA * CZ) / MASS
+		# LOCAL_G1 = ct.ECI_GRAV(ECIPOS, TOF)
+		# BODY_G1 = ECI_TO_FLU @ LOCAL_G1
 		LOCAL_G = npa([0.0, 0.0, -1.0 * G])
-		BODY_G = FPA_TO_LOCAL @ LOCAL_G
+		BODY_G = ENU_TO_FLU @ LOCAL_G
 		SPECIFIC_FORCE += (BODY_G + BODY_DRAG)
-		ACC_0 = SPECIFIC_FORCE @ FPA_TO_LOCAL
+		ECIACC = SPECIFIC_FORCE @ ECI_TO_FLU
 
-		# LOCATION.
-
-		# STATE.
 		if INTEGRATION_PASS == 0:
 
+			# ADD NEW TRANSFORMATION MATRICES.
 			# LOG DATA.
 			MSL["STATE"] = populateState()
 			lf.writeData(MSL["STATE"], MSL["LOGFILE"] )
@@ -534,30 +565,30 @@ def Fly5DOF(
 			if TOF > MAX_TIME:
 				MSL["LETHALITY"] = "MAX_TIME"
 				return MSL
-			if POS_0[2] < 0.0:
-				print(f"GROUND - TOF : {TOF:.2f}, ENU : {POS_0}, MACH : {MACH:.2f}")
+			if ENUPOS[2] < 0.0:
+				print(f"GROUND - TOF : {TOF:.2f}, ENU : {ENUPOS}, MACH : {MACH:.2f}")
 				MSL["LETHALITY"] = "GROUND"
 				return MSL
-			if np.isnan(np.sum(POS_0)):
-				print(f"NAN - TOF : {TOF:.2f}, ENU : {POS_0}, MACH : {MACH:.2f}")
+			if np.isnan(np.sum(ENUPOS)):
+				print(f"NAN - TOF : {TOF:.2f}, ENU : {ENUPOS}, MACH : {MACH:.2f}")
 				MSL["LETHALITY"] = "NAN"
 				return MSL
 
 			# BEGIN INTEGRATION PASS.
-			STATE_P0 = POS_0
-			STATE_V0 = VEL_0
-			STATE_E0 = E_0
-			STATE_EDOT0 = EDOT_0
+			STATE_P0 = ECIPOS
+			STATE_V0 = ECIVEL
+			STATE_W0 = ECIEULER
+			STATE_WDOT0 = BODY_RATE
 
-			V1 = VEL_0
-			A1 = ACC_0
-			EDOT1 = EDOT_0
-			EDOTDOT1 = EDOTDOT_0
+			V1 = ECIVEL
+			A1 = ECIACC
+			WDOT1 = BODY_RATE
+			WDOTDOT1 = BODYRATEDOT
 
-			POS_0 = STATE_P0 + V1 * (TIME_STEP / 2.0)
-			VEL_0 = STATE_V0 + A1 * (TIME_STEP / 2.0)
-			E_0 = STATE_E0 + EDOT1 * (TIME_STEP / 2.0)
-			EDOT_0 = STATE_EDOT0 + EDOTDOT1 * (TIME_STEP / 2.0)
+			ECIPOS = STATE_P0 + V1 * (TIME_STEP / 2.0)
+			ECIVEL = STATE_V0 + A1 * (TIME_STEP / 2.0)
+			ECIEULER = STATE_W0 + WDOT1 * (TIME_STEP / 2.0)
+			BODY_RATE = STATE_WDOT0 + WDOTDOT1 * (TIME_STEP / 2.0)
 
 			TOF += (TIME_STEP / 2.0)
 
@@ -565,29 +596,29 @@ def Fly5DOF(
 
 		elif INTEGRATION_PASS == 1:
 
-			V2 = VEL_0
-			A2 = ACC_0
-			EDOT2 = EDOT_0
-			EDOTDOT2 = EDOTDOT_0
+			V2 = ECIVEL
+			A2 = ECIACC
+			WDOT2 = BODY_RATE
+			WDOTDOT2 = BODYRATEDOT
 
-			POS_0 = STATE_P0 + V2 * (TIME_STEP / 2.0)
-			VEL_0 = STATE_V0 + A2 * (TIME_STEP / 2.0)
-			E_0 = STATE_E0 + EDOT2 * (TIME_STEP / 2.0)
-			EDOT_0 = STATE_EDOT0 + EDOTDOT2 * (TIME_STEP / 2.0)
-
+			ECIPOS = STATE_P0 + V2 * (TIME_STEP / 2.0)
+			ECIVEL = STATE_V0 + A2 * (TIME_STEP / 2.0)
+			ECIEULER = STATE_W0 + WDOT2 * (TIME_STEP / 2.0)
+			BODY_RATE = STATE_WDOT0 + WDOTDOT2 * (TIME_STEP / 2.0)
+			
 			INTEGRATION_PASS += 1
 
 		elif INTEGRATION_PASS == 2:
 
-			V3 = VEL_0
-			A3 = ACC_0
-			EDOT3 = EDOT_0
-			EDOTDOT3 = EDOTDOT_0
+			V3 = ECIVEL
+			A3 = ECIACC
+			WDOT3 = BODY_RATE
+			WDOTDOT3 = BODYRATEDOT
 
-			POS_0 = STATE_P0 + V3 * (TIME_STEP)
-			VEL_0 = STATE_V0 + A3 * (TIME_STEP)
-			E_0 = STATE_E0 + EDOT3 * (TIME_STEP)
-			EDOT_0 = STATE_EDOT0 + EDOTDOT3 * (TIME_STEP)
+			ECIPOS = STATE_P0 + V3 * (TIME_STEP)
+			ECIVEL = STATE_V0 + A3 * (TIME_STEP)
+			ECIEULER = STATE_W0 + WDOT3 * (TIME_STEP)
+			BODY_RATE = STATE_WDOT0 + WDOTDOT3 * (TIME_STEP)
 
 			TOF += (TIME_STEP / 2.0)
 
@@ -595,15 +626,15 @@ def Fly5DOF(
 
 		elif INTEGRATION_PASS == 3:
 
-			V4 = VEL_0
-			A4 = ACC_0
-			EDOT4 = EDOT_0
-			EDOTDOT4 = EDOTDOT_0
+			V4 = ECIVEL
+			A4 = ECIACC
+			WDOT4 = BODY_RATE
+			WDOTDOT4 = BODYRATEDOT
 
-			POS_0 = STATE_P0 + (TIME_STEP / 6.0) * (V1 + 2 * V2 + 2 * V3 + V4)
-			VEL_0 = STATE_V0 + (TIME_STEP / 6.0) * (A1 + 2 * A2 + 2 * A3 + A4)
-			E_0 = STATE_E0 + (TIME_STEP / 6.0) * (EDOT1 + 2 * EDOT2 + 2 * EDOT3 + EDOT4)
-			EDOT_0 = STATE_EDOT0 + (TIME_STEP / 6.0) * (EDOTDOT1 + 2 * EDOTDOT2 + 2 * EDOTDOT3 + EDOTDOT4)
+			ECIPOS = STATE_P0 + (TIME_STEP / 6.0) * (V1 + 2 * V2 + 2 * V3 + V4)
+			ECIVEL = STATE_V0 + (TIME_STEP / 6.0) * (A1 + 2 * A2 + 2 * A3 + A4)
+			ECIEULER = STATE_W0 + (TIME_STEP / 6.0) * (WDOT1 + 2 * WDOT2 + 2 * WDOT3 + WDOT4)
+			BODY_RATE = STATE_WDOT0 + (TIME_STEP / 6.0) * (WDOTDOT1 + 2 * WDOTDOT2 + 2 * WDOTDOT3 + WDOTDOT4)
 
 			INTEGRATION_PASS = 0
 
@@ -620,7 +651,7 @@ if __name__ == "__main__":
 	EL0 = 45
 	SPD0 = 10
 	MSL = Construct5DOFMissile(LLA0, POS0, AZ0, EL0, SPD0, "MOCK_HELLFIRE5DOF")
-	MSL = Fly5DOF(MSL, 100, -3.0, 0.0)
+	MSL = Fly5DOF(MSL, 100, 1.0, 0.0)
 
 	wallClockEnd = time.time()
 	print(f"RUN TIME : {wallClockEnd - wallClockStart} SECONDS")

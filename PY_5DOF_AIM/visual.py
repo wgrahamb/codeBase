@@ -2,7 +2,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 
-df = pd.read_csv("fiveDofSimPy/log.txt", delimiter=" ")
+df = pd.read_csv("PY_5DOF_AIM/log.txt", delimiter=" ")
 
 startIndex = 1
 stopIndex = -1

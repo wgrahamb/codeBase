@@ -3,9 +3,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 f1 = "log.txt"
-f2 = "cpplog.txt"
 
-df = pd.read_csv(open(f"{f2}"), delimiter=" ", skipfooter=3, engine="python")
+df = pd.read_csv(open(f"{f1}"), delimiter=" ", skipfooter=3, engine="python")
 
 startIndex = 1
 stopIndex = -1

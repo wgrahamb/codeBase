@@ -4,7 +4,7 @@ import shutil
 phi = 0.0 # ROLL IN LOCAL FRAME
 theta = 40.0 # PITCH ANGLE IN LOCAL FRAME
 psi = 10.0 # YAW ANGLE IN LOCAL FRAME, ZERO POINTS TRUE EAST
-tgtE = 3000.0  # TARGET EAST
+tgtE = 4000.0  # TARGET EAST
 tgtN = 0.0 # TARGET NORTH
 tgtU = 3000.0 # TARGET UP
 
@@ -15,9 +15,3 @@ with open(inPutFile, "w") as f:
 
 process = subprocess.Popen(["./sixDofSim"])
 process.wait()
-
-
-shutil.copy(
-	"log.txt",
-	"/mnt/c/Users/graha/Documents/repo/pythonCode/CPP_NOVICE_Visuals"
-)

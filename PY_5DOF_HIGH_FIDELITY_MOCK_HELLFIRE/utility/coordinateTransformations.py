@@ -168,8 +168,23 @@ def ECI_GRAV(ECIPOS, TIME):
 	DUM3 = (SMAJOR_AXIS / DBI) ** 2
 	ECIGRAV[0] = -1.0 * DUM1 * DUM2 * C20 * DUM3 * np.sin(LLAREF[0]) * np.cos(LLAREF[0])
 	ECIGRAV[1] = 0.0
-	ECIGRAV[2] = DUM1 * (1.0 + (DUM2 / 2.0) * C20 * DUM3 * (3 * (np.sin(LLAREF[0] ** 2)) - 1.0))
+	ECIGRAV[2] = DUM1 * (1.0 + (DUM2 / 2.0) * C20 * DUM3 * (3 * (np.sin(LLAREF[0]) ** 2) - 1.0))
 	return ECIGRAV
+
+def EULER_FROM_DCM(TM):
+	EULER = np.zeros(3)
+	R31 = TM[2, 0]
+	THETA = -1.0 * np.arcsin(R31)
+	R32 = TM[2, 1]
+	R33 = TM[2, 2]
+	PSI = np.arctan2((R32 / np.cos(THETA)), (R33 / np.cos(THETA)))
+	R21 = TM[1, 0]
+	R11 = TM[0, 0]
+	PHI = np.arctan2((R21 / np.cos(THETA)), (R11 / np.cos(THETA)))
+	EULER[0] = PHI
+	EULER[1] = THETA
+	EULER[2] = PSI
+	return EULER
 
 # def PHYSICAL_GIMBAL_PITCH_AND_ROLL_TO_BODY_TM(THETA, PHI):
 # 	GH_TO_B_TM = npa(

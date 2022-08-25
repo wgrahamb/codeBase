@@ -1461,6 +1461,7 @@ Matrix cad_geoc_ine(Matrix SBIE)
 ///////////////////////////////////////////////////////////////////////////////
 Matrix cad_grav84(Matrix SBII,const double &time)			  
 {
+
           double lonc(0),latc(0),altc(0);
           Matrix GRAVG(3,1);
 
@@ -1478,6 +1479,7 @@ Matrix cad_grav84(Matrix SBII,const double &time)
           GRAVG.assign_loc(2,0,gravg3);
 
           return GRAVG;
+
 }
 ///////////////////////////////////////////////////////////////////////////////
 //Returns the inertial displacement vector from longitude, latitude and altitude

@@ -588,12 +588,12 @@ void actuators(Missile &missile)
 		missile.FIN1DEFL_D = DEL1D_NEW;
 		double EDX1 = DEL1C - missile.FIN1DEFL;
 		double DEL1DOTDOT_NEW = FIN_CONTROL_WN * FIN_CONTROL_WN * EDX1 - 2 * FIN_CONTROL_ZETA * FIN_CONTROL_WN * missile.FIN1DEFL_D;
-		double DEL1DOT_NEW = trapezoidIntegrate(DEL1DOTDOT_NEW, missile.FIN1DEFL_DOTDOT, missile.FIN1DEFL_DOT, missile.TIME_STEP);
+		double DEL1DOT_NEW = trapezoidIntegrate(DEL1DOTDOT_NEW, missile.FIN1DEFL_DOT_D, missile.FIN1DEFL_DOT, missile.TIME_STEP);
 		missile.FIN1DEFL_DOT = DEL1DOT_NEW;
-		missile.FIN1DEFL_DOTDOT = DEL1DOTDOT_NEW;
-		if (flag == 1 and (missile.FIN1DEFL_DOT * missile.FIN1DEFL_DOTDOT) > 0)
+		missile.FIN1DEFL_DOT_D = DEL1DOTDOT_NEW;
+		if (flag == 1 and (missile.FIN1DEFL_DOT * missile.FIN1DEFL_DOT_D) > 0)
 		{
-			missile.FIN1DEFL_DOTDOT = 0.0;
+			missile.FIN1DEFL_DOT_D = 0.0;
 		}
 
 		// Fin two.
@@ -631,12 +631,12 @@ void actuators(Missile &missile)
 		missile.FIN2DEFL_D = DEL2D_NEW;
 		double EDX2 = DEL2C - missile.FIN2DEFL;
 		double DEL2DOTDOT_NEW = FIN_CONTROL_WN * FIN_CONTROL_WN * EDX2 - 2 * FIN_CONTROL_ZETA * FIN_CONTROL_WN * missile.FIN2DEFL_D;
-		double DEL2DOT_NEW = trapezoidIntegrate(DEL2DOTDOT_NEW, missile.FIN2DEFL_DOTDOT, missile.FIN2DEFL_DOT, missile.TIME_STEP);
+		double DEL2DOT_NEW = trapezoidIntegrate(DEL2DOTDOT_NEW, missile.FIN2DEFL_DOT_D, missile.FIN2DEFL_DOT, missile.TIME_STEP);
 		missile.FIN2DEFL_DOT = DEL2DOT_NEW;
-		missile.FIN2DEFL_DOTDOT = DEL2DOTDOT_NEW;
-		if (flag == 1 and (missile.FIN2DEFL_DOT * missile.FIN2DEFL_DOTDOT) > 0)
+		missile.FIN2DEFL_DOT_D = DEL2DOTDOT_NEW;
+		if (flag == 1 and (missile.FIN2DEFL_DOT * missile.FIN2DEFL_DOT_D) > 0)
 		{
-			missile.FIN2DEFL_DOTDOT = 0.0;
+			missile.FIN2DEFL_DOT_D = 0.0;
 		}
 
 		// Fin three.
@@ -674,12 +674,12 @@ void actuators(Missile &missile)
 		missile.FIN3DEFL_D = DEL3D_NEW;
 		double EDX3 = DEL3C - missile.FIN3DEFL;
 		double DEL3DOTDOT_NEW = FIN_CONTROL_WN * FIN_CONTROL_WN * EDX3 - 2 * FIN_CONTROL_ZETA * FIN_CONTROL_WN * missile.FIN3DEFL_D;
-		double DEL3DOT_NEW = trapezoidIntegrate(DEL3DOTDOT_NEW, missile.FIN3DEFL_DOTDOT, missile.FIN3DEFL_DOT, missile.TIME_STEP);
+		double DEL3DOT_NEW = trapezoidIntegrate(DEL3DOTDOT_NEW, missile.FIN3DEFL_DOT_D, missile.FIN3DEFL_DOT, missile.TIME_STEP);
 		missile.FIN3DEFL_DOT = DEL3DOT_NEW;
-		missile.FIN3DEFL_DOTDOT = DEL3DOTDOT_NEW;
-		if (flag == 1 and (missile.FIN3DEFL_DOT * missile.FIN3DEFL_DOTDOT) > 0)
+		missile.FIN3DEFL_DOT_D = DEL3DOTDOT_NEW;
+		if (flag == 1 and (missile.FIN3DEFL_DOT * missile.FIN3DEFL_DOT_D) > 0)
 		{
-			missile.FIN3DEFL_DOTDOT = 0.0;
+			missile.FIN3DEFL_DOT_D = 0.0;
 		}
 
 		// Fin four.
@@ -717,12 +717,12 @@ void actuators(Missile &missile)
 		missile.FIN4DEFL_D = DEL4D_NEW;
 		double EDX4 = DEL4C - missile.FIN4DEFL;
 		double DEL4DOTDOT_NEW = FIN_CONTROL_WN * FIN_CONTROL_WN * EDX4 - 2 * FIN_CONTROL_ZETA * FIN_CONTROL_WN * missile.FIN4DEFL_D;
-		double DEL4DOT_NEW = trapezoidIntegrate(DEL4DOTDOT_NEW, missile.FIN4DEFL_DOTDOT, missile.FIN4DEFL_DOT, missile.TIME_STEP);
+		double DEL4DOT_NEW = trapezoidIntegrate(DEL4DOTDOT_NEW, missile.FIN4DEFL_DOT_D, missile.FIN4DEFL_DOT, missile.TIME_STEP);
 		missile.FIN4DEFL_DOT = DEL4DOT_NEW;
-		missile.FIN4DEFL_DOTDOT = DEL4DOTDOT_NEW;
-		if (flag == 1 and (missile.FIN4DEFL_DOT * missile.FIN4DEFL_DOTDOT) > 0)
+		missile.FIN4DEFL_DOT_D = DEL4DOTDOT_NEW;
+		if (flag == 1 and (missile.FIN4DEFL_DOT * missile.FIN4DEFL_DOT_D) > 0)
 		{
-			missile.FIN4DEFL_DOTDOT = 0.0;
+			missile.FIN4DEFL_DOT_D = 0.0;
 		}
 
 		// Attitude fin deflections.
@@ -857,9 +857,10 @@ void accelerationLimit(Missile &missile)
 
 	index = missile.tableNameIndexPairs["CN0"];
 	double CN0MAX = biLinearInterpolationWithBoundedBorders(missile.tables[index], missile.machSpeed, ALPHA_PRIME_MAX);
-
 	double maximumAccelerationEstimate = CN0MAX * missile.dynamicPressure * REFERENCE_AREA / missile.mass;
+
 	double availableAccelerationEstimate = maximumAccelerationEstimate - currentAccelerationEstimate;
+
 	if (availableAccelerationEstimate < 0)
 	{
 		missile.maneuveringLimit = 1;
@@ -1702,19 +1703,19 @@ void logData(Missile &missile, ofstream &logFile)
 	missile.FIN1DEFL << " " <<
 	missile.FIN1DEFL_D << " " <<
 	missile.FIN1DEFL_DOT << " " <<
-	missile.FIN1DEFL_DOTDOT << " " <<
+	missile.FIN1DEFL_DOT_D << " " <<
 	missile.FIN2DEFL << " " <<
 	missile.FIN2DEFL_D << " " <<
 	missile.FIN2DEFL_DOT << " " <<
-	missile.FIN2DEFL_DOTDOT << " " <<
+	missile.FIN2DEFL_DOT_D << " " <<
 	missile.FIN3DEFL << " " <<
 	missile.FIN3DEFL_D << " " <<
 	missile.FIN3DEFL_DOT << " " <<
-	missile.FIN3DEFL_DOTDOT << " " <<
+	missile.FIN3DEFL_DOT_D << " " <<
 	missile.FIN4DEFL << " " <<
 	missile.FIN4DEFL_D << " " <<
 	missile.FIN4DEFL_DOT << " " <<
-	missile.FIN4DEFL_DOTDOT << " " <<
+	missile.FIN4DEFL_DOT_D << " " <<
 	missile.alphaPrimeRadians << " " <<
 	missile.alphaPrimeDegrees << " " <<
 	missile.sinPhiPrime << " " <<

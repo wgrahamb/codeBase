@@ -1,5 +1,0 @@
-cmake_minimum_required (VERSION 2.8.11)
-project (GHAME6)
-set(CMAKE_BUILD_TYPE Debug)
-file(GLOB all_SRCS "*.cpp")
-add_executable(GHAME6 ${all_SRCS})

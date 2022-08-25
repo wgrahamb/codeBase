@@ -17,14 +17,14 @@ import os
 # int ConsoleReport;
 
 ballistic = 0 # Boolean.
-INTEGRATION_METHOD = 2 # 0 = Euler, 1 = RK2, 2 = RK4.
+INTEGRATION_METHOD = 1 # 0 = Euler, 1 = RK2, 2 = RK4.
 phi = 0 # Degrees.
-theta = 55 # Degrees.
+theta = 45 # Degrees.
 psi = 0 # Degrees.
 posE = 0 # Meters.
 posN = 0 # Meters.
 posU = 0 # Meters.
-tgtE = 7000 # Meters.
+tgtE = 6000 # Meters.
 tgtN = 0 # Meters.
 tgtU = 3000 # Meters.
 LogData = 1 # Boolean.

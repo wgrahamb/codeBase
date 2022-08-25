@@ -63,7 +63,7 @@ class fiveDofInterceptor:
 		self.aeroDynamicAngleMaxDegrees = 35.0 # DEGREES
 
 		# LOOK UP DATA
-		self.lookUps = lp("fiveDofSimPy/lookUps.pickle") # AERODYNAMIC AND PROPULSION LOOKUPS
+		self.lookUps = lp("PY_5DOF_AIM/lookUps.pickle") # AERODYNAMIC AND PROPULSION LOOKUPS
 
 		# INTERCEPTOR ATTITUDE >>> THIS IS A FIVE DEGREE OF FREEDOM SIMULATION. NO AERODYNAMIC BANK ANGLE.
 		self.alpha = 0.0 # RADIANS >>> POSITIVE ALPHA INDICATES NOSE BELOW FREE STREAM VELOCITY
@@ -307,17 +307,23 @@ class fiveDofInterceptor:
 		# YAW AUTOPILOT >>> FOR NOW ASSUME PERFECT COMMAND ACHIEVEMENT
 		tiy = freeStreamSpeed * mass / (thrust + dynamicPressure * self.interceptorRefArea * np.abs(sideForceCoefficientDerivative))
 		fspy = dynamicPressure * self.interceptorRefArea * sideForceCoefficient / mass
+
 		gr = self.gacp * tiy * self.tr / freeStreamSpeed
 		gi = gr / self.ta
+
 		abey = self.sideAccelCommandBody
 		ey = abey - fspy
+
 		yid_new = gi * ey
 		self.yi = integrate(yid_new, self.yid, self.yi, self.integrationStep)
 		self.yid = yid_new
+
 		rateyc = ey * gr + self.yi
 		rateyd_new = (rateyc - self.ratey) / self.tr
+
 		self.ratey = integrate(rateyd_new, self.rateyd, self.ratey, self.integrationStep)
 		self.rateyd = rateyd_new
+
 		betd_new = -1 * (tiy * self.ratey + self.beta) / tiy
 		self.beta = integrate(betd_new, self.betd, self.beta, self.integrationStep)
 		self.betd = betd_new
