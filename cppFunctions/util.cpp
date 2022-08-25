@@ -21,7 +21,6 @@ void loopThroughDirectory(string filepath)
 
 	struct dirent *entry = nullptr;
 	DIR *dp = nullptr;
-	string filepath = "";
 	dp = opendir(filepath.c_str());
 	if (dp != nullptr)
 	{
@@ -88,7 +87,7 @@ double exponentialDistribution(double density)
 {
 	double value;
 
-	value=-log(unituni());
+	value=-log(randomNumberBetweenZeroAndOne());
 	return value/density;
 }
 
@@ -114,8 +113,8 @@ double gaussianDistribution(double mean,double sig)
 
 	if(iset==0){
 		do{
-			v1=2.*unituni()-1.;
-			v2=2.*unituni()-1.;
+			v1=2.*randomNumberBetweenZeroAndOne()-1.;
+			v2=2.*randomNumberBetweenZeroAndOne()-1.;
 			rsq=v1*v1+v2*v2;
 		}while(rsq>=1.0||rsq==0);
 
@@ -185,7 +184,7 @@ double rayleighDistribution(double mode)
 {
 	double value;
 
-	value=sqrt(2.*(-log(unituni())));
+	value=sqrt(2.*(-log(randomNumberBetweenZeroAndOne())));
 	return value*mode;
 }
 
@@ -197,7 +196,7 @@ double rayleighDistribution(double mode)
 double uniformDistribution(double min,double max)
 {
 	double value;
-	value=min+(max-min)*unituni();
+	value=min+(max-min)*randomNumberBetweenZeroAndOne();
 	return value;
 }
 
@@ -206,7 +205,7 @@ double uniformDistribution(double min,double max)
 //
 //010913 Created by Peter H Zipfel
 ///////////////////////////////////////////////////////////////////////////////
-double unituni()
+double randomNumberBetweenZeroAndOne()
 {
 	double value;
 	value=(double)rand()/RAND_MAX;

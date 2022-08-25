@@ -53,6 +53,8 @@
 #define _CRT_SECURE_NO_DEPRECATE
 #include <fstream>
 #include <cmath>
+#include <iostream>
+#include <iomanip>
 #include "utility_header.hpp"
 #include "global_header.hpp"
 
@@ -69,21 +71,23 @@ Matrix::Matrix(){}
 
 Matrix::Matrix(int row_size,int col_size)
 {
-//	cout<<" >>> constructing >>>\n";
 
-          num_row=row_size;
-          num_col=col_size;
+   num_row=row_size;
+   num_col=col_size;
 
-          pbody=NULL;
+   pbody=NULL;
 
-          //allocating memory
-          num_elem=row_size*col_size;
-          pbody=new double[num_elem];
-          if(pbody==0){cerr<<" *** Error: matrix memory allocation failed ***\n";system("pause");exit(1);}
+   //allocating memory
+   num_elem=row_size*col_size;
+   pbody=new double[num_elem];
+   if(pbody==0){cerr<<" *** Error: matrix memory allocation failed ***\n";system("pause");exit(1);}
 
-          //initializing array to zero
-          for(int i=0;i<num_elem;i++)
-                    *(pbody+i)=0.;
+   //initializing array to zero
+   for(int i=0;i<num_elem;i++)
+   {
+      *(pbody+i)=0.;
+   }
+
 }
 
 Matrix::Matrix(const Matrix &MAT)
@@ -117,19 +121,22 @@ Matrix::~Matrix()
 ///////////////////////////////////////////////////////////////////////////////
 void Matrix::print()
 {
-          double *pmem=pbody;
 
-          //outside loop rows, inside loop columns
-          for(int i=0;i<num_row;i++){
-                    for(int j=0;j<num_col;j++){
-                              cout<<*pbody<<"\t";
-                              pbody++;
-                    }
-                    cout<<'\n';
-          }
-          //resetting pointer
-          pbody=pmem;
-          cout<<"\n\n";
+   double *pmem=pbody;
+   //outside loop rows, inside loop columns
+   for(int i=0;i<num_row;i++)
+   {
+      for(int j=0;j<num_col;j++)
+      {
+         cout << std::setprecision(10) <<*pbody<<"\t";
+         pbody++;
+      }
+      cout<<'\n';
+   }
+   //resetting pointer
+   pbody=pmem;
+   cout<<"\n\n";
+
 }
 
 ///////////////////////////////////////////////////////////////////////////////

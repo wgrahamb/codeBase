@@ -32,7 +32,7 @@ double gaussianDistribution(double mean, double sig);
 double markovDistribution(double sigma,double bcor,double time,double intstep,double &value_saved);
 double rayleighDistribution(double mode);
 double uniformDistribution(double min,double max);
-double unituni();
+double randomNumberBetweenZeroAndOne();
 double trapezoidIntegrate(double dy_new, double dy, double y, double intStep);
 void flightPathAnglesToLocalOrientation (double azimuth, double elevation, double localFrame[3][3]);
 void eulerAnglesToLocalOrientation (double phi, double theta, double psi, double matrix[3][3]);

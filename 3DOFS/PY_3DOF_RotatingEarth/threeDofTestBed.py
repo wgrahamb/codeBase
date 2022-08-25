@@ -330,7 +330,9 @@ class threeDofSim:
 	def ECIDerivative(self):
 
 		# Derivative calculated in ECI.
-		self.SPECIFIC_FORCE = npa([0.0, self.SIDE_COMM, self.NORM_COMM]) # METERS PER SECOND^2
+		ECIGRAV = self.ECI_GRAV(self.ECIPOS, self.TOF)
+		BODYGRAV = self.ECI_TO_FLU @ ECIGRAV
+		self.SPECIFIC_FORCE = npa([0.0, self.SIDE_COMM, self.NORM_COMM]) + BODYGRAV # METERS PER SECOND^2
 		self.ECIACC = (self.SPECIFIC_FORCE @ self.ECI_TO_FLU) # METERS PER SECOND^2
 
 	def ECIIntegrate(self):
@@ -393,7 +395,9 @@ class threeDofSim:
 	def ENUDerivative(self):
 
 		# Derivative calculated in ENU.
-		self.SPECIFIC_FORCE = npa([0.0, self.SIDE_COMM, self.NORM_COMM]) # METERS PER SECOND^2
+		ENUGRAV = npa([0.0, 0.0, -1.0 * 9.81])
+		BODYGRAV = self.ENU_TO_FLU @ ENUGRAV
+		self.SPECIFIC_FORCE = npa([0.0, self.SIDE_COMM, self.NORM_COMM]) + BODYGRAV # METERS PER SECOND^2
 		self.ENUACC = (self.SPECIFIC_FORCE @ self.ENU_TO_FLU) # METERS PER SECOND^2
 
 	def ENUIntegrate(self):
@@ -463,7 +467,7 @@ class threeDofSim:
 
 if __name__ == "__main__":
 
-	np.set_printoptions(suppress=True, precision=2)
+	np.set_printoptions(suppress=True, precision=6)
 
 	x = threeDofSim(
 		ID = "ROTATING_EARTH",
@@ -480,3 +484,4 @@ if __name__ == "__main__":
 		ROTATING_EARTH_FLAG=False
 	)
 	y.main()
+
