@@ -9,6 +9,7 @@
 #include <map>
 #include <algorithm>
 #include <string>
+#include <dirent.h>
 
 // Namespace.
 using namespace std;
@@ -23,6 +24,7 @@ const double pi = 3.14159265358979323846;
 const double twoTimesPi = 2 * pi;
 const double gravity = 9.81;
 
+void loopThroughDirectory(string fullpath);
 double signum(double x);
 double atan2_0(double y, double x);
 double exponentialDistribution(double density);

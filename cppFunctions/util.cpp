@@ -9,11 +9,31 @@
 #include <map>
 #include <algorithm>
 #include <string>
+#include <dirent.h>
 
 // Namespace.
 using namespace std;
 
 #include "util.h"
+
+void loopThroughDirectory(string filepath)
+{
+
+	struct dirent *entry = nullptr;
+	DIR *dp = nullptr;
+	string filepath = "";
+	dp = opendir(filepath.c_str());
+	if (dp != nullptr)
+	{
+		while ((entry = readdir(dp)))
+		{
+			string fileName = entry->d_name;
+			cout << fileName << endl;
+		}
+	}
+	closedir(dp);
+
+};
 
 double signum(double x)
 {
