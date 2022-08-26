@@ -68,18 +68,18 @@ yaw.plot(df.iloc[startIndex:stopIndex]["TOF"], df.iloc[startIndex:stopIndex]["RR
 yaw.plot(df.iloc[startIndex:stopIndex]["TOF"], df.iloc[startIndex:stopIndex]["VDOT_0"], label="SIDE ACC - M/S^2", color=colors.pop(0))
 yaw.legend(fontsize="small")
 
-# # Fins
-# fins = fig.add_subplot(224)
-# fins.set_title("Fins")
-# fins.set_xlabel("TOF")
-# fins.set_ylabel("Degrees")
-# pitchFinsDF = pd.read_csv(open(f"PY_5DOF_HIGH_FIDELITY_MOCK_HELLFIRE/output/PITCH_DEFL.txt"), delimiter=" ")
-# yawFinsDF = pd.read_csv(open(f"PY_5DOF_HIGH_FIDELITY_MOCK_HELLFIRE/output/YAW_DEFL.txt"), delimiter=" ")
-# fins.plot(pitchFinsDF.iloc[startIndex:stopIndex]["TIME"], pitchFinsDF.iloc[startIndex:stopIndex]["COMMAND"], label="Pitch Command", color=colors.pop(0))
-# fins.plot(pitchFinsDF.iloc[startIndex:stopIndex]["TIME"], pitchFinsDF.iloc[startIndex:stopIndex]["DEFL"], label="Pitch Deflection", color=colors.pop(0))
-# fins.plot(yawFinsDF.iloc[startIndex:stopIndex]["TIME"], yawFinsDF.iloc[startIndex:stopIndex]["COMMAND"], label="Yaw Command", color=colors.pop(0))
-# fins.plot(yawFinsDF.iloc[startIndex:stopIndex]["TIME"], yawFinsDF.iloc[startIndex:stopIndex]["DEFL"], label="Yaw Deflection", color=colors.pop(0))
-# fins.legend(fontsize="small")
+# Fins
+fins = fig.add_subplot(224)
+fins.set_title("Fins")
+fins.set_xlabel("TOF")
+fins.set_ylabel("Degrees")
+pitchFinsDF = pd.read_csv(open(f"PY_5DOF_HIGH_FIDELITY_MOCK_HELLFIRE/output/PITCH_DEFL.txt"), delimiter=" ")
+yawFinsDF = pd.read_csv(open(f"PY_5DOF_HIGH_FIDELITY_MOCK_HELLFIRE/output/YAW_DEFL.txt"), delimiter=" ")
+fins.plot(pitchFinsDF.iloc[startIndex:stopIndex]["TIME"], pitchFinsDF.iloc[startIndex:stopIndex]["COMMAND"], label="Pitch Command", color=colors.pop(0))
+fins.plot(pitchFinsDF.iloc[startIndex:stopIndex]["TIME"], pitchFinsDF.iloc[startIndex:stopIndex]["DEFL"], label="Pitch Deflection", color=colors.pop(0))
+fins.plot(yawFinsDF.iloc[startIndex:stopIndex]["TIME"], yawFinsDF.iloc[startIndex:stopIndex]["COMMAND"], label="Yaw Command", color=colors.pop(0))
+fins.plot(yawFinsDF.iloc[startIndex:stopIndex]["TIME"], yawFinsDF.iloc[startIndex:stopIndex]["DEFL"], label="Yaw Deflection", color=colors.pop(0))
+fins.legend(fontsize="small")
 
 # Show.
 fig.subplots_adjust(top=0.9, bottom=0.1, left=0.1, hspace=0.4)

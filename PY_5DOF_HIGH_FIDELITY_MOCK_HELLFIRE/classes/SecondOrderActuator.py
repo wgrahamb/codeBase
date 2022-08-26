@@ -20,7 +20,7 @@ class SecondOrderActuator:
 		self.DEFLECTION_DOT_DOT = 0.0 #  # Degrees per second.squared.
 		self.FLAG = 0
 
-		self.LOGFILE = open(f"MockHellfirePython/output/{ID}.txt", "w")
+		self.LOGFILE = open(f"PY_5DOF_HIGH_FIDELITY_MOCK_HELLFIRE/output/{ID}.txt", "w")
 
 		self.STATE = {
 			"TIME": self.TIME,
