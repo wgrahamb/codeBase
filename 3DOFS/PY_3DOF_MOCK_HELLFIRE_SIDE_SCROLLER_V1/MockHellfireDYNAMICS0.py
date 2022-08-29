@@ -151,7 +151,7 @@ def writeData():
 
 def storeJSON():
 	JSONOBJ = json.dumps(STATE, indent=4)
-	JSON_LIST.append(JSON_LIST)
+	JSON_LIST.append(JSONOBJ)
 
 def writeJSON():
 	writepickle(JSON_LIST, JSON_FILEPATH)
