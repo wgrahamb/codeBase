@@ -14,7 +14,7 @@ To Do:
 
 	Folder Structure:
 		3DOFS - Done.
-		CADAC_SIMULATIONS - Reference code.
+		CADAC_SIMULATIONS - Reference code. Convert to CMake projects.
 		PY_5DOF_AIM - Needs quite a bit of work.
 		PY_5DOF_HIGH_FIDELITY_MOCK_HELLFIRE - In development.
 		PY_6DOF_SRAAM - Needs quite a bit of work.
