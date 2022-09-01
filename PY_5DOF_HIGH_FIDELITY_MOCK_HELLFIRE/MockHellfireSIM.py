@@ -5,7 +5,7 @@ np.set_printoptions(suppress=True, precision=2)
 
 # Utility.
 
-# Classes.
+# Components.
 from classes.SecondOrderActuator import SecondOrderActuator
 
 # Dynamics.
@@ -14,6 +14,7 @@ import MockHellfireDYNAMICS5DOF as DYN
 """
 
 TO DO:
+ROTATING ELLIPTICAL EARTH.
 CORIOLOS AND CENTRIFUGAL FORCE.
 REAL MOTOR MODEL.
 GUIDANCE AND CONTROL.
@@ -32,8 +33,8 @@ if __name__ == "__main__":
 	# Dynamics.
 	LLA0 = npa([38.8719, 77.0563, 0.0])
 	POS0 = np.zeros(3)
-	AZ0 = 0
-	EL0 = 45
+	AZ0 = 0 # Degrees.
+	EL0 = 45 # Degrees.
 	SPD0 = 10
 	ID = "MOCK_HELLFIRE5DOF"
 	MSL = DYN.Construct5DOFMissile(POS0, AZ0, EL0, SPD0, ID)
@@ -48,14 +49,14 @@ if __name__ == "__main__":
 	TIME_INCREMENT = None
 
 	# Simple Guidance and Control.
-	MANEUVER1 = 20 # Seconds.
-	MANEUVER2 = 40
+	MANEUVER1 = 3 # Seconds.
+	MANEUVER2 = 6
 	PITCH_FIN_COMMAND = None
 	YAW_FIN_COMMAND = None
-	PITCHCOMMAND1 = -3 # Degrees.
-	YAWCOMMAND1 = 1 # Degrees.
-	PITCHCOMMAND2 = -2 # Degrees.
-	YAWCOMMAND2 = -1 # Degrees.
+	PITCHCOMMAND1 = -5 # Degrees.
+	YAWCOMMAND1 = 0 # Degrees.
+	PITCHCOMMAND2 = -1 # Degrees.
+	YAWCOMMAND2 = 0 # Degrees.
 	PITCHCOMMAND3 = 0 # Degrees.
 	YAWCOMMAND3 = 0 # Degrees.
 
