@@ -27,7 +27,7 @@ CLEAN UP ACTUATOR CODE.
 MM_TO_M = 1.0 / 1000.0
 RAD_TO_DEG = 57.2957795130823
 DEG_TO_RAD = 1.0 / RAD_TO_DEG
-EPSILON = 0.00001
+EPSILON = 0.0000001
 
 if __name__ == "__main__":
 
@@ -41,7 +41,7 @@ if __name__ == "__main__":
 	MSL = DYN.Construct5DOFMissile(POS0, AZ0, EL0, SPD0, ID)
 
 	# Components.
-	COMPONENTS = {
+	ACTUATORS = {
 		"PITCH_ACT": SecondOrderActuator("PITCH_DEFL"),
 		"YAW_ACT": SecondOrderActuator("YAW_DEFL"),
 	}
@@ -51,12 +51,12 @@ if __name__ == "__main__":
 
 	# Simple Guidance and Control.
 	MANEUVER1 = 3 # Seconds.
-	MANEUVER2 = 6
+	MANEUVER2 = 6 # Seconds.
 	PITCH_FIN_COMMAND = None
 	YAW_FIN_COMMAND = None
-	PITCHCOMMAND1 = -5 # Degrees.
-	YAWCOMMAND1 = 0 # Degrees.
-	PITCHCOMMAND2 = -1 # Degrees.
+	PITCHCOMMAND1 = 0 # Degrees.
+	YAWCOMMAND1 = -4 # Degrees.
+	PITCHCOMMAND2 = 0 # Degrees.
 	YAWCOMMAND2 = 0 # Degrees.
 	PITCHCOMMAND3 = 0 # Degrees.
 	YAWCOMMAND3 = 0 # Degrees.
@@ -81,12 +81,12 @@ if __name__ == "__main__":
 		# Get next update time.
 		N = 0.0
 		N_ID = ""
-		for index, key in enumerate(COMPONENTS.keys()):
+		for index, key in enumerate(ACTUATORS.keys()):
 			if index == 0:
-				N = COMPONENTS[f"{key}"].NEXT_UPDATE_TIME
+				N = ACTUATORS[f"{key}"].NEXT_UPDATE_TIME
 				N_ID = key
-			elif COMPONENTS[f"{key}"].NEXT_UPDATE_TIME < N:
-				N = COMPONENTS[f"{key}"].NEXT_UPDATE_TIME
+			elif ACTUATORS[f"{key}"].NEXT_UPDATE_TIME < N:
+				N = ACTUATORS[f"{key}"].NEXT_UPDATE_TIME
 				N_ID = key
 
 		# Update dynamics.
@@ -95,15 +95,15 @@ if __name__ == "__main__":
 			MSL = DYN.Fly5DOF(
 				MISSILE_INPUT_STATE_DICT=MSL,
 				FLY_FOR_THIS_LONG=TIME_INCREMENT,
-				PITCH_FIN_DEFL_DEG_INPUT=COMPONENTS["PITCH_ACT"].DEFLECTION,
-				YAW_FIN_DEFL_DEG_INPUT=COMPONENTS["YAW_ACT"].DEFLECTION
+				PITCH_FIN_DEFL_DEG_INPUT=ACTUATORS["PITCH_ACT"].DEFLECTION,
+				YAW_FIN_DEFL_DEG_INPUT=ACTUATORS["YAW_ACT"].DEFLECTION
 			)
 
 		# Update components. Would like to make this bit more terse.
 		if N_ID == "PITCH_ACT":
-			COMPONENTS["PITCH_ACT"].update(PITCH_FIN_COMMAND)
+			ACTUATORS["PITCH_ACT"].update(PITCH_FIN_COMMAND)
 		elif N_ID == "YAW_ACT":
-			COMPONENTS["YAW_ACT"].update(YAW_FIN_COMMAND)
+			ACTUATORS["YAW_ACT"].update(YAW_FIN_COMMAND)
 
 		# Console report.
 		CHECK = round(TOF, 3).is_integer()

@@ -16,6 +16,7 @@ import utility.loggingFxns as lf
 # Classes.
 from classes.ATM1976 import ATM1976
 from classes.MockHellfireMassAndMotor import MockHellfireMassAndMotor
+from classes.SphericalNoseDrag import SphericalNoseDrag
 
 """
 
@@ -228,8 +229,9 @@ def Fly5DOF(
 	EDOTDOT4 = np.zeros(3)
 
 	# AIRFRAME. ###############################################################################
-	CD_LOOKUP = [0.1, 0.5]
-	MACH_LOOKUP = [0.5, 2.5]
+	x = SphericalNoseDrag()
+	CD_LOOKUP = x.getCDValues()
+	MACH_LOOKUP = x.getMachValues()
 	MM_TO_M = 1.0 / 1000.0
 	REFERENCE_DIAMETER = 0.18 # Meters.
 	REFERENCE_LENGTH = 1.6 # Meters. # REFERENCE_LENGTH = 1.85026 # Meters.
@@ -252,7 +254,7 @@ def Fly5DOF(
 	AN = 0.67 * NOSE_LENGTH * REFERENCE_DIAMETER # Meters squared.
 	AB = (REFERENCE_LENGTH - NOSE_LENGTH) * REFERENCE_DIAMETER # Meters squared.
 	BODY_CENTER_OF_PRESSURE = (0.67 * AN * NOSE_LENGTH + AB * (NOSE_LENGTH + 0.5 * (REFERENCE_LENGTH - NOSE_LENGTH))) / (AN + AB) # Meters.
-	
+
 	# FUNCTION FOR RETURNING DATA DICTIONARY. ###############################################################################
 	def populateState():
 
@@ -321,7 +323,7 @@ def Fly5DOF(
 		TMOI = MSL["MASS_AND_MOTOR"].TRANSVERSE_MOI
 		THRUST = MSL["MASS_AND_MOTOR"].THRUST
 
-		# BASIC DRAG MODEL. ###############################################################################
+		# BASIC DRAG MODEL.
 		CD = None # Non dimensional.
 		if MACH >= MACH_LOOKUP[0]:
 			CD = linearInterpolation(MACH, MACH_LOOKUP, CD_LOOKUP)

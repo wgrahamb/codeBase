@@ -16,12 +16,13 @@ class MockHellfireMassAndMotor:
 
 		# MOTOR PROPERTIES.
 		self.BURN_TIME = 3.1 # Seconds.
-		self.ISP = 250 # Seconds. Adjusted to represent a hellfire.
+		self.ISP = 150 # Seconds. Adjusted to represent a hellfire.
 		self.INITIAL_TOTAL_MASS = 45 # Kilograms.
 		self.FINAL_TOTAL_MASS = 25 # Kilograms.
 		self.EXIT_VEL = self.ISP * self.STANDARD_GRAVITY # Meters per second.
 		self.DELTA_V = np.log(self.INITIAL_TOTAL_MASS / self.FINAL_TOTAL_MASS) * self.EXIT_VEL # Meters per second.
 		self.MDOT = (self.INITIAL_TOTAL_MASS - self.FINAL_TOTAL_MASS) / self.BURN_TIME # Kilograms per second.
+		self.CALCULATED_THRUST = self.ISP * self.STANDARD_GRAVITY * self.MDOT
 
 		# STATE.
 		self.MASS = self.INITIAL_TOTAL_MASS # Kilograms.
@@ -30,8 +31,6 @@ class MockHellfireMassAndMotor:
 		self.TRANSVERSE_MOI = (self.MASS * (3 * ((0.5 * self.REFERENCE_DIAMETER) ** 2) + self.REFERENCE_LENGTH ** 2)) / (12) # Kilograms times meters squared.
 
 		# LOOKUPS.
-		self.THRUST_TIME_VALUES = np.linspace(0.0, self.BURN_TIME, 100)
-		self.THRUST_VALUES = np.linspace(5000.0, 7000.0, 100)
 		self.CG_TIME_VALUES = np.linspace(0.0, self.BURN_TIME, 100)
 		self.CG_VALUES = np.linspace(STARTING_CG_FROM_NOSE, LAST_CG_FROM_NOSE, 100)
 
@@ -49,7 +48,8 @@ class MockHellfireMassAndMotor:
 			return
 
 		if self.MASS > self.FINAL_TOTAL_MASS:
-			vacuumThrust = linearInterpolation(timeOfFlight, self.THRUST_TIME_VALUES, self.THRUST_VALUES)
+			# vacuumThrust = linearInterpolation(timeOfFlight, self.THRUST_TIME_VALUES, self.THRUST_VALUES)
+			vacuumThrust = self.CALCULATED_THRUST
 			self.THRUST = vacuumThrust + (pressure - self.SEA_LEVEL_PRESSURE) * self.NOZZLE_EXIT_AREA
 			self.XCG = linearInterpolation(timeOfFlight, self.CG_TIME_VALUES, self.CG_VALUES)
 			self.TRANSVERSE_MOI = (self.MASS * (3 * ((0.5 * self.REFERENCE_DIAMETER) ** 2) + self.REFERENCE_LENGTH ** 2)) / (12) # Kilograms times meters squared.
@@ -60,3 +60,19 @@ class MockHellfireMassAndMotor:
 				self.THRUST = 0.0
 				self.XCG = self.CG_VALUES[-1]
 				self.TRANSVERSE_MOI = (self.MASS * (3 * ((0.5 * self.REFERENCE_DIAMETER) ** 2) + self.REFERENCE_LENGTH ** 2)) / (12) # Kilograms times meters squared.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
