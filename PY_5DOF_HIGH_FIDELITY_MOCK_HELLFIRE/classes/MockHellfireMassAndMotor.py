@@ -8,7 +8,7 @@ class MockHellfireMassAndMotor:
 		# CONSTANTS.
 		self.STANDARD_GRAVITY = 9.81 # Meters per second squared.
 		self.REFERENCE_DIAMETER = 0.1778 # Meters. Hellfire.
-		self.REFERENCE_LENGTH = 1.85026 # Meters.
+		self.REFERENCE_LENGTH = 1.6 # Meters.
 		self.SEA_LEVEL_PRESSURE = 101325 # Pascals.
 		self.NOZZLE_EXIT_AREA = 0.004 # Meters squared. Hellfire.
 		STARTING_CG_FROM_NOSE =  0.644605 # Meters.
@@ -36,21 +36,21 @@ class MockHellfireMassAndMotor:
 		self.CG_VALUES = np.linspace(STARTING_CG_FROM_NOSE, LAST_CG_FROM_NOSE, 100)
 
 		print("MOCK HELLFIRE MASS AND MOTOR PROPERTIES LOADED")
-	
+
 		self.FLAG = 0
 	
 	def update(self, timeOfFlight, pressure):
-		
+
 		if self.FLAG == 0:
 			fuelUsed = self.MDOT * timeOfFlight
 			self.MASS = (self.INITIAL_TOTAL_MASS - fuelUsed)
+
 		else:
 			return
 
 		if self.MASS > self.FINAL_TOTAL_MASS:
-
-			thrust = linearInterpolation(timeOfFlight, self.THRUST_TIME_VALUES, self.THRUST_VALUES)
-			self.THRUST = thrust + (pressure - self.SEA_LEVEL_PRESSURE) * self.NOZZLE_EXIT_AREA
+			vacuumThrust = linearInterpolation(timeOfFlight, self.THRUST_TIME_VALUES, self.THRUST_VALUES)
+			self.THRUST = vacuumThrust + (pressure - self.SEA_LEVEL_PRESSURE) * self.NOZZLE_EXIT_AREA
 			self.XCG = linearInterpolation(timeOfFlight, self.CG_TIME_VALUES, self.CG_VALUES)
 			self.TRANSVERSE_MOI = (self.MASS * (3 * ((0.5 * self.REFERENCE_DIAMETER) ** 2) + self.REFERENCE_LENGTH ** 2)) / (12) # Kilograms times meters squared.
 

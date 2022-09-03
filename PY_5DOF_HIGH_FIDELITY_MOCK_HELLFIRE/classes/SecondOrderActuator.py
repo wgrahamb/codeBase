@@ -10,15 +10,14 @@ class SecondOrderActuator:
 		self.TIME = 0.0 # Seconds.
 		self.TIME_STEP = 1.0 / 300.0 # Seconds.
 		self.NEXT_UPDATE_TIME = self.TIME + self.TIME_STEP # Seconds.
+		self.DEFL_RATE_LIMIT = 25 # Degrees per second.
 		self.DEFL_LIMIT = 10 # Degrees.
-		self.DEFL_RATE_LIMIT = 0.01 # Degrees per second.
 		self.WNACT = np.degrees(1.0) # Degrees per second.
-		self.ZETACT = 0.7 # Non dimensional.
+		self.ZETACT = 0.8 # Non dimensional.
 		self.DEFLECTION = 0.0 # Degrees.
-		self.DEFLECTION_DOT_DER = 0.0 # Degrees per second.
+		self.DEFLECTION_DER = 0.0 # Degrees per second.
 		self.DEFLECTION_DOT = 0.0 # Degrees per second.
-		self.DEFLECTION_DOT_DOT = 0.0 #  # Degrees per second.squared.
-		self.FLAG = 0
+		self.DEFLECTION_DOT_DER = 0.0 #  # Degrees per second.squared.
 
 		self.LOGFILE = open(f"PY_5DOF_HIGH_FIDELITY_MOCK_HELLFIRE/output/{ID}.txt", "w")
 
@@ -36,27 +35,25 @@ class SecondOrderActuator:
 	def update(self, DEFLECTION_COMMAND):
 
 		### ACTUATOR ###
-		self.FLAG = 0
-		if np.abs(self.DEFLECTION) > self.DEFL_LIMIT:
-			self.DEFLECTION = self.DEFL_LIMIT * np.sign(self.DEFLECTION)
-			if (self.DEFLECTION * self.DEFLECTION_DOT) > 0.0:
-				self.DEFLECTION_DOT = 0.0
-		if np.abs(self.DEFLECTION_DOT > self.DEFL_RATE_LIMIT):
-			self.FLAG = 1
-			self.DEFLECTION_DOT = self.DEFL_RATE_LIMIT * np.sign(self.DEFLECTION_DOT)
 
-		DEFL_DOT_NEW = self.DEFLECTION_DOT
-		self.DEFLECTION = integrate(DEFL_DOT_NEW, self.DEFLECTION_DOT_DER, self.DEFLECTION, self.TIME_STEP)
-		self.DEFLECTION_DOT_DER = DEFL_DOT_NEW
+		DEFLECTION_DER_NEW = self.DEFLECTION_DOT
+		if DEFLECTION_DER_NEW > self.DEFL_RATE_LIMIT:
+			DEFLECTION_DER_NEW = self.DEFL_RATE_LIMIT
+
+		if self.DEFLECTION > self.DEFL_LIMIT:
+			self.DEFLECTION = self.DEFL_LIMIT
+		else:
+			self.DEFLECTION = integrate(DEFLECTION_DER_NEW, self.DEFLECTION_DER, self.DEFLECTION, self.TIME_STEP)
+
+		self.DEFLECTION_DER = DEFLECTION_DER_NEW
 		EDX = DEFLECTION_COMMAND - self.DEFLECTION
-		DEFLDOTDOT_NEW = self.WNACT * self.WNACT * EDX - 2 * self.ZETACT * self.WNACT * self.DEFLECTION_DOT_DER
-		self.DEFLECTION_DOT_DER = integrate(DEFLDOTDOT_NEW, self.DEFLECTION_DOT_DOT, self.DEFLECTION_DOT, self.TIME_STEP)
-		self.DEFLECTION_DOT_DOT = DEFLDOTDOT_NEW
-		if self.FLAG == 1 and (self.DEFLECTION_DOT_DER * self.DEFLECTION_DOT_DOT) > 0:
-			self.DEFLECTION_DOT_DOT= 0
+		DEFLECTION_DOT_DER_NEW = self.WNACT * self.WNACT * EDX - 2 * self.ZETACT * self.WNACT * self.DEFLECTION_DER
+		self.DEFLECTION_DOT = integrate(DEFLECTION_DOT_DER_NEW, self.DEFLECTION_DOT_DER, self.DEFLECTION_DOT, self.TIME_STEP)
+		self.DEFLECTION_DOT_DER = DEFLECTION_DOT_DER_NEW
+
 		self.TIME += self.TIME_STEP
 		self.NEXT_UPDATE_TIME = self.TIME + self.TIME_STEP # Seconds.
-		
+
 		self.STATE = {
 			"TIME": self.TIME,
 			"COMMAND": DEFLECTION_COMMAND,

@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
-f1 = r"CPP_6DOF_SRAAM_V2/output/missile_6DOF.txt"
+f1 = r"output/missile_6DOF.txt"
 
 viewFile = f1
 
@@ -49,7 +49,7 @@ roll = fig.add_subplot(242)
 roll.set_title("Roll")
 roll.set_xlabel("Time of Flight")
 roll.plot(df.iloc[startIndex:stopIndex]["tof"], df.iloc[startIndex:stopIndex]["phi"], color="b", label="Phi Radians")
-roll.plot(df.iloc[startIndex:stopIndex]["tof"], df.iloc[startIndex:stopIndex]["phiDot"], color="r", label="Phi Dot Radians per Second", alpha=0.5)
+# roll.plot(df.iloc[startIndex:stopIndex]["tof"], df.iloc[startIndex:stopIndex]["phiDot"], color="r", label="Phi Dot Radians per Second", alpha=0.5)
 roll.plot(df.iloc[startIndex:stopIndex]["tof"], df.iloc[startIndex:stopIndex]["p"], color="g", label="Roll Rate Radians per Second", alpha=0.5)
 roll.plot(df.iloc[startIndex:stopIndex]["tof"], df.iloc[startIndex:stopIndex]["pdot"], color="cyan", label="Roll Rate Dot Radians per Second^2", alpha=0.5)
 roll.plot(df.iloc[startIndex:stopIndex]["tof"], df.iloc[startIndex:stopIndex]["rollRateError"], color="orange", label="Roll Rate Error", alpha=0.5)
@@ -59,10 +59,10 @@ roll.legend(fontsize="xx-small")
 pitch = fig.add_subplot(243)
 pitch.set_title("Pitch")
 pitch.plot(df.iloc[startIndex:stopIndex]["tof"], df.iloc[startIndex:stopIndex]["theta"], color="b", label="Theta Radians")
-pitch.plot(df.iloc[startIndex:stopIndex]["tof"], df.iloc[startIndex:stopIndex]["alphaDegrees"], color="fuchsia", label="Alpha Degrees")
+pitch.plot(df.iloc[startIndex:stopIndex]["tof"], df.iloc[startIndex:stopIndex]["alphaRadians"], color="fuchsia", label="Alpha Radians")
 pitch.plot(df.iloc[startIndex:stopIndex]["tof"], df.iloc[startIndex:stopIndex]["thetaDot"], color="r", label="Theta Dot Radians per Second")
 pitch.plot(df.iloc[startIndex:stopIndex]["tof"], df.iloc[startIndex:stopIndex]["q"], color="g", label="Pitch Rate Radians per Second")
-pitch.plot(df.iloc[startIndex:stopIndex]["tof"], df.iloc[startIndex:stopIndex]["qdot"], color="cyan", label="Pitch Rate Dot Radians per Second^2", alpha=0.5)
+# pitch.plot(df.iloc[startIndex:stopIndex]["tof"], df.iloc[startIndex:stopIndex]["qdot"], color="cyan", label="Pitch Rate Dot Radians per Second^2", alpha=0.5)
 pitch.plot(df.iloc[startIndex:stopIndex]["tof"], df.iloc[startIndex:stopIndex]["pitchRateError"], color="orange", label="Pitch Rate Error", alpha=0.5)
 pitch.legend(fontsize="xx-small")
 
@@ -71,10 +71,10 @@ yaw = fig.add_subplot(244)
 yaw.set_title("Yaw")
 yaw.set_xlabel("Time of Flight")
 yaw.plot(df.iloc[startIndex:stopIndex]["tof"], df.iloc[startIndex:stopIndex]["psi"], color="b", label="Psi Radians")
-yaw.plot(df.iloc[startIndex:stopIndex]["tof"], df.iloc[startIndex:stopIndex]["betaDegrees"], color="fuchsia", label="Beta Degrees")
+yaw.plot(df.iloc[startIndex:stopIndex]["tof"], df.iloc[startIndex:stopIndex]["betaRadians"], color="fuchsia", label="Beta Radians")
 yaw.plot(df.iloc[startIndex:stopIndex]["tof"], df.iloc[startIndex:stopIndex]["psiDot"], color="r", label="Psi Dot Radians per Second")
 yaw.plot(df.iloc[startIndex:stopIndex]["tof"], df.iloc[startIndex:stopIndex]["r"], color="g", label="Yaw Rate Radians per Second")
-yaw.plot(df.iloc[startIndex:stopIndex]["tof"], df.iloc[startIndex:stopIndex]["rdot"], color="cyan", label="Yaw Rate Dot Radians per Second^2", alpha=0.5)
+# yaw.plot(df.iloc[startIndex:stopIndex]["tof"], df.iloc[startIndex:stopIndex]["rdot"], color="cyan", label="Yaw Rate Dot Radians per Second^2", alpha=0.5)
 yaw.plot(df.iloc[startIndex:stopIndex]["tof"], df.iloc[startIndex:stopIndex]["yawRateError"], color="orange", label="Yaw Rate Error", alpha=0.5)
 yaw.legend(fontsize="xx-small")
 
@@ -109,7 +109,7 @@ performance.set_xlabel("Time of Flight")
 performance.plot(df.iloc[startIndex:stopIndex]["tof"], df.iloc[startIndex:stopIndex]["mach"], color="b", label="Mach Speed")
 performance.plot(df.iloc[startIndex:stopIndex]["tof"], df.iloc[startIndex:stopIndex]["CX"], color="g", label="Axial Drag Coefficient")
 performance.plot(df.iloc[startIndex:stopIndex]["tof"], 0.01 * df.iloc[startIndex:stopIndex]["accelerationLimit"], color="r", label="1% Maneuvering Limit M/S^2")
-performance.plot(df.iloc[startIndex:stopIndex]["tof"], 0.01 * df.iloc[startIndex:stopIndex]["udot"], color="orange", label="1% Axial Acceleration M/S^2")
+performance.plot(df.iloc[startIndex:stopIndex]["tof"], 0.01 * df.iloc[startIndex:stopIndex]["udot"], color="orange", label="Thrust Acceleration")
 performance.plot(df.iloc[startIndex:stopIndex]["tof"], df.iloc[startIndex:stopIndex]["staticMargin"], color="cyan", label="Static Margin")
 performance.plot(df.iloc[startIndex:stopIndex]["tof"], df.iloc[startIndex:stopIndex]["alphaPrimeDegrees"], color="fuchsia", label="Angle of Attack Degrees")
 performance.legend(fontsize="xx-small")
@@ -125,5 +125,5 @@ seeker.plot(df.iloc[startIndex:stopIndex]["tof"], df.iloc[startIndex:stopIndex][
 seeker.plot(df.iloc[startIndex:stopIndex]["tof"], df.iloc[startIndex:stopIndex]["seekerYawError"], color="cyan", label="Seeker Boresight Horizontal Offset from Target")
 seeker.legend(fontsize="xx-small")
 
-fig.subplots_adjust(top=0.9, bottom=0.1, left=0.1, hspace=0.4)
+fig.subplots_adjust(top=0.9, bottom=0.1, left=0.05, hspace=0.5)
 plt.show()

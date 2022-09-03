@@ -39,7 +39,6 @@ UNCORRECTED_REFERENCE_LENGTH 1.85026 m
 
 """
 
-# Three degrees of freedom. Right, up, and pitch.
 def Construct5DOFMissile(
 	INITIAL_POSITION,
 	INITIAL_AZIMUTH,
@@ -338,8 +337,8 @@ def Fly5DOF(
 		SPEED = la.norm(ENUVEL)
 		VEL_B = ENU_TO_FLU @ ENUVEL
 		ALPHA, SIDESLIP = returnAlphaAndBeta(VEL_B)
-		ALPHA *= -1
-		SIDESLIP *= -1
+		ALPHA *= -1 # Not really sure why, but it works.
+		SIDESLIP *= -1 # Not really sure why, but it works.
 
 		# AERODYNAMICS.
 		CY = 2 * SIDESLIP + \

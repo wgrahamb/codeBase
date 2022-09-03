@@ -47,11 +47,13 @@ struct Missile
 	// Target.
 	double pip[3]; // Predicted Intercept Point. Meters.
 
-	// Missile state.
-	bool ballistic = false;
-	bool launch = true; // Launch command. True for now, will be needed for fire control.
+	// Missile overhead.
+	bool BALLISTIC = false;
+	bool LAUNCHED = false;
 	double TIME_STEP = (1.0 / 600.0);
 	double HALF_TIME_STEP = TIME_STEP * 0.5;
+
+	// Missile state.
 	double timeOfFlight = 0.0; // Seconds.
 	double missileENUToFLUMatrix[3][3]; // Non dimensional.
 	double ENUPosition[3]; // Meters.
@@ -59,7 +61,6 @@ struct Missile
 	double ENUVelocity[3]; // Meters per second.
 	double FLUVelocity[3]; // Meters per second.
 	double speed; // Meters per second.
-	double machSpeed = 0.0; // Non dimensional.
 	double ENUAcceleration[3]; // Meters per second^2.
 	double FLUAcceleration[3]; // Meters per second^2.
 	double alphaRadians = 0.0; // Radians.
@@ -76,6 +77,7 @@ struct Missile
 	double FLUGravity[3] = {0.0, 0.0, 0.0}; // Meters per second^2.
 	double pressure = 0.0; // Pascals.
 	double dynamicPressure = 0.0; // Pascals.
+	double machSpeed = 0.0; // Non dimensional.
 
 	// Seeker.
 	double seekerPitch; // Radians.
@@ -105,14 +107,16 @@ struct Missile
 	double maneuveringLimit = MAXIMUM_ACCELERATION; // Meters per second^2.
 
 	// Control
-	double lastYawRateError = 0.0; // Radians per second.
-	double yawRateError = 0.0; // Radians per second.
+	double lastYawProportionalError = 0.0; // Radians per second.
+	double yawIntegralError = 0.0; // Something.
+	double yawProportionalError = 0.0; // Radians per second.
 	double yawFinCommand = 0.0; // Radians.
-	double lastPitchRateError = 0.0; // Radians per second.
-	double pitchRateError = 0.0; // Radians per second.
+	double lastPitchProportionalError = 0.0; // Radians per second.
+	double pitchIntegralError = 0.0; // Something.
+	double pitchProportionalError = 0.0; // Radians per second.
 	double pitchFinCommand = 0.0; // Radians.
-	double lastRollRateError = 0.0; // Radians per second.
-	double rollRateError = 0.0; // Radians per second.
+	double lastRollProportionalError = 0.0; // Radians per second.
+	double rollProportionalError = 0.0; // Radians per second.
 	double rollFinCommand = 0.0; // Radians.
 
 	// Actuators.
@@ -157,7 +161,7 @@ struct Missile
 	double CA0 = 0.0; // Axial force coefficient. Non dimensional.
 	double CAA = 0.0; // Axial force derivative of alpha prime. Per degree.
 	double CAD = 0.0; // Axial force derivative of control fin deflection. Per degree^2.
-	double CAOFF = 0.0; // Power off correction term for axial force coefficient. Non dimensional.
+	double CA_POWER_CORRECTION = 0.0; // Power off correction term for axial force coefficient. Non dimensional.
 	double CYP = 0.0; // Side force coefficient correction term for when phi is non zero. Non dimensional.
 	double CYDR = 0.0; // Side force derivative of elevator. Per degree.
 	double CN0 = 0.0; // Normal force coefficient. Non dimensional.
@@ -255,7 +259,7 @@ struct Missile
 // Functions.
 void lookUpTablesFormat (Missile &missile, string dataFile);
 void initUnLaunchedMissile(Missile &missile, double phi, double theta, double psi, double ENUPosition[3]);
-void initSeeker(Missile &missile);
+void turnOnSeeker(Missile &missile);
 void atmosphere(Missile &missile);
 void seeker(Missile &missile);
 void guidance(Missile &missile);
