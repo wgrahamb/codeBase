@@ -1,3 +1,4 @@
+
 // Standard.
 #include <iostream>
 #include <fstream>
@@ -18,9 +19,13 @@
 // Namespace.
 using namespace std;
 
-/* To do. */
-// Try and implement Zipfel's original controller.
-// Clean the actuator code.
+/*
+
+TO DO:
+Try and implement Zipfel's original controller.
+Clean the actuator code.
+
+*/
 
 /* Missile Model */
 /*
@@ -36,15 +41,15 @@ using namespace std;
 # Array 1, Side - Looking down the nozzle of the interceptor, this points out the left hand side.
 # Array 2, Normal - Looking down the nozzle of the interceptor, this points out the top side.
 #
-#			Positive normal.
-#				|
-#				|
-#				|
-#	Positive side. -------O------- Negative side.
-#				|
-#				|
-#				|
-#			Negative normal.
+#                                  Positive normal.
+#                                            |
+#                                            |
+#                                            |
+#               Positive side. -------O------- Negative side.
+#                                            |
+#                                            |
+#                                            |
+#                                  Negative normal.
 #
 # Negative axis is pointing out of the screen directly at you.
 # Positive axis is pointing into the screen directly away from you.
@@ -55,9 +60,9 @@ using namespace std;
 #
 # Fin orientation, looking down the nozzle of the missile.
 #
-#		Fin 4	Fin 1
-#			X
-#		Fin 3	Fin 2
+#                    Fin 4    Fin 1
+#                            X
+#                    Fin 3    Fin 2
 #
 */
 

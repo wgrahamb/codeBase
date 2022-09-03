@@ -2,20 +2,6 @@ import subprocess
 import shutil
 import os
 
-# int ballistic;
-# int INTEGRATION_METHOD;
-# double phiRads;
-# double thetaRads;
-# double psiRads;
-# double posE;
-# double posN;
-# double posU;
-# double tgtE;
-# double tgtN;
-# double tgtU;
-# int LogData;
-# int ConsoleReport;
-
 ballistic = 0 # Boolean.
 INTEGRATION_METHOD = 1 # 0 = Euler, 1 = RK2, 2 = RK4.
 phi = 0 # Degrees.
@@ -24,9 +10,9 @@ psi = 0 # Degrees.
 posE = 0 # Meters.
 posN = 0 # Meters.
 posU = 0 # Meters.
-tgtE = 4000 # Meters.
-tgtN = 100 # Meters.
-tgtU = 5000 # Meters.
+tgtE = 3000 # Meters.
+tgtN = 5000 # Meters.
+tgtU = 3000 # Meters.
 LogData = 1 # Boolean.
 ConsoleReport = 1 # Boolean.
 
