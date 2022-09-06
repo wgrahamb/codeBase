@@ -22,8 +22,9 @@ using namespace std;
 /*
 
 TO DO:
-Try and implement Zipfel's original controller.
+Try and implement Zipfel's original controller. Compare
 Clean the actuator code.
+Implement a target model and basic fire control.
 
 */
 
@@ -235,7 +236,7 @@ void lookUpTablesFormat (Missile &missile, string dataFile)
 }
 
 // Emplacement.
-void initUnLaunchedMissile(Missile &missile, double phiRads, double thetaRads, double psiRads, double ENUPosition[3])
+void emplace(Missile &missile, double phiRads, double thetaRads, double psiRads, double ENUPosition[3])
 {
 
 	// Missile.
@@ -267,7 +268,7 @@ void initUnLaunchedMissile(Missile &missile, double phiRads, double thetaRads, d
 }
 
 // For the case of new flyouts as well as "seeker on." Must have a pip or target state to initialize.
-void turnOnSeeker(Missile &missile)
+void seekerOn(Missile &missile)
 {
 
 	// Intialize seeker.
@@ -402,7 +403,7 @@ void guidance(Missile &missile)
 		magnitude(missile.FLUMissileToPipRelativePosition, forwardLeftUpMissileToInterceptPositionMagnitude);
 		magnitude(forwardLeftUpMissileToInterceptLineOfSightVel, forwardLeftUpMissileToInterceptLineOfSightVelMagnitude);
 		missile.timeToGo = forwardLeftUpMissileToInterceptPositionMagnitude / forwardLeftUpMissileToInterceptLineOfSightVelMagnitude;
-		if (missile.timeToGo < 5)
+		if (missile.timeToGo < 3)
 		// if (true)
 		{
 			if (!missile.homing)
@@ -769,18 +770,28 @@ void aerodynamicAnglesAndConversions(Missile &missile)
 	missile.betaDegrees = missile.betaRadians * radToDeg;
 	missile.alphaPrimeRadians = acos(cos(missile.alphaRadians) * cos(missile.betaRadians));
 	missile.alphaPrimeDegrees = radToDeg * missile.alphaPrimeRadians;
+
 	double phiPrime = atan2(tan(missile.betaRadians), sin(missile.alphaRadians));
+
 	missile.sinPhiPrime = sin(phiPrime);
 	missile.cosPhiPrime = cos(phiPrime);
+
 	double pitchDeflAeroFrame = missile.pitchFinDeflection * missile.cosPhiPrime - missile.yawFinDeflection * missile.sinPhiPrime;
+
 	missile.pitchAeroBallisticFinDeflectionDegrees = radToDeg * pitchDeflAeroFrame;
+
 	double yawDeflAeroFrame = missile.pitchFinDeflection * missile.sinPhiPrime + missile.yawFinDeflection * missile.cosPhiPrime;
+
 	missile.yawAeroBallisticFinDeflectionDegrees = radToDeg * yawDeflAeroFrame;
 	missile.rollFinDeflectionDegrees = radToDeg * missile.rollFinDeflection;
 	missile.totalFinDeflectionDegrees = (abs(missile.pitchAeroBallisticFinDeflectionDegrees) + abs(missile.yawAeroBallisticFinDeflectionDegrees)) / 2;
+
 	double pitchRateAeroFrame = missile.bodyRate[1] * missile.cosPhiPrime - missile.bodyRate[2] * missile.sinPhiPrime;
+
 	missile.pitchAeroBallisticBodyRateDegrees = radToDeg * pitchRateAeroFrame;
+
 	double yawRateAeroFrame = missile.bodyRate[1] * missile.sinPhiPrime + missile.bodyRate[2] * missile.cosPhiPrime;
+
 	missile.yawAeroBallisticBodyRateDegrees = radToDeg * yawRateAeroFrame;
 	missile.rollRateDegrees = radToDeg * missile.bodyRate[0];
 	missile.sinOfFourTimesPhiPrime = sin(4 * phiPrime);
@@ -919,7 +930,7 @@ void propulsion(Missile &missile)
 
 }
 
-void aerodynamicIntegrationCoefficients(Missile &missile)
+void aerodynamics(Missile &missile)
 {
 
 	double CYAERO = missile.CYP * missile.sinOfFourTimesPhiPrime + missile.CYDR * missile.yawAeroBallisticFinDeflectionDegrees;
@@ -938,7 +949,7 @@ void aerodynamicIntegrationCoefficients(Missile &missile)
 
 }
 
-void aerodynamicFeedbackCoefficients(Missile &missile)
+void aerodynamicDerivatives(Missile &missile)
 {
 
 	int index;
@@ -1343,6 +1354,8 @@ void rk4IntegrateStates(Missile &missile)
 void missileMotion(Missile &missile)
 {
 
+	/* Derivatives. */
+
 	// Forces.
 	double axialForce = missile.thrust - missile.CX * missile.dynamicPressure * REFERENCE_AREA + missile.FLUGravity[0] * missile.mass;
 	double sideForce = missile.CY * missile.dynamicPressure * REFERENCE_AREA + missile.FLUGravity[1] * missile.mass;
@@ -1371,7 +1384,7 @@ void missileMotion(Missile &missile)
 	missile.ENUEulerDot[1] = missile.bodyRate[1] * cos(missile.ENUEulerAngles[0]) - missile.bodyRate[2] * sin(missile.ENUEulerAngles[0]);
 	missile.ENUEulerDot[2] = (missile.bodyRate[1] * sin(missile.ENUEulerAngles[0]) + missile.bodyRate[2] * cos(missile.ENUEulerAngles[0])) / cos(missile.ENUEulerAngles[1]);
 
-	// Integrate states.
+	// STATE.
 	if (missile.INTEGRATION_METHOD == 0)
 	{
 		eulerIntegrateStates(missile);
@@ -1837,8 +1850,8 @@ void sixDofFly(Missile &missile, string flyOutID, bool writeData, bool consoleRe
 		tableLookUps(missile);
 		accelerationLimit(missile);
 		propulsion(missile);
-		aerodynamicIntegrationCoefficients(missile);
-		aerodynamicFeedbackCoefficients(missile);
+		aerodynamics(missile);
+		aerodynamicDerivatives(missile);
 		missileMotion(missile);
 
 		if (missile.INTEGRATION_PASS == 0)
@@ -1886,8 +1899,8 @@ void sixDofFly(Missile &missile, string flyOutID, bool writeData, bool consoleRe
 
 		cout << "\n";
 		cout << "6DOF " + flyOutID + " REPORT" << endl;
-		cout << setprecision(6) << "FINAL POSITION AT " << missile.timeOfFlight << " E " << missile.ENUPosition[0] << " N " << missile.ENUPosition[1] << " U " << missile.ENUPosition[2] << " RANGE " << missile.range << " MACH " << missile.machSpeed << endl;
-		cout << setprecision(6) << "MISS DISTANCE " << missile.missDistance << " FORWARD, LEFT, UP, MISS DISTANCE " << missile.FLUMissileToPipRelativePosition[0] << " " << missile.FLUMissileToPipRelativePosition[1] << " " << missile.FLUMissileToPipRelativePosition[2] << endl;
+		cout << setprecision(2) << "FINAL POSITION AT " << missile.timeOfFlight << " E " << missile.ENUPosition[0] << " N " << missile.ENUPosition[1] << " U " << missile.ENUPosition[2] << " RANGE " << missile.range << " MACH " << missile.machSpeed << endl;
+		cout << setprecision(2) << "MISS DISTANCE " << missile.missDistance << " FORWARD, LEFT, UP, MISS DISTANCE " << missile.FLUMissileToPipRelativePosition[0] << " " << missile.FLUMissileToPipRelativePosition[1] << " " << missile.FLUMissileToPipRelativePosition[2] << endl;
 		cout << "SIMULATION RESULT: " << missile.lethality << endl;
 
 	}
@@ -2166,12 +2179,12 @@ int main()
 	thetaRads *= degToRad;
 	psiRads *= degToRad;
 	double launchPosition[3] = {posE, posN, posU};
-	initUnLaunchedMissile(missile, phiRads, thetaRads, psiRads, launchPosition);
+	emplace(missile, phiRads, thetaRads, psiRads, launchPosition);
 	
 	// Waypoint.
 	double pip[3] = {tgtE, tgtN, tgtU};
 	setArrayEquivalentToReference(missile.pip, pip);
-	turnOnSeeker(missile);
+	seekerOn(missile);
 
 	// Set lethality to flying. Missile will not fly unless.
 	missile.lethality = "FLYING";

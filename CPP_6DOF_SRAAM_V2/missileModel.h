@@ -120,6 +120,9 @@ struct Missile
 	double rollFinCommand = 0.0; // Radians.
 
 	// Actuators.
+
+	
+
 	double FIN1DEFL = 0.0; // Fin deflection. Radians.
 	double FIN1DEFL_D = 0.0; // Fin deflection derived. Radians.
 	double FIN1DEFL_DOT = 0.0; // Fin rate. Radians per second.
@@ -158,6 +161,8 @@ struct Missile
 	// Table look ups.
 	map<string, int> tableNameIndexPairs;
 	vector<vector<vector<double>>> tables;
+
+	// Aerodynamics.
 	double CA0 = 0.0; // Axial force coefficient. Non dimensional.
 	double CAA = 0.0; // Axial force derivative of alpha prime. Per degree.
 	double CAD = 0.0; // Axial force derivative of control fin deflection. Per degree^2.
@@ -175,6 +180,8 @@ struct Missile
 	double CLMQ = 0.0; // Pitching moment damping derivative. Per degree.
 	double CLMDQ = 0.0; // Pitching moment derivative of elevator. Per degree.
 	double CLNP = 0.0; // Yaw moment coefficient correction for when phi is non zero. Non dimensional.
+
+	// Mass and motor properties.
 	double mass = 0.0; // Kilograms.
 	double unadjustedThrust = 0.0; // Newtons.
 	double transverseMomentOfInertia = 0.0; // Kilograms * meters^2.
@@ -184,7 +191,7 @@ struct Missile
 	// Propulsion.
 	double thrust = 0.0; // Newtons.
 
-	// Aerodynamic integration coefficients.
+	// Aerodynamic coefficients.
 	double CX = 0.0; // Non dimensional.
 	double CY = 0.0; // Non dimensional.
 	double CZ = 0.0; // Non dimensional.
@@ -192,7 +199,7 @@ struct Missile
 	double CM = 0.0; // Non dimensional.
 	double CN = 0.0; // Non dimensional.
 
-	// Aerodynamic feedback coefficients.
+	// Aerodynamic derivatives.
 	double CNA = 0.0; // Per degree.
 	double CMA = 0.0; // Per degree.
 	double CND = 0.0; // Per degree.
@@ -258,8 +265,8 @@ struct Missile
 
 // Functions.
 void lookUpTablesFormat (Missile &missile, string dataFile);
-void initUnLaunchedMissile(Missile &missile, double phi, double theta, double psi, double ENUPosition[3]);
-void turnOnSeeker(Missile &missile);
+void emplace(Missile &missile, double phi, double theta, double psi, double ENUPosition[3]);
+void seekerOn(Missile &missile);
 void atmosphere(Missile &missile);
 void seeker(Missile &missile);
 void guidance(Missile &missile);
@@ -269,8 +276,8 @@ void aerodynamicAnglesAndConversions(Missile &missile);
 void tableLookUps(Missile &missile);
 void accelerationLimit(Missile &missile);
 void propulsion(Missile &missile);
-void aerodynamicIntegrationCoefficients(Missile &missile);
-void aerodynamicFeedbackCoefficients(Missile &missile);
+void aerodynamics(Missile &missile);
+void aerodynamicDerivatives(Missile &missile);
 void eulerIntegrateStates(Missile &missile);
 void rk2IntegrateStates(Missile &missile);
 void rk4IntegrateStates(Missile &missile);
