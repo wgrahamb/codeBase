@@ -8,9 +8,13 @@
 #include <vector>
 #include <map>
 #include <algorithm>
+#include <memory>
 
 // Namespace.
 using namespace std;
+
+// Components.
+#include "secondOrderActuator.h"
 
 #ifndef MISSILEMODEL_H
 #define MISSILEMODEL_H
@@ -28,10 +32,6 @@ const double MAXIMUM_ACCELERATION = 450.0; // Roughly 45 Gs. Meters per s^2.
 const double RATE_CONTROL_ZETA = 0.6; // Damping of constant rate control. Non dimensional.
 const double ROLL_CONTROL_WN = 20.0; // Natural frequency of roll closed loop complex pole. Radians per second.
 const double ROLL_CONTROL_ZETA = 0.9; // Damping of roll closed loop complex pole. Non dimensional.
-const double FIN_CONTROL_WN = 100.0; // Natural frequency of roll closed loop complex pole. Radians per second.
-const double FIN_CONTROL_ZETA = 0.7; // Damping of roll closed loop complex pole. Non dimensional.
-const double FIN_CONTROL_MAX_DEFLECTION_DEGREES = 28.0; // Degrees.
-const double FIN_CONTROL_MAX_DEFLECTION_RADIANS = 0.4887; // Radians.
 const double FIN_RATE_LIMIT_RADIANS = 10.472; // Radians per second.
 const double ROLL_ANGLE_COMMAND = 0.0; // Radians.
 const double ALPHA_PRIME_MAX = 40.0; // Degrees.
@@ -107,6 +107,10 @@ struct Missile
 	double maneuveringLimit = MAXIMUM_ACCELERATION; // Meters per second^2.
 
 	// Control
+
+	double pitchError = 0.0;
+	double pitchErrorDerivative = 0.0;
+
 	double lastYawProportionalError = 0.0; // Radians per second.
 	double yawIntegralError = 0.0; // Something.
 	double yawProportionalError = 0.0; // Radians per second.
@@ -120,25 +124,14 @@ struct Missile
 	double rollFinCommand = 0.0; // Radians.
 
 	// Actuators.
-
-	
-
+	shared_ptr<secondOrderActuator> FIN1 = make_shared<secondOrderActuator>("output/FIN1.txt");
+	shared_ptr<secondOrderActuator> FIN2 = make_shared<secondOrderActuator>("output/FIN2.txt");
+	shared_ptr<secondOrderActuator> FIN3 = make_shared<secondOrderActuator>("output/FIN3.txt");
+	shared_ptr<secondOrderActuator> FIN4 = make_shared<secondOrderActuator>("output/FIN4.txt");
 	double FIN1DEFL = 0.0; // Fin deflection. Radians.
-	double FIN1DEFL_D = 0.0; // Fin deflection derived. Radians.
-	double FIN1DEFL_DOT = 0.0; // Fin rate. Radians per second.
-	double FIN1DEFL_DOT_D = 0.0; // Fin rate derived. Radians per second^2.
 	double FIN2DEFL = 0.0; // Fin deflection. Radians.
-	double FIN2DEFL_D = 0.0; // Fin deflection derived. Radians.
-	double FIN2DEFL_DOT = 0.0; // Fin rate. Radians per second.
-	double FIN2DEFL_DOT_D = 0.0; // Fin rate derived. Radians per second^2.
 	double FIN3DEFL = 0.0; // Fin deflection. Radians.
-	double FIN3DEFL_D = 0.0; // Fin deflection derived. Radians.
-	double FIN3DEFL_DOT = 0.0; // Fin rate. Radians per second.
-	double FIN3DEFL_DOT_D = 0.0; // Fin rate derived. Radians per second^2.
 	double FIN4DEFL = 0.0; // Fin deflection. Radians.
-	double FIN4DEFL_D = 0.0; // Fin deflection derived. Radians.
-	double FIN4DEFL_DOT = 0.0; // Fin rate. Radians per second.
-	double FIN4DEFL_DOT_D = 0.0; // Fin rate derived. Radians per second^2.
 	double pitchFinDeflection = 0.0; // Radians.
 	double yawFinDeflection = 0.0; // Radians.
 	double rollFinDeflection = 0.0; // Radians.

@@ -260,11 +260,13 @@ def Fly5DOF(
 
 		STATE = {
 
+			# MASS AND MOTOR PROPERTIES.
 			"XCG": XCG,
 			"MASS": MASS,
 			"TMOI": TMOI,
 			"THRUST": THRUST,
 
+			# ATMOSPHERE.
 			"RHO": RHO,
 			"Q": Q,
 			"P": P,
@@ -273,6 +275,7 @@ def Fly5DOF(
 			"MACH": MACH,
 			"BETA": BETA,
 
+			# MISSILE BODY.
 			"TOF": TOF,
 			"SPEED": SPEED,
 			"ALPHA": ALPHA,
@@ -284,6 +287,7 @@ def Fly5DOF(
 			"VDOT_0": SPECIFIC_FORCE[1],
 			"WDOT_0": SPECIFIC_FORCE[2],
 
+			# COORDINATE FRAME.
 			"ENUPOSX": ENUPOS[0],
 			"ENUPOSY": ENUPOS[1],
 			"ENUPOSZ": ENUPOS[2],
@@ -323,6 +327,14 @@ def Fly5DOF(
 		TMOI = MSL["MASS_AND_MOTOR"].TRANSVERSE_MOI
 		THRUST = MSL["MASS_AND_MOTOR"].THRUST
 
+		# ATTITUDE.
+		ENU_TO_FLU = ct.ORIENTATION_TO_LOCAL_TM(ENUEULER[0], -1.0 * ENUEULER[1], ENUEULER[2])
+		SPEED = la.norm(ENUVEL)
+		VEL_B = ENU_TO_FLU @ ENUVEL
+		ALPHA, SIDESLIP = returnAlphaAndBeta(VEL_B)
+		ALPHA *= -1 # Not really sure why, but it works.
+		SIDESLIP *= -1 # Not really sure why, but it works.
+
 		# BASIC DRAG MODEL.
 		CD = None # Non dimensional.
 		if MACH >= MACH_LOOKUP[0]:
@@ -333,14 +345,6 @@ def Fly5DOF(
 		WIND_TO_BODY = ct.FLIGHTPATH_TO_LOCAL_TM(SIDESLIP, ALPHA) # Non dimensional.
 		WIND_DRAG_FORCE = npa([-DRAG_FORCE, 0.0, 0.0]) # Newtons.
 		BODY_DRAG = (WIND_TO_BODY @ WIND_DRAG_FORCE) / MASS # Meters per second squared.
-
-		# ATTITUDE.
-		ENU_TO_FLU = ct.ORIENTATION_TO_LOCAL_TM(ENUEULER[0], -1.0 * ENUEULER[1], ENUEULER[2])
-		SPEED = la.norm(ENUVEL)
-		VEL_B = ENU_TO_FLU @ ENUVEL
-		ALPHA, SIDESLIP = returnAlphaAndBeta(VEL_B)
-		ALPHA *= -1 # Not really sure why, but it works.
-		SIDESLIP *= -1 # Not really sure why, but it works.
 
 		# AERODYNAMICS.
 		CY = 2 * SIDESLIP + \

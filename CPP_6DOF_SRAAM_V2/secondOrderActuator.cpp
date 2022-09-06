@@ -26,15 +26,17 @@ secondOrderActuator::secondOrderActuator(string logFilePath)
 
 	time = 0.0;
 
-	deflectionLimit = 10.0;
-	deflectionRateLimit = 25.0;
-	wn = 57.2958 * 0.1;
-	zeta = 0.8;
+	deflectionLimit = 28.0;
+	deflectionRateLimit = 300;
+	wn = 120;
+	zeta = 0.7;
 
 	deflection = 0.0;
 	deflectionDerivative = 0.0;
 	deflectionDot = 0.0;
 	deflectionDotDerivative = 0.0;
+
+	cout << "Second Order Actuator Loaded.\n";
 
 }
 
@@ -60,8 +62,8 @@ double secondOrderActuator::update(double finCommand, double timeStep)
 		deflection = deflectionLimit * temp;
 
 	}
-
 	deflectionDerivative = deflectionDerivativeNew;
+
 	double edx = finCommand - deflection;
 	double deflectionDotDerivativeNew =  wn * wn * edx - 2 * zeta * wn * deflectionDerivative;
 	deflectionDot = trapezoidIntegrate(deflectionDotDerivativeNew, deflectionDotDerivative, deflectionDot, timeStep);
