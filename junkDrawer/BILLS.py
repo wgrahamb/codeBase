@@ -31,7 +31,7 @@ TOTAL_PER_MONTH = sumValuesInADictionary(DICT=BILLS)
 PAYCHECK = 1735
 
 # Current bank balance.
-CURRENT_BALANCE = 1956.41
+CURRENT_BALANCE = 1926.38
 
 # Create september bills.
 SEPTEMBER_BILLS = copy.deepcopy(BILLS)
