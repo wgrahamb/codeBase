@@ -519,7 +519,7 @@ void control(Missile &missile)
 			double DLP = missile.CLP * (REFERENCE_DIAMETER / (2 * missile.speed)) * (missile.dynamicPressure * REFERENCE_AREA * REFERENCE_DIAMETER / missile.axialMomentOfInertia); // PER SECOND
 			double DLD = missile.CLD * (missile.dynamicPressure * REFERENCE_AREA * REFERENCE_DIAMETER / missile.axialMomentOfInertia); // PER SECOND^2
 
-			double WACL = 0.013 * sqrt(missile.dynamicPressure) + 7.1;
+			double WACL = 0.02 * sqrt(missile.dynamicPressure) + 7.1;
 			double ZACL = 0.000559 * sqrt(missile.dynamicPressure) + 0.232;
 			double PACL = 14;
 

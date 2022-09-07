@@ -1,3 +1,4 @@
+import copy
 
 # Function to sum all values in a dictionary.
 def sumValuesInADictionary(DICT):
@@ -30,13 +31,15 @@ TOTAL_PER_MONTH = sumValuesInADictionary(DICT=BILLS)
 PAYCHECK = 1735
 
 # Current bank balance.
-CURRENT_BALANCE = 2397.55
+CURRENT_BALANCE = 1956.41
 
 # Create september bills.
-SEPTEMBER_BILLS = BILLS
+SEPTEMBER_BILLS = copy.deepcopy(BILLS)
 
 # Running list of bills that have been paid.
 SEPTEMBER_BILLS.pop("RENT")
+SEPTEMBER_BILLS.pop("CAR_BILL")
+SEPTEMBER_BILLS.pop("GASOLINE")
 
 # Calculate bills left in September
 SEPTEMBER_BILLS_LEFT = sumValuesInADictionary(SEPTEMBER_BILLS)

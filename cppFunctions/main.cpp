@@ -1,6 +1,17 @@
 
-// STL.
+// Standard.
 #include <iostream>
+#include <fstream>
+#include <sstream>
+#include <iomanip>
+#include <chrono>
+#include <math.h>
+#include <vector>
+#include <map>
+#include <algorithm>
+#include <string>
+#include <dirent.h>
+#include <memory>
 
 // Utility.
 #include "global_constants.hpp"
@@ -11,22 +22,28 @@
 // Namespace.
 using namespace std;
 
+// Include.
+#include "randomNumbers.h"
+
 int main()
 {
 
-	cout << "HOWDY\n";
+     shared_ptr<randomNumbers> rn = make_shared<randomNumbers>();
 
-	double LAT = 38.8719 * RAD;
-	double LON = 77.0563 * RAD;
-	double ALT = 0.0;
-	double TOF = 10.0;
+     long seed1 = 42000;
+     long seed2 = 100000;
+     long seed3 = 7777777;
 
-	Matrix ECI = cad_in_geo84(LON, LAT, ALT, TOF);
-	ECI.print();
+     rn->init(seed3);
+     for (int i = 0; i < 10000; i++)
+     {
+          float x = rn->makeNormalDraw(to_string(i), 0.1, 0.5);
+          // float x = rn->makeUniformDraw(to_string(i), -0.1, 0.1);
+     }
+     string relFilePath = "output/MCData.txt";
+     rn->writeDraws(relFilePath);
+     cout << "\n";
 
-	Matrix ECIGRAV = cad_grav84(ECI, TOF);
-	ECIGRAV.print();
-
-	return 0;
+     cout << "HOWDY\n";
 
 }
