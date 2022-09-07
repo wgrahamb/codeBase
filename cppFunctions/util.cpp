@@ -105,25 +105,27 @@ double exponentialDistribution(double density)
 //010913 Created by Peter H Zipfel
 //010914 Normalized gauss tested with a 2000 sample: mean=0.0054, sigma=0.9759
 ///////////////////////////////////////////////////////////////////////////////
-double gaussianDistribution(double mean,double sig)
+double gaussianDistribution(double mean=0.0, double sig=1.0)
 {
 	static int iset=0;
 	static double gset;
 	double fac,rsq,v1,v2,value;
 
-	if(iset==0){
-		do{
+	if(iset==0)
+	{
+		do
+		{
 			v1=2.*randomNumberBetweenZeroAndOne()-1.;
 			v2=2.*randomNumberBetweenZeroAndOne()-1.;
 			rsq=v1*v1+v2*v2;
 		}while(rsq>=1.0||rsq==0);
-
 		fac=sqrt(-2.*log(rsq)/rsq);
 		gset=v1*fac;
 		iset=1;
 		value=v2*fac;
 	}
-	else{
+	else
+	{
 		iset=0;
 		value=gset;
 	}
@@ -150,10 +152,10 @@ double gaussianDistribution(double mean,double sig)
 double markovDistribution(double sigma,double bcor,double time,double intstep,double &value_saved)
 {
 	double value=0;
-
 	value=gaussianDistribution(0.,sigma);
 	if(time==0.) value_saved=value;
-	else{
+	else
+	{
 		if(bcor!=0.)
 		{
 			double dum=exp(-bcor*intstep);

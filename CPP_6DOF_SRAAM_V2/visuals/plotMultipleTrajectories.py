@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import os
 from matPlotLibColors import matPlotLibColors
 
-directory = "CPP_6DOF_SRAAM_V2/output"
+directory = "output"
 dfs = []
 
 for f in os.listdir(directory):

@@ -8,9 +8,13 @@
 #include <vector>
 #include <map>
 #include <algorithm>
+#include <memory>
 
 // Namespace.
 using namespace std;
+
+// Components.
+#include "secondOrderActuator.h"
 
 #ifndef MISSILEMODEL_H
 #define MISSILEMODEL_H
@@ -28,10 +32,6 @@ const double MAXIMUM_ACCELERATION = 450.0; // Roughly 45 Gs. Meters per s^2.
 const double RATE_CONTROL_ZETA = 0.6; // Damping of constant rate control. Non dimensional.
 const double ROLL_CONTROL_WN = 20.0; // Natural frequency of roll closed loop complex pole. Radians per second.
 const double ROLL_CONTROL_ZETA = 0.9; // Damping of roll closed loop complex pole. Non dimensional.
-const double FIN_CONTROL_WN = 100.0; // Natural frequency of roll closed loop complex pole. Radians per second.
-const double FIN_CONTROL_ZETA = 0.7; // Damping of roll closed loop complex pole. Non dimensional.
-const double FIN_CONTROL_MAX_DEFLECTION_DEGREES = 28.0; // Degrees.
-const double FIN_CONTROL_MAX_DEFLECTION_RADIANS = 0.4887; // Radians.
 const double FIN_RATE_LIMIT_RADIANS = 10.472; // Radians per second.
 const double ROLL_ANGLE_COMMAND = 0.0; // Radians.
 const double ALPHA_PRIME_MAX = 40.0; // Degrees.
@@ -47,11 +47,13 @@ struct Missile
 	// Target.
 	double pip[3]; // Predicted Intercept Point. Meters.
 
-	// Missile state.
-	bool ballistic = false;
-	bool launch = true; // Launch command. True for now, will be needed for fire control.
+	// Missile overhead.
+	bool BALLISTIC = false;
+	bool LAUNCHED = false;
 	double TIME_STEP = (1.0 / 600.0);
 	double HALF_TIME_STEP = TIME_STEP * 0.5;
+
+	// Missile state.
 	double timeOfFlight = 0.0; // Seconds.
 	double missileENUToFLUMatrix[3][3]; // Non dimensional.
 	double ENUPosition[3]; // Meters.
@@ -59,7 +61,6 @@ struct Missile
 	double ENUVelocity[3]; // Meters per second.
 	double FLUVelocity[3]; // Meters per second.
 	double speed; // Meters per second.
-	double machSpeed = 0.0; // Non dimensional.
 	double ENUAcceleration[3]; // Meters per second^2.
 	double FLUAcceleration[3]; // Meters per second^2.
 	double alphaRadians = 0.0; // Radians.
@@ -76,6 +77,7 @@ struct Missile
 	double FLUGravity[3] = {0.0, 0.0, 0.0}; // Meters per second^2.
 	double pressure = 0.0; // Pascals.
 	double dynamicPressure = 0.0; // Pascals.
+	double machSpeed = 0.0; // Non dimensional.
 
 	// Seeker.
 	double seekerPitch; // Radians.
@@ -105,33 +107,31 @@ struct Missile
 	double maneuveringLimit = MAXIMUM_ACCELERATION; // Meters per second^2.
 
 	// Control
-	double lastYawRateError = 0.0; // Radians per second.
-	double yawRateError = 0.0; // Radians per second.
+
+	double pitchError = 0.0;
+	double pitchErrorDerivative = 0.0;
+
+	double lastYawProportionalError = 0.0; // Radians per second.
+	double yawIntegralError = 0.0; // Something.
+	double yawProportionalError = 0.0; // Radians per second.
 	double yawFinCommand = 0.0; // Radians.
-	double lastPitchRateError = 0.0; // Radians per second.
-	double pitchRateError = 0.0; // Radians per second.
+	double lastPitchProportionalError = 0.0; // Radians per second.
+	double pitchIntegralError = 0.0; // Something.
+	double pitchProportionalError = 0.0; // Radians per second.
 	double pitchFinCommand = 0.0; // Radians.
-	double lastRollRateError = 0.0; // Radians per second.
-	double rollRateError = 0.0; // Radians per second.
+	double lastRollProportionalError = 0.0; // Radians per second.
+	double rollProportionalError = 0.0; // Radians per second.
 	double rollFinCommand = 0.0; // Radians.
 
 	// Actuators.
+	shared_ptr<secondOrderActuator> FIN1 = make_shared<secondOrderActuator>("output/FIN1.txt");
+	shared_ptr<secondOrderActuator> FIN2 = make_shared<secondOrderActuator>("output/FIN2.txt");
+	shared_ptr<secondOrderActuator> FIN3 = make_shared<secondOrderActuator>("output/FIN3.txt");
+	shared_ptr<secondOrderActuator> FIN4 = make_shared<secondOrderActuator>("output/FIN4.txt");
 	double FIN1DEFL = 0.0; // Fin deflection. Radians.
-	double FIN1DEFL_D = 0.0; // Fin deflection derived. Radians.
-	double FIN1DEFL_DOT = 0.0; // Fin rate. Radians per second.
-	double FIN1DEFL_DOT_D = 0.0; // Fin rate derived. Radians per second^2.
 	double FIN2DEFL = 0.0; // Fin deflection. Radians.
-	double FIN2DEFL_D = 0.0; // Fin deflection derived. Radians.
-	double FIN2DEFL_DOT = 0.0; // Fin rate. Radians per second.
-	double FIN2DEFL_DOT_D = 0.0; // Fin rate derived. Radians per second^2.
 	double FIN3DEFL = 0.0; // Fin deflection. Radians.
-	double FIN3DEFL_D = 0.0; // Fin deflection derived. Radians.
-	double FIN3DEFL_DOT = 0.0; // Fin rate. Radians per second.
-	double FIN3DEFL_DOT_D = 0.0; // Fin rate derived. Radians per second^2.
 	double FIN4DEFL = 0.0; // Fin deflection. Radians.
-	double FIN4DEFL_D = 0.0; // Fin deflection derived. Radians.
-	double FIN4DEFL_DOT = 0.0; // Fin rate. Radians per second.
-	double FIN4DEFL_DOT_D = 0.0; // Fin rate derived. Radians per second^2.
 	double pitchFinDeflection = 0.0; // Radians.
 	double yawFinDeflection = 0.0; // Radians.
 	double rollFinDeflection = 0.0; // Radians.
@@ -154,10 +154,12 @@ struct Missile
 	// Table look ups.
 	map<string, int> tableNameIndexPairs;
 	vector<vector<vector<double>>> tables;
+
+	// Aerodynamics.
 	double CA0 = 0.0; // Axial force coefficient. Non dimensional.
 	double CAA = 0.0; // Axial force derivative of alpha prime. Per degree.
 	double CAD = 0.0; // Axial force derivative of control fin deflection. Per degree^2.
-	double CAOFF = 0.0; // Power off correction term for axial force coefficient. Non dimensional.
+	double CA_POWER_CORRECTION = 0.0; // Power off correction term for axial force coefficient. Non dimensional.
 	double CYP = 0.0; // Side force coefficient correction term for when phi is non zero. Non dimensional.
 	double CYDR = 0.0; // Side force derivative of elevator. Per degree.
 	double CN0 = 0.0; // Normal force coefficient. Non dimensional.
@@ -171,6 +173,8 @@ struct Missile
 	double CLMQ = 0.0; // Pitching moment damping derivative. Per degree.
 	double CLMDQ = 0.0; // Pitching moment derivative of elevator. Per degree.
 	double CLNP = 0.0; // Yaw moment coefficient correction for when phi is non zero. Non dimensional.
+
+	// Mass and motor properties.
 	double mass = 0.0; // Kilograms.
 	double unadjustedThrust = 0.0; // Newtons.
 	double transverseMomentOfInertia = 0.0; // Kilograms * meters^2.
@@ -180,7 +184,7 @@ struct Missile
 	// Propulsion.
 	double thrust = 0.0; // Newtons.
 
-	// Aerodynamic integration coefficients.
+	// Aerodynamic coefficients.
 	double CX = 0.0; // Non dimensional.
 	double CY = 0.0; // Non dimensional.
 	double CZ = 0.0; // Non dimensional.
@@ -188,7 +192,7 @@ struct Missile
 	double CM = 0.0; // Non dimensional.
 	double CN = 0.0; // Non dimensional.
 
-	// Aerodynamic feedback coefficients.
+	// Aerodynamic derivatives.
 	double CNA = 0.0; // Per degree.
 	double CMA = 0.0; // Per degree.
 	double CND = 0.0; // Per degree.
@@ -254,8 +258,8 @@ struct Missile
 
 // Functions.
 void lookUpTablesFormat (Missile &missile, string dataFile);
-void initUnLaunchedMissile(Missile &missile, double phi, double theta, double psi, double ENUPosition[3]);
-void initSeeker(Missile &missile);
+void emplace(Missile &missile, double phi, double theta, double psi, double ENUPosition[3]);
+void seekerOn(Missile &missile);
 void atmosphere(Missile &missile);
 void seeker(Missile &missile);
 void guidance(Missile &missile);
@@ -265,8 +269,8 @@ void aerodynamicAnglesAndConversions(Missile &missile);
 void tableLookUps(Missile &missile);
 void accelerationLimit(Missile &missile);
 void propulsion(Missile &missile);
-void aerodynamicIntegrationCoefficients(Missile &missile);
-void aerodynamicFeedbackCoefficients(Missile &missile);
+void aerodynamics(Missile &missile);
+void aerodynamicDerivatives(Missile &missile);
 void eulerIntegrateStates(Missile &missile);
 void rk2IntegrateStates(Missile &missile);
 void rk4IntegrateStates(Missile &missile);

@@ -5,7 +5,7 @@
 		"name": "g++ build and debug active file",
 		"type": "cppdbg",
 		"request": "launch",
-		"program": "/home/graham/codeBase/sixDofCppFunctional_V2/build/missileModel",
+		"program": "/home/graham/codeBase/CPP_6DOF_SRAAM_V2/build/missileModel",
 		"args": [],
 		"stopAtEntry": false,
 		"cwd": "${workspaceFolder}",

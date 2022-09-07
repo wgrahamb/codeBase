@@ -11,6 +11,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 #include "class_hierarchy.hpp"
+#include <string.h>
 
 using namespace std;
 
@@ -1651,7 +1652,7 @@ void Missile::stat_data(ofstream &fstat,int nmc,int vehicle_slot)
 //031104 Corrected table diagnostic, PZi
 //060505 Corrected line 1742 (changed 'else if' to 'if'), TPo
 ///////////////////////////////////////////////////////////////////////////////
-void Missile::read_tables(char *file_name,Datadeck &datatable)
+void Missile::read_tables(char *file_name, Datadeck &datatable)
 {
 
 	char line_clear[CHARL];

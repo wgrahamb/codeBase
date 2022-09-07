@@ -1,43 +1,64 @@
-GROCERIES = 200
-GASOLINE = 200 # Gonna pay this per month off of shell credit card until paid off.
-RENT = 1050
-TUITION = 1100
-CAR_INSURANCE_ACTUAL = 148.38
-CAR_INSURANCE_PLACEHOLDER = 35 # Amazon prime card monthly payment. Accidentally paid of the rest of my premium on this card.
-STUDENT_LOANS = 113
-CAR_BILL = 200
-POWER_AND_WATER = 132.54
-WIFI = 80
-PRIME = 16.19
-PHONE = 130
-CHEGG = 16.52
-APPLE_CLOUD_STORAGE = 0.99
-TIDAL_CAR_WASH = 20
+import copy
 
-TOTAL_PER_MONTH = GROCERIES + GASOLINE + RENT + TUITION + CAR_INSURANCE_PLACEHOLDER + STUDENT_LOANS + CAR_BILL + POWER_AND_WATER + WIFI + PRIME + PHONE + CHEGG + APPLE_CLOUD_STORAGE + TIDAL_CAR_WASH
+# Function to sum all values in a dictionary.
+def sumValuesInADictionary(DICT):
+	ret = 0
+	for index, key in enumerate(DICT.keys()):
+		ret += DICT[f"{key}"]
+	return ret
 
-PAYCHECK = 1726.99
+# Dictionary of bills and their costs.
+BILLS = {
+	"GROCERIES": 200,
+	"GASOLINE": 200,
+	"RENT": 1050,
+	"TUITION": 1100,
+	"CAR_INSURANCE": 115,
+	"DISCOVER_STUDENT_LOAN": 113,
+	"CAR_BILL": 200, # Goes away after November.
+	"POWER_AND_WATER": 135,
+	"WIFI": 80,
+	"AMAZON_PRIME": 16,
+	"PHONE": 130, # Hopefully goes away after December.
+	"CHEGG": 16.50,
+	"APPLE_CLOUD_STORAGE": 1,
+	"CAR_WASH": 20,
+	"GYM_MEMBERSHIP": 25
+}
 
-CURRENT_BALANCE = 1830.68
-AT_END_OF_AUGUST = CURRENT_BALANCE
-print("AT END OF AUGUST ", AT_END_OF_AUGUST)
+# Constants.
+TOTAL_PER_MONTH = sumValuesInADictionary(DICT=BILLS)
+PAYCHECK = 1735
 
-# I'm praying for a raise.
+# Current bank balance.
+CURRENT_BALANCE = 1926.38
 
-AT_END_OF_SEPTEMBER = AT_END_OF_AUGUST - TOTAL_PER_MONTH + (PAYCHECK * 3)
+# Create september bills.
+SEPTEMBER_BILLS = copy.deepcopy(BILLS)
+
+# Running list of bills that have been paid.
+SEPTEMBER_BILLS.pop("RENT")
+SEPTEMBER_BILLS.pop("CAR_BILL")
+SEPTEMBER_BILLS.pop("GASOLINE")
+
+# Calculate bills left in September
+SEPTEMBER_BILLS_LEFT = sumValuesInADictionary(SEPTEMBER_BILLS)
+
+# Estimate money left at the end of this month.
+AT_END_OF_SEPTEMBER = CURRENT_BALANCE - SEPTEMBER_BILLS_LEFT + (PAYCHECK * 2)
 print("AT END OF SEPTEMBER", AT_END_OF_SEPTEMBER)
 
+# Correct for paid off computer loan from work.
 AT_END_OF_SEPTEMBER += 58
 PAYCHECK += 58 # Computer loan paid off.
 
-AT_END_OF_OCTOBER = AT_END_OF_SEPTEMBER - TOTAL_PER_MONTH + (CAR_INSURANCE_PLACEHOLDER - CAR_INSURANCE_ACTUAL) + (PAYCHECK * 2)
+# The rest of the year.
+AT_END_OF_OCTOBER = AT_END_OF_SEPTEMBER - TOTAL_PER_MONTH + (PAYCHECK * 2)
 print("AT END OF OCTOBER ", AT_END_OF_OCTOBER)
 
-AT_END_OF_NOVEMBER = AT_END_OF_OCTOBER - TOTAL_PER_MONTH + (CAR_INSURANCE_PLACEHOLDER - CAR_INSURANCE_ACTUAL) + (PAYCHECK * 2)
+AT_END_OF_NOVEMBER = AT_END_OF_OCTOBER - TOTAL_PER_MONTH + (PAYCHECK * 2)
 print("AT END OF NOVEMBER ", AT_END_OF_NOVEMBER)
 
 TUITION_REIMBURSEMENT = 3508
-AT_END_OF_DECEMBER = AT_END_OF_NOVEMBER - TOTAL_PER_MONTH + (CAR_INSURANCE_PLACEHOLDER - CAR_INSURANCE_ACTUAL) + TUITION + (PAYCHECK * 2) + TUITION_REIMBURSEMENT + CAR_BILL # Car paid off.
+AT_END_OF_DECEMBER = AT_END_OF_NOVEMBER - TOTAL_PER_MONTH + BILLS["TUITION"] + (PAYCHECK * 2) + TUITION_REIMBURSEMENT + BILLS["CAR_BILL"] # Car paid off.
 print("AT END OF DECEMBER ", AT_END_OF_DECEMBER)
-
-# Pay off the sum total of Shell gas card and Amazon credit card at the end of the year.

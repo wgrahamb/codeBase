@@ -5,6 +5,7 @@ import pandas as pd
 class pidTest:
 
 	def __init__(self):
+
 		self.ku = 1.1
 		self.tu = 22 - 7
 		# NO OVERSHOOT METHOD

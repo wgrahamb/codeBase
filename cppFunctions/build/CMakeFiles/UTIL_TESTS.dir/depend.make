@@ -4,8 +4,12 @@
 CMakeFiles/UTIL_TESTS.dir/main.cpp.o: ../global_constants.hpp
 CMakeFiles/UTIL_TESTS.dir/main.cpp.o: ../global_header.hpp
 CMakeFiles/UTIL_TESTS.dir/main.cpp.o: ../main.cpp
+CMakeFiles/UTIL_TESTS.dir/main.cpp.o: ../randomNumbers.h
 CMakeFiles/UTIL_TESTS.dir/main.cpp.o: ../util.h
 CMakeFiles/UTIL_TESTS.dir/main.cpp.o: ../utility_header.hpp
+
+CMakeFiles/UTIL_TESTS.dir/randomNumbers.cpp.o: ../randomNumbers.cpp
+CMakeFiles/UTIL_TESTS.dir/randomNumbers.cpp.o: ../randomNumbers.h
 
 CMakeFiles/UTIL_TESTS.dir/util.cpp.o: ../util.cpp
 CMakeFiles/UTIL_TESTS.dir/util.cpp.o: ../util.h

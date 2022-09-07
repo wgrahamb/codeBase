@@ -33,5 +33,11 @@ class SphericalNoseDrag:
 			0.576
 		]
 
+	def getMachValues(self):
+		return self.machValues
+
+	def getCDValues(self):
+		return self.dragCoefficientValues
+
 	def update(self, mach):
 		return linearInterpolation(mach, self.machValues, self.dragCoefficientValues)
