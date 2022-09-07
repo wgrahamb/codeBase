@@ -14,6 +14,7 @@
 // Namespace.
 using namespace std;
 
+// Utility.
 #include "util.h"
 
 void loopThroughDirectory(string filepath)
@@ -86,7 +87,6 @@ double atan2_0(double y, double x)
 double exponentialDistribution(double density)
 {
 	double value;
-
 	value=-log(randomNumberBetweenZeroAndOne());
 	return value/density;
 }
