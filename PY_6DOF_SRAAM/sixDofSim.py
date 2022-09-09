@@ -335,12 +335,9 @@ class sixDofSim:
           self.A = self.ATMOS.a # Meters per second.
           self.G = self.ATMOS.g # Meters per second squared.
           self.mslMach = self.ATMOS.mach # Non dimensional.
-          self.gravBodyVec = np.zeros(3) # METERS PER SECOND^2
 
           gravLocalVec = npa([0.0, 0.0, -self.G]) # METERS PER SECOND^2
           self.gravBodyVec = self.mslENUtoFLU @ gravLocalVec # METERS PER SECOND^2
-          self.mslMach = self.mslSpeed / self.A # ND
-          self.Q = 0.5 * self.RHO * self.mslSpeed * self.mslSpeed # PASCALS
 
      def seeker(self):
 
