@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 import numpy as np
 
-df = pd.read_csv(open("log.txt"), delimiter=" ")
+df = pd.read_csv(open("PY_6DOF_SRAAM/log.txt"), delimiter=" ")
 
 fig = plt.figure()
 focalPlane = fig.add_subplot()
