@@ -1,16 +1,17 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
+from utility import matPlotLibColors as mc
 
-f1 = "log.txt"
+f1 = "PY_6DOF_SRAAM/log.txt"
 
 df = pd.read_csv(open(f"{f1}"), delimiter=" ", skipfooter=3, engine="python")
-
 startIndex = 1
 stopIndex = -1
 fig = plt.figure()
+colors = mc.matPlotLibColors()
 
-# WINDOW ONE
+# TRAJECTORY
 trajectory = fig.add_subplot(231, projection="3d")
 trajectory.set_title("MISS")
 trajectory.set_xlabel("EAST")
@@ -32,62 +33,43 @@ trajectory.set_box_aspect(
 trajectory.set_xlim([eMin - 1000, eMax + 1000])
 trajectory.set_ylim([nMin - 1000, nMax + 1000])
 trajectory.set_zlim([uMin, uMax + 1000])
-trajectory.plot(df.iloc[startIndex:stopIndex]["posE"], df.iloc[startIndex:stopIndex]["posN"], df.iloc[startIndex:stopIndex]["posU"], color="b")
-trajectory.scatter(df.iloc[stopIndex]["tgtE"], df.iloc[stopIndex]["tgtN"], df.iloc[stopIndex]["tgtU"], color="r")
+trajectory.plot(df.iloc[startIndex:stopIndex]["posE"], df.iloc[startIndex:stopIndex]["posN"], df.iloc[startIndex:stopIndex]["posU"], color=colors.pop(0))
+trajectory.scatter(df.iloc[stopIndex]["tgtE"], df.iloc[stopIndex]["tgtN"], df.iloc[stopIndex]["tgtU"], color=colors.pop(0))
 
-# WINDOW 2
-pitch = fig.add_subplot(232)
-pitch.set_title("PITCH")
-pitch.set_xlabel("TIME OF FLIGHT (SECONDS)")
-pitch.plot(df.iloc[:stopIndex]["tof"], df.iloc[:stopIndex]["pitchDefl"] * 50, label="PITCH FIN DEFLECTION DEG * 50", color="k")
-pitch.plot(df.iloc[:stopIndex]["tof"], df.iloc[:stopIndex]["normComm"], label="NORMAL ACC COMMAND Gs", color="b", alpha=0.5)
-pitch.plot(df.iloc[:stopIndex]["tof"], df.iloc[:stopIndex]["normAch"], label="NORMAL ACC ACHIEVED Gs", color="r")
-pitch.plot(df.iloc[:stopIndex]["tof"], df.iloc[:stopIndex]["pitchRate"], label="PITCH RATE DEG PER SEC", color="g")
-pitch.plot(df.iloc[:stopIndex]["tof"], df.iloc[:stopIndex]["thetaRate"], label="THETA RATE DEG PER SEC", color="cyan")
-pitch.plot(df.iloc[:stopIndex]["tof"], df.iloc[:stopIndex]["alpha"] * 50, label="ALPHA DEG * 50", color="purple", alpha=0.5)
-pitch.plot(df.iloc[:stopIndex]["tof"], df.iloc[:stopIndex]["theta"], label="THETA DEG", color="orange")
-pitch.legend(fontsize="x-small")
+# ACCELERATIONS.
+accelerations = fig.add_subplot(222)
+accelerations.plot(df.iloc[:stopIndex]["tof"], df.iloc[:stopIndex]["normComm"], label="NORMAL ACC COMMAND", color=colors.pop(0))
+accelerations.plot(df.iloc[:stopIndex]["tof"], df.iloc[:stopIndex]["normAch"], label="NORMAL ACC ACHIEVED", color=colors.pop(0))
+accelerations.plot(df.iloc[:stopIndex]["tof"], df.iloc[:stopIndex]["sideComm"], label="SIDE ACC COMMAND", color=colors.pop(0))
+accelerations.plot(df.iloc[:stopIndex]["tof"], df.iloc[:stopIndex]["sideAch"], label="SIDE ACC ACHIEVED", color=colors.pop(0))
+accelerations.set_xlabel("TOF (Seconds)")
+accelerations.set_ylabel("Gs")
+accelerations.legend(fontsize="small")
 
+# RATES.
+rates = fig.add_subplot(223)
+rates.plot(df.iloc[:stopIndex]["tof"], df.iloc[:stopIndex]["p"], label="ROLL RATE RADS PER SEC", color=colors.pop(0))
+rates.plot(df.iloc[:stopIndex]["tof"], df.iloc[:stopIndex]["phi"], label="PHI RADS", color=colors.pop(0))
+rates.plot(df.iloc[:stopIndex]["tof"], df.iloc[:stopIndex]["q"], label="PITCH RATE RADS PER SEC", color=colors.pop())
+rates.plot(df.iloc[:stopIndex]["tof"], df.iloc[:stopIndex]["alpha"], label="ALPHA RADS")
+rates.plot(df.iloc[:stopIndex]["tof"], df.iloc[:stopIndex]["r"], label="YAW RATE RADS PER SEC", color=colors.pop())
+rates.plot(df.iloc[:stopIndex]["tof"], df.iloc[:stopIndex]["beta"], label="BETA RADS")
+rates.set_xlabel("TOF (Seconds)")
+rates.legend(fontsize="small")
 
-# WINDOW 3
-yaw = fig.add_subplot(233)
-yaw.set_title("YAW")
-yaw.set_xlabel("TIME OF FLIGHT (SECONDS)")
-yaw.plot(df.iloc[:stopIndex]["tof"], df.iloc[:stopIndex]["yawDefl"] * 50, label="YAW FIN DEFLECTION DEG * 50", color="k")
-yaw.plot(df.iloc[:stopIndex]["tof"], df.iloc[:stopIndex]["sideComm"], label="SIDE ACC COMMAND Gs", color="b", alpha=0.5)
-yaw.plot(df.iloc[:stopIndex]["tof"], df.iloc[:stopIndex]["sideAch"], label="SIDE ACC ACHIEVED Gs", color="r")
-yaw.plot(df.iloc[:stopIndex]["tof"], df.iloc[:stopIndex]["yawRate"], label="YAW RATE DEG PER SEC", color="g")
-yaw.plot(df.iloc[:stopIndex]["tof"], df.iloc[:stopIndex]["psiRate"], label="PSI RATE DEG PER SEC", color="cyan")
-yaw.plot(df.iloc[:stopIndex]["tof"], df.iloc[:stopIndex]["beta"] * 50, label="BETA DEG * 50", color="purple", alpha=0.5)
-yaw.plot(df.iloc[:stopIndex]["tof"], df.iloc[:stopIndex]["psi"], label="PSI DEG", color="orange")
-yaw.legend(fontsize="x-small")
-
-# WINDOW FOUR
-roll = fig.add_subplot(234)
-roll.set_title("ROLL")
-roll.set_xlabel("TIME OF FLIGHT (SECONDS)")
-roll.plot(df.iloc[:stopIndex]["tof"], df.iloc[:stopIndex]["rollDefl"] * 50, label="ROLL FIN DEFLECTION DEG * 50", color="k")
-roll.plot(df.iloc[:stopIndex]["tof"], df.iloc[:stopIndex]["rollComm"], label="ROLL COMMAND Gs", color="b")
-roll.plot(df.iloc[:stopIndex]["tof"], df.iloc[:stopIndex]["phiRate"], label="PHI RATE DEG PER SEC", color="r")
-roll.plot(df.iloc[:stopIndex]["tof"], df.iloc[:stopIndex]["rollRate"], label="ROLL RATE DEG PER SEC", color="g")
-roll.plot(df.iloc[:stopIndex]["tof"], df.iloc[:stopIndex]["roll"], label="ROLL DEG", color="orange")
-roll.legend()
-
-# WINDOW FIVE
-seeker = fig.add_subplot(235)
-seeker.set_title("SEEKER ERROR")
-seeker.set_xlabel("TIME OF FLIGHT (SECONDS)")
-seeker.plot(df.iloc[:stopIndex]["tof"], df.iloc[:stopIndex]["seekPitchErr"], label="PITCH ERROR", color="b")
-seeker.plot(df.iloc[:stopIndex]["tof"], df.iloc[:stopIndex]["seekYawErr"], label="YAW ERROR", color="r")
-seeker.legend()
-
-# WINDOW SIX
-staticMarginAndMach = fig.add_subplot(236)
-staticMarginAndMach.set_title("STATIC MARGIN AND MACH")
-staticMarginAndMach.set_xlabel("TIME OF FLIGHT (SECONDS)")
-staticMarginAndMach.plot(df.iloc[:stopIndex]["tof"], df.iloc[:stopIndex]["staticMargin"], color="b", label="STATIC MARGIN")
-staticMarginAndMach.plot(df.iloc[:stopIndex]["tof"], df.iloc[:stopIndex]["mach"], color="r", label="MACH")
-staticMarginAndMach.legend()
+# FINS.
+fins = fig.add_subplot(224)
+fins.plot(df.iloc[:stopIndex]["tof"], df.iloc[:stopIndex]["fin1c"], label="FIN 1 COMM", color=colors.pop(0))
+fins.plot(df.iloc[:stopIndex]["tof"], df.iloc[:stopIndex]["fin2c"], label="FIN 2 COMM", color=colors.pop(0))
+fins.plot(df.iloc[:stopIndex]["tof"], df.iloc[:stopIndex]["fin3c"], label="FIN 3 COMM", color=colors.pop(0))
+fins.plot(df.iloc[:stopIndex]["tof"], df.iloc[:stopIndex]["fin4c"], label="FIN 4 COMM", color=colors.pop(0))
+fins.plot(df.iloc[:stopIndex]["tof"], df.iloc[:stopIndex]["fin1d"], label="FIN 1 DEFL", color=colors.pop(0))
+fins.plot(df.iloc[:stopIndex]["tof"], df.iloc[:stopIndex]["fin2d"], label="FIN 2 DEFL", color=colors.pop(0))
+fins.plot(df.iloc[:stopIndex]["tof"], df.iloc[:stopIndex]["fin3d"], label="FIN 3 DEFL", color=colors.pop(0))
+fins.plot(df.iloc[:stopIndex]["tof"], df.iloc[:stopIndex]["fin4d"], label="FIN 4 DEFL", color=colors.pop(0))
+fins.set_xlabel("TOF (Seconds)")
+fins.set_ylabel("Radians")
+fins.legend(fontsize="small")
 
 fig.subplots_adjust(top=0.9, bottom=0.1, left=0.1, hspace=0.25)
 plt.get_current_fig_manager().full_screen_toggle()
