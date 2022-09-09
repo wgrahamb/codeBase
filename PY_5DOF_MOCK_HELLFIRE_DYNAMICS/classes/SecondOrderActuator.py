@@ -37,7 +37,6 @@ class SecondOrderActuator:
 		TEMP = None
 
 		### ACTUATOR ###
-
 		DEFLECTION_DER_NEW = self.DEFLECTION_DOT
 		TEMP = np.sign(DEFLECTION_DER_NEW)
 		if np.abs(DEFLECTION_DER_NEW) > self.DEFL_RATE_LIMIT:
