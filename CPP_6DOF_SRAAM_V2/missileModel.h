@@ -107,10 +107,8 @@ struct Missile
 	double maneuveringLimit = MAXIMUM_ACCELERATION; // Meters per second^2.
 
 	// Control
-
 	double pitchError = 0.0;
 	double pitchErrorDerivative = 0.0;
-
 	double lastYawProportionalError = 0.0; // Radians per second.
 	double yawIntegralError = 0.0; // Something.
 	double yawProportionalError = 0.0; // Radians per second.
@@ -257,7 +255,8 @@ struct Missile
 };
 
 // Functions.
-void lookUpTablesFormat (Missile &missile, string dataFile);
+void formatTables (Missile &missile, string dataFile);
+Missile clone(const Missile &missile);
 void emplace(Missile &missile, double phi, double theta, double psi, double ENUPosition[3]);
 void seekerOn(Missile &missile);
 void atmosphere(Missile &missile);

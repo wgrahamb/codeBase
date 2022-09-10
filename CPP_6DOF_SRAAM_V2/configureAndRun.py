@@ -11,7 +11,7 @@ posE = 0 # Meters.
 posN = 0 # Meters.
 posU = 0 # Meters.
 tgtE = 3000 # Meters.
-tgtN = 0 # Meters.
+tgtN = 3000 # Meters.
 tgtU = 3000 # Meters.
 LogData = 1 # Boolean.
 ConsoleReport = 1 # Boolean.
@@ -22,5 +22,5 @@ with open(InputFile, "w") as f:
 	f.writelines(InputString)
 	f.close()
 
-process = subprocess.Popen(["./build/missileModel"])
+process = subprocess.Popen(["./CPP_6DOF_SRAAM_V2/build/missileModel"])
 process.wait()

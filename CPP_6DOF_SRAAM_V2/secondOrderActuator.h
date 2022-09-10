@@ -27,9 +27,6 @@ class secondOrderActuator
 	secondOrderActuator(string logFilePath);
 	double update(double finCommand, double timeStep);
 
-	// Log file.
-	ofstream logFile;
-
 	// Base variables.
 	double time; // Seconds.
 	double timeStep; // Seconds.

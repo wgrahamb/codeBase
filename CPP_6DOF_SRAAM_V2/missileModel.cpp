@@ -9,12 +9,14 @@
 #include <vector>
 #include <map>
 #include <algorithm>
+#include <memory>
 
 // Utility.
 #include "util.h"
 
 // Missile model.
 #include "missileModel.h"
+#include "secondOrderActuator.h"
 
 // Namespace.
 using namespace std;
@@ -67,7 +69,7 @@ Need to define constructors. Clone method.
 */
 
 // Parses text file with missile model tables. Should only be called once.
-void lookUpTablesFormat (Missile &missile, string dataFile)
+void formatTables (Missile &missile, string dataFile)
 {
 	// LOOK UP DATA
 	ifstream inFile(dataFile);
@@ -234,6 +236,19 @@ void lookUpTablesFormat (Missile &missile, string dataFile)
 	}
 }
 
+Missile clone(const Missile &missile)
+{
+
+	Missile ret;
+	ret = missile;
+	ret.FIN1 = make_shared<secondOrderActuator>(*missile.FIN1);
+	ret.FIN2 = make_shared<secondOrderActuator>(*missile.FIN2);
+	ret.FIN3 = make_shared<secondOrderActuator>(*missile.FIN3);
+	ret.FIN4 = make_shared<secondOrderActuator>(*missile.FIN4);
+	return ret;
+
+}
+
 // Emplacement.
 void emplace(Missile &missile, double phiRads, double thetaRads, double psiRads, double ENUPosition[3])
 {
@@ -257,9 +272,6 @@ void emplace(Missile &missile, double phiRads, double thetaRads, double psiRads,
 	missile.FLUAcceleration[1] = 0.0;
 	missile.FLUAcceleration[2] = 0.0;
 	magnitude(missile.ENUVelocity, missile.speed);
-
-	// Format data tables.
-	lookUpTablesFormat(missile, "shortRangeInterceptorTables.txt");
 
 	// Set missile lethality.
 	missile.lethality = "LOITERING"; // STATUS
@@ -1622,7 +1634,7 @@ void sixDofFly(Missile &missile, string flyOutID, bool writeData, bool consoleRe
 	if (writeData)
 	{
 
-		logFile.open("output/" + flyOutID + "_6DOF.txt");
+		logFile.open("CPP_6DOF_SRAAM_V2/output/" + flyOutID + "_6DOF.txt");
 		writeLogFileHeader(logFile);
 
 	}
@@ -1677,8 +1689,6 @@ void sixDofFly(Missile &missile, string flyOutID, bool writeData, bool consoleRe
 					<< missile.ENUPosition[1]
 					<< " U "
 					<< missile.ENUPosition[2]
-					<< " RANGE "
-					<< missile.range
 					<< " MACH "
 					<< missile.machSpeed
 					<< endl;
@@ -1696,7 +1706,7 @@ void sixDofFly(Missile &missile, string flyOutID, bool writeData, bool consoleRe
 
 		cout << "\n";
 		cout << "6DOF " + flyOutID + " REPORT" << endl;
-		cout << setprecision(2) << "FINAL POSITION AT " << missile.timeOfFlight << " E " << missile.ENUPosition[0] << " N " << missile.ENUPosition[1] << " U " << missile.ENUPosition[2] << " RANGE " << missile.range << " MACH " << missile.machSpeed << endl;
+		cout << setprecision(2) << "FINAL POSITION AT " << missile.timeOfFlight << " E " << missile.ENUPosition[0] << " N " << missile.ENUPosition[1] << " U " << missile.ENUPosition[2] << " MACH " << missile.machSpeed << endl;
 		cout << setprecision(2) << "MISS DISTANCE " << missile.missDistance << " FORWARD, LEFT, UP, MISS DISTANCE " << missile.FLUMissileToPipRelativePosition[0] << " " << missile.FLUMissileToPipRelativePosition[1] << " " << missile.FLUMissileToPipRelativePosition[2] << endl;
 		cout << "SIMULATION RESULT: " << missile.lethality << endl;
 
@@ -1716,7 +1726,7 @@ void threeDofFly(Missile &missile, string flyOutID, bool writeData, bool console
 
 	if (writeData)
 	{
-		logFile.open("output/" + flyOutID + "_3DOF.txt");
+		logFile.open("CPP_6DOF_SRAAM_V2/output/" + flyOutID + "_3DOF.txt");
 		logFile << fixed << setprecision(10) << "tof posE posN posU tgtE tgtN tgtU alpha beta lethality" << endl;
 	}
 
@@ -1899,13 +1909,13 @@ void threeDofFly(Missile &missile, string flyOutID, bool writeData, bool console
 			missile.betaRadians << " " <<
 			missile.lethality << endl;
 		}
-		
+
 		if (consoleReport)
 		{
 			auto print_it = static_cast<int>(round(missile.timeOfFlight * 10000.0)) % 10000;
 			if (print_it == 0)
 			{
-				cout << setprecision(6) << "STATUS AT " << missile.timeOfFlight << " E " << missile.ENUPosition[0] << " N " << missile.ENUPosition[1] << " U " << missile.ENUPosition[2] << " MACH " << missile.machSpeed << endl;
+				cout << setprecision(6) << missile.timeOfFlight << " E " << missile.ENUPosition[0] << " N " << missile.ENUPosition[1] << " U " << missile.ENUPosition[2] << " MACH " << missile.machSpeed << endl;
 				lastTime = missile.timeOfFlight;
 			}
 		}
@@ -1946,7 +1956,7 @@ int main()
 	ifstream InputFile;
 
 	// Open input file.
-	InputFile.open("input.txt");
+	InputFile.open("CPP_6DOF_SRAAM_V2/input.txt");
 
 	// Populate input.
 	InputFile
@@ -1966,6 +1976,9 @@ int main()
 
 	// Instantiate missile.
 	Missile missile;
+
+	// Format data tables. Only happens once.
+	formatTables(missile, "CPP_6DOF_SRAAM_V2/shortRangeInterceptorTables.txt");
 
 	// Trajectory and integration type.
 	missile.BALLISTIC = ballistic;
@@ -1988,11 +2001,11 @@ int main()
 	missile.LAUNCHED = true;
 
 	// Six dof missile flight.
-	Missile missile1 = missile;
+	Missile missile1 = clone(missile);
 	sixDofFly(missile1, "missile", LogData, ConsoleReport, 400.0);
 
 	// Three dof missile flight.
-	Missile missile2 = missile;
+	Missile missile2 = clone(missile);
 	threeDofFly(missile2, "missile", LogData, ConsoleReport, 400.0);
 
 	// Console report and terminate.

@@ -65,12 +65,7 @@ Folder Structure:
 
 	Includes multiple cpp functions for modeling, some written by me, some written by Zipfel.
 	It also includes any stand alone classes or functions that I find useful. It will build as its
-	own project.
-
-
-	junkDrawer
-
-	Exactly as its name implies. Even if I never touch it again, I put it in there for a reason.
+	own project.asl;
 
 
 	PY_5DOF_AIM

@@ -21,9 +21,6 @@ using namespace std;
 secondOrderActuator::secondOrderActuator(string logFilePath)
 {
 
-	logFile.open(logFilePath);
-	logFile << "time command deflection\n";
-
 	time = 0.0;
 
 	deflectionLimit = 28.0;
@@ -36,7 +33,7 @@ secondOrderActuator::secondOrderActuator(string logFilePath)
 	deflectionDot = 0.0;
 	deflectionDotDerivative = 0.0;
 
-	cout << "Second Order Actuator Loaded.\n";
+	// cout << "Second Order Actuator Loaded.\n";
 
 }
 
@@ -70,7 +67,6 @@ double secondOrderActuator::update(double finCommand, double timeStep)
 	deflectionDotDerivative = deflectionDotDerivativeNew;
 
 	time += timeStep;
-	logFile << setprecision(10) << fixed << time << " " << finCommand << " " << deflection << endl;
 
 	return deflection;
 
