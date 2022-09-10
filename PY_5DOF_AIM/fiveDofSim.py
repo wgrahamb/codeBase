@@ -44,7 +44,7 @@ class fiveDofInterceptor:
 		#
 		# AUTHOR - WILSON GRAHAM BEECH
 		# REFERENCE - MODELING AND SIMULATION OF AEROSPACE
-		# VEHICLE DYNAMICS SECOND EDITON - PETER H. ZIPFEL
+		# VEHICLE DYNAMICS SECOND EDITON, PETER H. ZIPFEL
 		#
 		# EAST, NORTH, UP COORDINATE SYSTEM
 		#
@@ -77,7 +77,7 @@ class fiveDofInterceptor:
 		# LOOKING DOWN THE NOZZLE OF THE MISSILE
 		#
 		#                              FIN 4       FIN 1
-		#                                         X
+		#                                        X
 		#                              FIN 3       FIN 2
 		#
 		############################################################################
@@ -92,7 +92,7 @@ class fiveDofInterceptor:
 
 		# SIM CONTROL
 		self.wallClockStart = time.time()
-		self.timeStep = 0.005 # SECONDS
+		self.timeStep = 0.01 # SECONDS
 		self.go = True
 		self.maxTime = 200 # SECONDS
 
@@ -161,7 +161,6 @@ class fiveDofInterceptor:
 		lf.writeData(self.STATE, self.logFile)
 
 	def populateState(self):
-
 		STATE = {
 			"tof": self.tof,
 			"posE": self.posEnu[0],
@@ -238,7 +237,7 @@ class fiveDofInterceptor:
 		angleOfAttackDeg = np.degrees(angleOfAttack)
 		phiPrime = np.arctan2(np.tan(self.beta), np.sin(self.alpha))
 
-		# AERODYNAMIC AND PROPULSION LOOK UPS.
+		# LOOK UPS.
 		CD = None
 		thrust = None
 		mass = None
@@ -381,7 +380,7 @@ class fiveDofInterceptor:
 if __name__ == "__main__":
 	x = fiveDofInterceptor(
 		targetPos=npa([3000.0, 3000.0, 3000.0]),
-		targetVel=npa([50.0, 50.0, 0.0]),
+		targetVel=npa([-50.0, -50.0, -50.0]),
 		launchElDeg=55.0,
 		launchAzDeg=40.0,
 		launchSpeed=25,

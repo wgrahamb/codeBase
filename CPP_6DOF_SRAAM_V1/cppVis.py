@@ -2,7 +2,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 
-f1 = "log.txt"
+f1 = "CPP_6DOF_SRAAM_V1/log.txt"
 
 df = pd.read_csv(open(f"{f1}"), delimiter=" ", skipfooter=3, engine="python")
 

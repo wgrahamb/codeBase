@@ -78,11 +78,11 @@ class sixDofSim:
           # SIM CONTROL.
           self.wallClockStart = time.time()
           self.go = True
-          self.timeStep = 0.001 # SECONDS
+          self.timeStep = 0.005 # SECONDS
           self.maxTime = 400 # SECONDS
 
           # TARGET.
-          self.tgtPos = npa([5000.0, 5000.0, 5000.0])
+          self.tgtPos = npa([6000.0, 5000.0, 5000.0])
           self.tgtVel = np.zeros(3)
 
           # Input.
@@ -165,9 +165,9 @@ class sixDofSim:
 
           # GUIDANCE
           self.forwardLeftUpMslToInterceptRelPos = np.zeros(3) # METERS
-          self.loft = 0.4 # ND >>> THIS IS THE ELEVATION PARAMETER OF THE LINE OF
+          self.loft = 0.2 # ND >>> THIS IS THE ELEVATION PARAMETER OF THE LINE OF
           # ATTACK, ASSUMING LINE OF SIGHT FOR THE AZIMUTH PARAMETER
-          self.K = 1 # ND
+          self.K = 0.7 # ND
           self.proNavGain = 3 # ND
           self.normCommand = 0.0 # METERS PER SECOND^2
           self.sideCommand = 0.0 # METERS PER SECOND^2

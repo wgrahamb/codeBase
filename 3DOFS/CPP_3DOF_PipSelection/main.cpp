@@ -39,7 +39,7 @@ struct Missile
 
 };
 
-void initializeUnlaunchedMissile(Missile &missile, double azimuthDegrees, double elevationDegrees, double missileSpeed)
+void emplace(Missile &missile, double azimuthDegrees, double elevationDegrees, double missileSpeed)
 {
 
 	missile.lethality = "LOITERING";
@@ -58,7 +58,7 @@ void initializeUnlaunchedMissile(Missile &missile, double azimuthDegrees, double
 
 }
 
-void initializeGuidanceObjective(Missile &missile, double pip[3])
+void waypoint(Missile &missile, double pip[3])
 {
 
 	setArrayEquivalentToReference(missile.pip, pip);
@@ -303,7 +303,7 @@ void pipSelection(Missile &missile, vector<vector<double>> Trajectory, bool Cons
 
 		// Copy reference missile and flyout.
 		Missile copiedMissile = missile;
-		initializeGuidanceObjective(copiedMissile, pip);
+		waypoint(copiedMissile, pip);
 		flyout(copiedMissile, true, false, to_string(loopCount));
 
 		// Good shot check.
@@ -359,7 +359,7 @@ int main()
 	double launchAzimuth = 45.0;
 	double launchElevation = 75.0;
 	double missileSpeed = 350.0;
-	initializeUnlaunchedMissile(originalMissile, launchAzimuth, launchElevation, missileSpeed);
+	emplace(originalMissile, launchAzimuth, launchElevation, missileSpeed);
 
 	// Target propagation.
 	double TargetENUPosition[3] = {15000.0, 0.0, 15000.0};
@@ -371,9 +371,9 @@ int main()
 	pipSelection(originalMissile, Trajectory, true, GoodShot);
 
 	// Set pip.
-	initializeGuidanceObjective(originalMissile, GoodShot);
+	waypoint(originalMissile, GoodShot);
 
-	// Flyout good shot.
+	// Fly good shot.
 	flyout(originalMissile, true, true, "originalMissile");
 
 	// Run time.

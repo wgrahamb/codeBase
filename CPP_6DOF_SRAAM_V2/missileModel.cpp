@@ -22,10 +22,8 @@ using namespace std;
 /*
 
 TO DO:
-Try and implement Zipfel's original controller. Compare.
-Implement a target model and basic fire control.
+Integrate into pip selection algorithms in 3DOFS.
 Need to define constructors. Clone method.
-Moving platform launch.
 
 */
 
@@ -507,70 +505,26 @@ void control(Missile &missile)
 		rollRateProportionalGain * missile.rollProportionalError +
 		rollRateDerivativeGain * derivativeRollRateError; // Radians.
 
-		// Zipfel pitch autopilot.
-		if (missile.machSpeed > 0.1)
+		// Pitch autopilot.
+		double pitchRateCommandLimit = 20;
+		double pitchRateProportionalGain = 0.11;
+		double pitchRateDerivativeGain = 0.000375;
+		double pitchRateIntegralGain = 0.0018;
+		double guidancePitchRateCommand = -missile.guidanceNormalCommand * 6 / missile.speed;
+		double signOfPitchRateCommand = signum(guidancePitchRateCommand);
+		if (abs(guidancePitchRateCommand) > pitchRateCommandLimit)
 		{
-
-			double DNA = missile.CNA * (missile.dynamicPressure * REFERENCE_AREA / missile.mass); // METERS PER SECOND^2
-			double DND = missile.CND * (missile.dynamicPressure * REFERENCE_AREA / missile.mass); // METERS PER SECOND^2
-			double DMA = missile.CMA * (missile.dynamicPressure * REFERENCE_AREA * REFERENCE_DIAMETER / missile.transverseMomentOfInertia); // PER SECOND^2
-			double DMD = missile.CMD * (missile.dynamicPressure * REFERENCE_AREA * REFERENCE_DIAMETER / missile.transverseMomentOfInertia); // PER SECOND^2
-			double DMQ = missile.CMQ * (REFERENCE_DIAMETER / (2 * missile.speed)) * (missile.dynamicPressure * REFERENCE_AREA * REFERENCE_DIAMETER / missile.transverseMomentOfInertia); // PER SECOND
-			double DLP = missile.CLP * (REFERENCE_DIAMETER / (2 * missile.speed)) * (missile.dynamicPressure * REFERENCE_AREA * REFERENCE_DIAMETER / missile.axialMomentOfInertia); // PER SECOND
-			double DLD = missile.CLD * (missile.dynamicPressure * REFERENCE_AREA * REFERENCE_DIAMETER / missile.axialMomentOfInertia); // PER SECOND^2
-
-			double WACL = 0.02 * sqrt(missile.dynamicPressure) + 7.1;
-			double ZACL = 0.000559 * sqrt(missile.dynamicPressure) + 0.232;
-			double PACL = 14;
-
-			double GAINFB3 = WACL * WACL * PACL / (DNA * DMD);
-			double GAINFB2 = (
-				2 * ZACL * WACL +
-				PACL +
-				DMQ -
-				DNA / missile.speed
-			) / DMD;
-			double GAINFB1 = (
-				WACL * WACL +
-				2 * ZACL * WACL * PACL +
-				DMA +
-				DMQ * DNA / missile.speed -
-				GAINFB2 * DMD * DNA / missile.speed
-			) / (DNA * DMD);
-
-			double PITCH_ERROR_DER_NEW = missile.guidanceNormalCommand - missile.FLUAcceleration[2];
-			double PITCH_ERROR_NEW = trapezoidIntegrate(PITCH_ERROR_DER_NEW, missile.pitchErrorDerivative, missile.pitchError, missile.TIME_STEP);
-			missile.pitchError = PITCH_ERROR_NEW;
-			missile.pitchErrorDerivative = PITCH_ERROR_DER_NEW;
-			missile.pitchFinCommand =
-			GAINFB1 * missile.FLUAcceleration[2] -
-			GAINFB2 * missile.bodyRate[1] +
-			GAINFB3 * missile.pitchError;
-			missile.pitchFinCommand *= degToRad;
-
+			guidancePitchRateCommand = signOfPitchRateCommand * pitchRateCommandLimit;
 		}
+		missile.lastPitchProportionalError = missile.pitchProportionalError;
+		missile.pitchProportionalError = (guidancePitchRateCommand + (missile.grav / missile.speed)) + missile.bodyRate[1];
+		double derivativePitchRateError = (missile.pitchProportionalError - missile.lastPitchProportionalError) / missile.TIME_STEP;
+		missile.pitchIntegralError += (missile.pitchProportionalError * missile.TIME_STEP);
 
-
-		// // Pitch autopilot.
-		// double pitchRateCommandLimit = 20;
-		// double pitchRateProportionalGain = 0.11;
-		// double pitchRateDerivativeGain = 0.000375;
-		// double pitchRateIntegralGain = 0.0018;
-		// double guidancePitchRateCommand = -missile.guidanceNormalCommand * 6 / missile.speed;
-		// double signOfPitchRateCommand = signum(guidancePitchRateCommand);
-		// if (abs(guidancePitchRateCommand) > pitchRateCommandLimit)
-		// {
-		// 	guidancePitchRateCommand = signOfPitchRateCommand * pitchRateCommandLimit;
-		// }
-		// missile.lastPitchProportionalError = missile.pitchProportionalError;
-		// missile.pitchProportionalError = (guidancePitchRateCommand + (missile.grav / missile.speed)) + missile.bodyRate[1];
-		// double derivativePitchRateError = (missile.pitchProportionalError - missile.lastPitchProportionalError) / missile.TIME_STEP;
-		// missile.pitchIntegralError += (missile.pitchProportionalError * missile.TIME_STEP);
-
-		// missile.pitchFinCommand = 
-		// pitchRateProportionalGain * missile.pitchProportionalError +
-		// pitchRateDerivativeGain * derivativePitchRateError +
-		// pitchRateIntegralGain * missile.pitchIntegralError;
+		missile.pitchFinCommand = 
+		pitchRateProportionalGain * missile.pitchProportionalError +
+		pitchRateDerivativeGain * derivativePitchRateError +
+		pitchRateIntegralGain * missile.pitchIntegralError;
 
 		// Yaw autopilot.
 		double yawRateCommandLimit = 20;
@@ -647,28 +601,18 @@ void aerodynamicAnglesAndConversions(Missile &missile)
 	missile.betaDegrees = missile.betaRadians * radToDeg;
 	missile.alphaPrimeRadians = acos(cos(missile.alphaRadians) * cos(missile.betaRadians));
 	missile.alphaPrimeDegrees = radToDeg * missile.alphaPrimeRadians;
-
 	double phiPrime = atan2(tan(missile.betaRadians), sin(missile.alphaRadians));
-
 	missile.sinPhiPrime = sin(phiPrime);
 	missile.cosPhiPrime = cos(phiPrime);
-
 	double pitchDeflAeroFrame = missile.pitchFinDeflection * missile.cosPhiPrime - missile.yawFinDeflection * missile.sinPhiPrime;
-
 	missile.pitchAeroBallisticFinDeflectionDegrees = radToDeg * pitchDeflAeroFrame;
-
 	double yawDeflAeroFrame = missile.pitchFinDeflection * missile.sinPhiPrime + missile.yawFinDeflection * missile.cosPhiPrime;
-
 	missile.yawAeroBallisticFinDeflectionDegrees = radToDeg * yawDeflAeroFrame;
 	missile.rollFinDeflectionDegrees = radToDeg * missile.rollFinDeflection;
 	missile.totalFinDeflectionDegrees = (abs(missile.pitchAeroBallisticFinDeflectionDegrees) + abs(missile.yawAeroBallisticFinDeflectionDegrees)) / 2;
-
 	double pitchRateAeroFrame = missile.bodyRate[1] * missile.cosPhiPrime - missile.bodyRate[2] * missile.sinPhiPrime;
-
 	missile.pitchAeroBallisticBodyRateDegrees = radToDeg * pitchRateAeroFrame;
-
 	double yawRateAeroFrame = missile.bodyRate[1] * missile.sinPhiPrime + missile.bodyRate[2] * missile.cosPhiPrime;
-
 	missile.yawAeroBallisticBodyRateDegrees = radToDeg * yawRateAeroFrame;
 	missile.rollRateDegrees = radToDeg * missile.bodyRate[0];
 	missile.sinOfFourTimesPhiPrime = sin(4 * phiPrime);

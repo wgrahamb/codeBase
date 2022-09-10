@@ -9,11 +9,31 @@
 #include <map>
 #include <algorithm>
 #include <string>
+#include <dirent.h>
 
 // Namespace.
 using namespace std;
 
+// Utility.
 #include "util.h"
+
+void loopThroughDirectory(string filepath)
+{
+
+	struct dirent *entry = nullptr;
+	DIR *dp = nullptr;
+	dp = opendir(filepath.c_str());
+	if (dp != nullptr)
+	{
+		while ((entry = readdir(dp)))
+		{
+			string fileName = entry->d_name;
+			cout << fileName << endl;
+		}
+	}
+	closedir(dp);
+
+};
 
 double signum(double x)
 {
@@ -67,8 +87,7 @@ double atan2_0(double y, double x)
 double exponentialDistribution(double density)
 {
 	double value;
-
-	value=-log(unituni());
+	value=-log(randomNumberBetweenZeroAndOne());
 	return value/density;
 }
 
@@ -86,25 +105,27 @@ double exponentialDistribution(double density)
 //010913 Created by Peter H Zipfel
 //010914 Normalized gauss tested with a 2000 sample: mean=0.0054, sigma=0.9759
 ///////////////////////////////////////////////////////////////////////////////
-double gaussianDistribution(double mean,double sig)
+double gaussianDistribution(double mean=0.0, double sig=1.0)
 {
 	static int iset=0;
 	static double gset;
 	double fac,rsq,v1,v2,value;
 
-	if(iset==0){
-		do{
-			v1=2.*unituni()-1.;
-			v2=2.*unituni()-1.;
+	if(iset==0)
+	{
+		do
+		{
+			v1=2.*randomNumberBetweenZeroAndOne()-1.;
+			v2=2.*randomNumberBetweenZeroAndOne()-1.;
 			rsq=v1*v1+v2*v2;
 		}while(rsq>=1.0||rsq==0);
-
 		fac=sqrt(-2.*log(rsq)/rsq);
 		gset=v1*fac;
 		iset=1;
 		value=v2*fac;
 	}
-	else{
+	else
+	{
 		iset=0;
 		value=gset;
 	}
@@ -131,10 +152,10 @@ double gaussianDistribution(double mean,double sig)
 double markovDistribution(double sigma,double bcor,double time,double intstep,double &value_saved)
 {
 	double value=0;
-
 	value=gaussianDistribution(0.,sigma);
 	if(time==0.) value_saved=value;
-	else{
+	else
+	{
 		if(bcor!=0.)
 		{
 			double dum=exp(-bcor*intstep);
@@ -165,7 +186,7 @@ double rayleighDistribution(double mode)
 {
 	double value;
 
-	value=sqrt(2.*(-log(unituni())));
+	value=sqrt(2.*(-log(randomNumberBetweenZeroAndOne())));
 	return value*mode;
 }
 
@@ -177,7 +198,7 @@ double rayleighDistribution(double mode)
 double uniformDistribution(double min,double max)
 {
 	double value;
-	value=min+(max-min)*unituni();
+	value=min+(max-min)*randomNumberBetweenZeroAndOne();
 	return value;
 }
 
@@ -186,7 +207,7 @@ double uniformDistribution(double min,double max)
 //
 //010913 Created by Peter H Zipfel
 ///////////////////////////////////////////////////////////////////////////////
-double unituni()
+double randomNumberBetweenZeroAndOne()
 {
 	double value;
 	value=(double)rand()/RAND_MAX;
