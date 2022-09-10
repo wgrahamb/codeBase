@@ -78,7 +78,7 @@ class sixDofSim:
           # SIM CONTROL.
           self.wallClockStart = time.time()
           self.go = True
-          self.timeStep = 0.005 # SECONDS
+          self.timeStep = 0.001 # SECONDS
           self.maxTime = 400 # SECONDS
 
           # TARGET.
@@ -129,7 +129,7 @@ class sixDofSim:
           self.A = self.ATMOS.a # Meters per second.
           self.G = self.ATMOS.g # Meters per second squared.
           self.mslMach = self.ATMOS.mach # Non dimensional.
-          self.gravBodyVec = np.zeros(3) # METERS PER SECOND^2
+          self.FLUgrav = np.zeros(3) # METERS PER SECOND^2
 
           # SEEKER >>> INITIALIZE BY POINTING THE SEEKER DIRECTLY AT THE TARGET
           relPosU = unitvector(self.tgtPos - self.mslPosEnu) # ND
@@ -337,7 +337,7 @@ class sixDofSim:
           self.mslMach = self.ATMOS.mach # Non dimensional.
 
           gravLocalVec = npa([0.0, 0.0, -self.G]) # METERS PER SECOND^2
-          self.gravBodyVec = self.mslENUtoFLU @ gravLocalVec # METERS PER SECOND^2
+          self.FLUgrav = self.mslENUtoFLU @ gravLocalVec # METERS PER SECOND^2
 
      def seeker(self):
 
@@ -448,7 +448,7 @@ class sixDofSim:
                ) # METERS PER SECOND^2
                self.normCommand = command[2] # METERS PER SECOND^2
                self.sideCommand = command[1] # METERS PER SECOND^2
-               
+
           # LIMIT ACCELERATION.
           accMag = la.norm(npa([self.sideCommand, self.normCommand]))
           trigonometricRatio = np.arctan2(self.normCommand, self.sideCommand) # ND
@@ -793,15 +793,15 @@ class sixDofSim:
           axialForce = \
           self.thrust - \
           self.CX * self.Q * self.mslRefArea + \
-          (self.gravBodyVec[0] * self.mass) # NEWTONS
+          (self.FLUgrav[0] * self.mass) # NEWTONS
 
           sideForce = \
           self.CY * self.Q * self.mslRefArea + \
-          (self.gravBodyVec[1] * self.mass) # NEWTONS
+          (self.FLUgrav[1] * self.mass) # NEWTONS
 
           normalForce = \
           self.CZ * self.Q * self.mslRefArea + \
-          (self.gravBodyVec[2] * self.mass) # NEWTONS
+          (self.FLUgrav[2] * self.mass) # NEWTONS
 
           rollMoment = self.CL * self.Q * self.mslRefArea * self.mslRefDiam # NEWTON * M
           pitchMoment = self.CM * self.Q * self.mslRefArea * self.mslRefDiam # NEWTON * M
@@ -930,6 +930,6 @@ class sixDofSim:
 
 
 if __name__ == "__main__":
-     np.set_printoptions(suppress=True, precision=4)
+     np.set_printoptions(suppress=True, precision=2)
      x = sixDofSim()
      x.main()
