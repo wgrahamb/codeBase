@@ -34,7 +34,10 @@ trajectory.set_xlim([eMin - 1000, eMax + 1000])
 trajectory.set_ylim([nMin - 1000, nMax + 1000])
 trajectory.set_zlim([uMin, uMax + 1000])
 trajectory.plot(df.iloc[startIndex:stopIndex]["posE"], df.iloc[startIndex:stopIndex]["posN"], df.iloc[startIndex:stopIndex]["posU"], color=colors.pop(0))
-trajectory.scatter(df.iloc[stopIndex]["tgtE"], df.iloc[stopIndex]["tgtN"], df.iloc[stopIndex]["tgtU"], color=colors.pop(0))
+if df.iloc[stopIndex]["tgtE"] == df.iloc[startIndex]["tgtE"]:
+	trajectory.scatter(df.iloc[stopIndex]["tgtE"], df.iloc[stopIndex]["tgtN"], df.iloc[stopIndex]["tgtU"], color=colors.pop(0))
+else:
+	trajectory.plot(df.iloc[:stopIndex]["tgtE"], df.iloc[:stopIndex]["tgtN"], df.iloc[:stopIndex]["tgtU"], color=colors.pop(0))
 
 # ACCELERATIONS.
 accelerations = fig.add_subplot(222)

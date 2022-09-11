@@ -83,14 +83,15 @@ class sixDofSim:
           self.maxTime = 400 # SECONDS
 
           # TARGET.
-          self.tgtPos = npa([5000.0, 5000.0, 5000.0])
+          self.tgtPos = npa([5000.0, 5000.0, 1000.0])
           self.tgtVel = np.zeros(3)
+          # self.tgtVel = npa([-75.0, -75.0, 0.0])
 
           # Input.
           # RADIANS >>> ONLY POSITIVE NUMBERS 0-360,
           # MEASURED COUNTER CLOCKWISE FROM TRUE EAST
-          mslAz = np.radians(20) 
-          mslEl = np.radians(35)
+          mslAz = np.radians(40) 
+          mslEl = np.radians(55)
 
           ### MSL STATE ###
           self.mslTof = 0.0 # SECONDS
@@ -410,7 +411,7 @@ class sixDofSim:
 
           # PROPORTIONAL GUIDANCE.
           if timeToGo < 3:
-               closingVel = -1 * self.mslVelB # METERS PER SECOND
+               closingVel = self.mslENUtoFLU @ (self.tgtVel - self.mslVelEnu)
                closingVelMag = la.norm(closingVel) # METERS PER SECOND
                TEMP1 = np.cross(self.forwardLeftUpMslToInterceptRelPos, closingVel)
                TEMP2 = np.dot(
