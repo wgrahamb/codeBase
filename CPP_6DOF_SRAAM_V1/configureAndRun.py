@@ -9,9 +9,9 @@ tgtN = 0.0 # TARGET NORTH
 tgtU = 3000.0 # TARGET UP
 
 inPutString = f"{phi} {theta} {psi} {tgtE} {tgtN} {tgtU}"
-inPutFile = r"input.txt"
+inPutFile = r"CPP_6DOF_SRAAM_V1/input.txt"
 with open(inPutFile, "w") as f:
 	f.writelines(inPutString)
 
-process = subprocess.Popen(["./sixDofSim"])
+process = subprocess.Popen(["./CPP_6DOF_SRAAM_V1/sixDofSim"])
 process.wait()

@@ -1,7 +1,6 @@
 import numpy as np
 from numpy import array as npa
 
-# Only called once. Then in reverse order for the rest of the sim.
 @staticmethod
 def LLA_TO_ECEF(LLA): # Lat - Rads, Lon - Rads, Alt - Meters.
 	REARTH = 6370987.308 # Meters.

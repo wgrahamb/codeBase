@@ -390,7 +390,7 @@ void multiplyVectorTimesScalar(double scalar, double vec[3], double out[3]) {
 
 void lookUpTablesFormat () {
 	// LOOK UP DATA
-	ifstream inFile("sixDofSimTables.txt");
+	ifstream inFile("CPP_6DOF_SRAAM_V1/sixDofSimTables.txt");
 	// STRING OF FILE LINE
 	string line;
 	// TABLE NUMBER
@@ -676,7 +676,7 @@ void init() {
 
 	// INITIALIZE AND OPEN INPUT FILE
 	std::ifstream inPut;
-	inPut.open("input.txt");
+	inPut.open("CPP_6DOF_SRAAM_V1/input.txt");
 
 	// INITIALIZE INPUTS
 	double phi, theta, psi, tgtE, tgtN, tgtU;
@@ -745,7 +745,7 @@ void init() {
 	lethality = ec.flying; // STATUS
 
 	// LOG DATA
-	logFile.open("log.txt");
+	logFile.open("CPP_6DOF_SRAAM_V1/log.txt");
 	logFile << fixed << setprecision(10) << "tof posE posN posU tgtE tgtN tgtU normComm normAch pitchRate thetaRate pitchDefl alpha theta sideComm sideAch yawRate psiRate yawDefl beta psi rollComm phiRate rollRate rollDefl roll seekPitchErr seekYawErr staticMargin mach" << endl;
 
 	// FLY

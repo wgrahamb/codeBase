@@ -14,7 +14,6 @@ from utility.loadPickle import loadpickle as lp
 from utility.coordinateTransformations import FLIGHTPATH_TO_LOCAL_TM
 from utility.coordinateTransformations import ORIENTATION_TO_LOCAL_TM
 from utility.returnAzAndElevation import returnAzAndElevation
-from utility.projection import projection
 from utility.ATM1976 import ATM1976
 from utility.trapezoidIntegrate import integrate
 from utility.unitVector import unitvector
@@ -201,7 +200,7 @@ class fiveDofInterceptor:
 		self.gravBodyVec = np.zeros(3) # METERS PER SECOND^2
 		gravityVec = npa([0, 0, -1.0 * self.G])
 
-		# KINEMATIC TRUTH SEEKER AND GUIDANCE.
+		# KINEMATIC TRUTH SEEKER AND PROPORTIONAL GUIDANCE.
 		FLUMslToPipRelPos = self.ENUtoFLU @ (self.targetPos - self.posEnu)
 		FLUMslToPipRelPosU = unitvector(FLUMslToPipRelPos)
 		closingVel = self.ENUtoFLU @ (self.targetVel - self.velEnu)
@@ -273,6 +272,8 @@ class fiveDofInterceptor:
 			CYB = np.degrees(0.06 * (absBetaDeg ** 0.625))
 
 		# FORCE CHECK AND BALANCE. THIS IS A KLUDGE, BUT IT WORKS. #
+		# AXIAL FORCE COEFFICIENT ALWAYS ACTS IN THE NEGATIVE AXIS
+		CX = np.negative(np.abs(CX))
 		# NOSE BELOW FREE STREAM,
 		# NORMAL FORCE PUSHES INTERCEPTOR TOWARD THE GROUND
 		if self.alpha >= 0.0:
@@ -289,8 +290,6 @@ class fiveDofInterceptor:
 		# SIDE FORCE PUSHES INTERCEPTOR RIGHT
 		elif self.beta < 0.0:
 			CY = np.positive(np.abs(CY))
-		# AXIAL FORCE COEFFICIENT ALWAYS ACTS IN THE NEGATIVE AXIS
-		CX = np.negative(np.abs(CX))
 
 		# PITCH AUTOPILOT.
 		tip = freeStreamSpeed * mass / (thrust + self.Q * self.refArea * np.abs(CNA))

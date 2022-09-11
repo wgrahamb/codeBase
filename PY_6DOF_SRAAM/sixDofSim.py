@@ -1,3 +1,4 @@
+
 # INCLUDED WITH PYTHON
 import time
 from enum import Enum
@@ -82,14 +83,14 @@ class sixDofSim:
           self.maxTime = 400 # SECONDS
 
           # TARGET.
-          self.tgtPos = npa([6000.0, 5000.0, 5000.0])
+          self.tgtPos = npa([5000.0, 5000.0, 5000.0])
           self.tgtVel = np.zeros(3)
 
           # Input.
           # RADIANS >>> ONLY POSITIVE NUMBERS 0-360,
           # MEASURED COUNTER CLOCKWISE FROM TRUE EAST
           mslAz = np.radians(20) 
-          mslEl = np.radians(35) # RADIANS
+          mslEl = np.radians(35)
 
           ### MSL STATE ###
           self.mslTof = 0.0 # SECONDS
@@ -260,7 +261,7 @@ class sixDofSim:
           self.CN = 0 # YAWING MOMENT COEFFICIENT
 
           # AERO DYNAMIC REFERENCE DATA
-          self.refAeroData = {}
+          self.aeroDers = {}
           self.staticMargin = 0
 
           # DATA
@@ -303,8 +304,8 @@ class sixDofSim:
           }
           return STATE
 
-     def trapIntegrate(self, dy_new, dy, y, step):
-          return y + (dy_new + dy) * step / 2
+     def trapIntegrate(self, dy_new, dy_old, y, step):
+          return y + (dy_new + dy_old) * step / 2
 
      def target(self):
 
@@ -327,7 +328,6 @@ class sixDofSim:
 
      def atmosphere(self):
 
-          self.ATMOS = ATM1976()
           self.ATMOS.update(self.mslPosEnu[2], la.norm(self.mslVelEnu))
           self.RHO = self.ATMOS.rho # Kilograms per meter cubed.
           self.Q = self.ATMOS.q # Pascals.
@@ -460,14 +460,14 @@ class sixDofSim:
      def control(self):
 
           # MANEUVERING
-          if len(self.refAeroData) > 0 and self.mslMach > 0.6:
+          if len(self.aeroDers) > 0 and self.mslMach > 0.6:
                     
-               CNA = self.refAeroData["CNA"] * RAD_TO_DEG # ND
-               CMA = self.refAeroData["CMA"] * RAD_TO_DEG # ND
-               CMD = self.refAeroData["CMD"] * RAD_TO_DEG # ND
-               CMQ = self.refAeroData["CMQ"] * RAD_TO_DEG # ND
-               CLP = self.refAeroData["CLP"] * RAD_TO_DEG # ND
-               CLD = self.refAeroData["CLD"] * RAD_TO_DEG # ND
+               CNA = self.aeroDers["CNA"] * RAD_TO_DEG # ND
+               CMA = self.aeroDers["CMA"] * RAD_TO_DEG # ND
+               CMD = self.aeroDers["CMD"] * RAD_TO_DEG # ND
+               CMQ = self.aeroDers["CMQ"] * RAD_TO_DEG # ND
+               CLP = self.aeroDers["CLP"] * RAD_TO_DEG # ND
+               CLD = self.aeroDers["CLD"] * RAD_TO_DEG # ND
                mass = self.mass # KILOGRAMS
                tMoi = self.tmoi # KILOGRAMS * METERS^2
                aMoi = self.amoi # KILOGRAMS * METERS^2
@@ -535,15 +535,15 @@ class sixDofSim:
 
           # THIS KEEPS THE MISSILE ON LINE BEFORE IT
           # GAINS ENOUGH SPEED TO PROPERLY MANEUVER
-          elif len(self.refAeroData) > 0:
+          elif len(self.aeroDers) > 0:
 
-               CNA = self.refAeroData["CNA"] * RAD_TO_DEG # ND
-               CMA = self.refAeroData["CMA"] * RAD_TO_DEG # ND
-               CMD = self.refAeroData["CMD"] * RAD_TO_DEG # ND
-               CMQ = self.refAeroData["CMQ"] * RAD_TO_DEG # ND
-               CLP = self.refAeroData["CLP"] * RAD_TO_DEG # ND
-               CLD = self.refAeroData["CLD"] * RAD_TO_DEG # ND
-               CND = self.refAeroData["CND"] * RAD_TO_DEG #ND
+               CNA = self.aeroDers["CNA"] * RAD_TO_DEG # ND
+               CMA = self.aeroDers["CMA"] * RAD_TO_DEG # ND
+               CMD = self.aeroDers["CMD"] * RAD_TO_DEG # ND
+               CMQ = self.aeroDers["CMQ"] * RAD_TO_DEG # ND
+               CLP = self.aeroDers["CLP"] * RAD_TO_DEG # ND
+               CLD = self.aeroDers["CLD"] * RAD_TO_DEG # ND
+               CND = self.aeroDers["CND"] * RAD_TO_DEG #ND
                mass = self.mass # KILOGRAMS
                tMoi = self.tmoi # KILOGRAMS * METERS^2
                aMoi = self.amoi # KILOGRAMS * METERS^2
@@ -580,7 +580,8 @@ class sixDofSim:
                self.yawFinComm = GRATE * self.mslEulerDotEnu[2] # RADIANS
 
           else:
-               self.PHI_ANGLE_COMMAND = 0.0
+
+               self.rollFinComm = 0.0
                self.pitchFinComm = 0.0
                self.yawFinComm = 0.0
 
@@ -770,26 +771,26 @@ class sixDofSim:
           CLM0MIN = self.lookUpValues["CLM0"](self.mslMach, alphaPrimeDegMinusThree)[0] # ND
           CLM0MAX = self.lookUpValues["CLM0"](self.mslMach, alphaPrimeDegPlusThree)[0] # ND
 
-          self.refAeroData["CNA"] = \
+          self.aeroDers["CNA"] = \
           (CN0MAX - CN0MIN) / \
           (alphaPrimeDegPlusThree - alphaPrimeDegMinusThree) # PER DEGREE
 
-          self.refAeroData["CMA"] = \
+          self.aeroDers["CMA"] = \
           (CLM0MAX - CLM0MIN) / \
           (alphaPrimeDegPlusThree - alphaPrimeDegMinusThree) - \
-          self.refAeroData["CNA"] * \
+          self.aeroDers["CNA"] * \
           (self.launchCg - self.cgFromNose) / self.mslRefDiam # PER DEGREE
 
-          self.refAeroData["CND"] = self.CNDQ # PER DEGREE
-          self.refAeroData["CMD"] = self.CLMDQ # PER DEGREE
-          self.refAeroData["CMQ"] = self.CLMQ # PER DEGREE
-          self.refAeroData["CLP"] = self.CLLP # PER DEGREE
-          self.refAeroData["CLD"] = self.CLLDP # PER DEGREE
-          self.staticMargin = -1 * self.refAeroData["CMA"] / self.refAeroData["CNA"]
+          self.aeroDers["CND"] = self.CNDQ # PER DEGREE
+          self.aeroDers["CMD"] = self.CLMDQ # PER DEGREE
+          self.aeroDers["CMQ"] = self.CLMQ # PER DEGREE
+          self.aeroDers["CLP"] = self.CLLP # PER DEGREE
+          self.aeroDers["CLD"] = self.CLLDP # PER DEGREE
+          self.staticMargin = -1 * self.aeroDers["CMA"] / self.aeroDers["CNA"]
 
      def missileMotion(self):
 
-          # DERIVATIVES.
+          # FORCES AND MOMENTS.
           axialForce = \
           self.thrust - \
           self.CX * self.Q * self.mslRefArea + \
@@ -807,6 +808,7 @@ class sixDofSim:
           pitchMoment = self.CM * self.Q * self.mslRefArea * self.mslRefDiam # NEWTON * M
           yawMoment = self.CN * self.Q * self.mslRefArea * self.mslRefDiam # NEWTON * M
 
+          # DERIVATIVES.
           self.mslSpecificForce[0] = \
           axialForce / self.mass - \
           (self.mslRate[1] * self.mslVelB[2] - self.mslRate[2] * self.mslVelB[1]) # M/S^2
@@ -853,11 +855,11 @@ class sixDofSim:
 
           # STATE.
           deltaEuler = self.mslEulerDotEnu * self.timeStep
-          deltaOmega = self.mslRateDot * self.timeStep
+          deltaRate = self.mslRateDot * self.timeStep
           deltaPos = self.mslVelEnu * self.timeStep # METERS
           deltaVel = self.mslAccEnu * self.timeStep # METERS PER SECOND
           self.mslEulerEnu += deltaEuler
-          self.mslRate += deltaOmega
+          self.mslRate += deltaRate
           self.mslPosEnu += deltaPos # METERS
           self.mslVelEnu += deltaVel # METERS PER SECOND
           self.mslRange += la.norm(deltaPos) # METERS
@@ -920,7 +922,7 @@ class sixDofSim:
           while self.go:
                self.fly()
                if round(self.mslTof, 3).is_integer():
-                    print(f"TIME {self.mslTof:.3f} : ENU {self.mslPosEnu}")
+                    print(f"TIME {self.mslTof:.0f} : ENU {self.mslPosEnu}")
           wallClockEnd = time.time()
           print(f"TIME {self.mslTof:.3f} : ENU {self.mslPosEnu}")
           print(f"SIMULATION RESULT : {self.lethality.name}")

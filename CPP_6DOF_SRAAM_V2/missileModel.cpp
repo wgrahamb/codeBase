@@ -718,11 +718,9 @@ void accelerationLimit(Missile &missile)
 	int index;
 
 	double currentAccelerationEstimate = missile.CN0 * missile.dynamicPressure * REFERENCE_AREA / missile.mass;
-
 	index = missile.tableNameIndexPairs["CN0"];
 	double CN0MAX = biLinearInterpolationWithBoundedBorders(missile.tables[index], missile.machSpeed, ALPHA_PRIME_MAX);
 	double maximumAccelerationEstimate = CN0MAX * missile.dynamicPressure * REFERENCE_AREA / missile.mass;
-
 	double availableAccelerationEstimate = maximumAccelerationEstimate - currentAccelerationEstimate;
 
 	if (missile.homing)

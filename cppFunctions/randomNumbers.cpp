@@ -108,7 +108,7 @@ float randomNumbers::randomNumberGenerator()
      if (SEED < 0) SEED += IM;
      ans=AM*(SEED);
      SEED ^= MASK;
-     return ans;
+     return ans; // Returns a number between 0.0 and 1.0.
 
 }
 

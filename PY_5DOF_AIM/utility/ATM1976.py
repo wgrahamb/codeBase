@@ -1,6 +1,7 @@
 import numpy as np
 
 """
+
 ///////////////////////////////////////////////////////////////////////////////
 // US Standard Atmosphere 1976
 // *Calculates the atmospheric properties density pressure and temperature 
@@ -17,6 +18,7 @@ import numpy as np
 //
 // 030318 Created by Peter Zipfel
 ///////////////////////////////////////////////////////////////////////////////
+
 """
 
 class ATM1976:
@@ -86,7 +88,6 @@ class ATM1976:
 		rad = (rearth + ALT) * 1000
 		self.g = G * EARTH_MASS / (rad ** 2)
 
-		pause = 0
 
 """
 

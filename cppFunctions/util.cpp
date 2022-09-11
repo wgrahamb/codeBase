@@ -17,6 +17,7 @@ using namespace std;
 // Utility.
 #include "util.h"
 
+// GB. Lists the files in the input directory.
 void loopThroughDirectory(string filepath)
 {
 
@@ -35,6 +36,7 @@ void loopThroughDirectory(string filepath)
 
 };
 
+// Returns the sign of a number.
 double signum(double x)
 {
 	double y;
@@ -53,6 +55,7 @@ double signum(double x)
 	return y;
 }
 
+// Arctan2 with a performance check.
 double atan2_0(double y, double x)
 {
 	if( x == 0.0 && y == 0.0)
@@ -214,13 +217,13 @@ double randomNumberBetweenZeroAndOne()
 	return value;
 }
 
-// GRAHAM BEECH
+// GB. Simple integration method.
 double trapezoidIntegrate(double dy_new, double dy, double y, double intStep)
 {
 	return y + ((dy_new + dy) * intStep / 2);
 }
 
-// GRAHAM BEECH
+// GB.
 void flightPathAnglesToLocalOrientation (double azimuth, double elevation, double localFrame[3][3])
 {
 	localFrame[0][0] = cos(elevation) * cos(azimuth);
@@ -234,7 +237,7 @@ void flightPathAnglesToLocalOrientation (double azimuth, double elevation, doubl
 	localFrame[2][2] = cos(elevation);
 }
 
-// GRAHAM BEECH
+// GB. Direction cosine matrix.
 void eulerAnglesToLocalOrientation (double phi, double theta, double psi, double matrix[3][3])
 {
 	matrix[0][0] = cos(psi) * cos(theta);
@@ -248,7 +251,7 @@ void eulerAnglesToLocalOrientation (double phi, double theta, double psi, double
 	matrix[2][2] = cos(theta) * cos(phi);
 }
 
-// GRAHAM BEECH
+// GB. Unit vector.
 void unitVec (double vector[3], double unitVector[3])
 {
 	double mag = sqrt(vector[0] * vector[0] + vector[1] * vector[1] + vector[2] * vector[2]);
@@ -257,7 +260,7 @@ void unitVec (double vector[3], double unitVector[3])
 	unitVector[2] = vector[2] / mag;
 }
 
-// GRAHAM BEECH
+// GB.
 void azAndElFromVector (double &az, double &el, double vector[3])
 {
 	az = atan2(vector[1], vector[0]);
@@ -267,7 +270,7 @@ void azAndElFromVector (double &az, double &el, double vector[3])
 	el = atan2(vector[2], t3);
 }
 
-// GRAHAM BEECH
+// GB.
 void oneByThreeTimesThreeByThree(double arr[3], double matrix[3][3], double out[3])
 {
 	out[0] = matrix[0][0] * arr[0] + matrix[1][0] * arr[1] + matrix[2][0] * arr[2];
@@ -275,7 +278,7 @@ void oneByThreeTimesThreeByThree(double arr[3], double matrix[3][3], double out[
 	out[2] = matrix[0][2] * arr[0] + matrix[1][2] * arr[1] + matrix[2][2] * arr[2];
 }
 
-// GRAHAM BEECH
+// GB.
 void threeByThreeTimesThreeByOne(double matrix[3][3], double arr[3], double out[3])
 {
 	out[0] = matrix[0][0] * arr[0] + matrix[0][1] * arr[1] + matrix[0][2] * arr[2];
@@ -283,7 +286,7 @@ void threeByThreeTimesThreeByOne(double matrix[3][3], double arr[3], double out[
 	out[2] = matrix[2][0] * arr[0] + matrix[2][1] * arr[1] + matrix[2][2] * arr[2];
 }
 
-// GRAHAM BEECH
+// GB.
 void threeByThreeTimesThreeByThree(double mat1[3][3], double mat2[3][3], double out[3][3])
 {
 	for (int i = 0; i < 3; i++)
@@ -295,7 +298,7 @@ void threeByThreeTimesThreeByThree(double mat1[3][3], double mat2[3][3], double 
 	}
 }
 
-// GRAHAM BEECH
+// GB.
 void magnitude(double arr[3], double &out)
 {
 	double t1 = pow(arr[0], 2);
@@ -304,7 +307,7 @@ void magnitude(double arr[3], double &out)
 	out = sqrt(t1 + t2 + t3);
 }
 
-// GRAHAM BEECH
+// GB.
 void subtractTwoVectors(double vec1[3], double vec2[3], double out[3])
 {
 	out[0] = vec2[0] - vec1[0];
@@ -312,7 +315,7 @@ void subtractTwoVectors(double vec1[3], double vec2[3], double out[3])
 	out[2] = vec2[2] - vec1[2];
 }
 
-// GRAHAM BEECH
+// GB.
 void addTwoVectors(double vec1[3], double vec2[3], double out[3])
 {
 	out[0] = vec2[0] + vec1[0];
@@ -320,7 +323,7 @@ void addTwoVectors(double vec1[3], double vec2[3], double out[3])
 	out[2] = vec2[2] + vec1[2];
 }
 
-// GRAHAM BEECH
+// GB.
 void multiplyTwoVectors(double vec1[3], double vec2[3], double out[3])
 {
 	out[0] = vec2[0] * vec1[0];
@@ -328,7 +331,7 @@ void multiplyTwoVectors(double vec1[3], double vec2[3], double out[3])
 	out[2] = vec2[2] * vec1[2];
 }
 
-// GRAHAM BEECH
+// GB.
 void crossProductTwoVectors (double vec1[3], double vec2[3], double out[3])
 {
 	out[0] = vec1[1] * vec2[2] - vec1[2] * vec2[1];
@@ -336,13 +339,13 @@ void crossProductTwoVectors (double vec1[3], double vec2[3], double out[3])
 	out[2] = vec1[0] * vec2[1] - vec1[1] * vec2[0];
 }
 
-// GRAHAM BEECH
+// GB.
 void dotProductTwoVectors (double vec1[3], double vec2[3], double &out)
 {
 	out = vec1[0] * vec2[0] + vec1[1] * vec2[1] + vec1[2] * vec2[2];
 }
 
-// GRAHAM BEECH
+// GB.
 void vectorProjection (double uv[3], double vec[3], double out[3])
 {
 	double uvXvu[3][3];
@@ -360,7 +363,7 @@ void vectorProjection (double uv[3], double vec[3], double out[3])
 	out[2] = uvXvu[2][0] * vec[0] + uvXvu[2][1] * vec[1] + uvXvu[2][2] * vec[2];
 }
 
-// GRAHAM BEECH
+// GB.
 void multiplyVectorTimesScalar(double scalar, double vec[3], double out[3])
 {
 	out[0] = scalar * vec[0];
@@ -368,7 +371,7 @@ void multiplyVectorTimesScalar(double scalar, double vec[3], double out[3])
 	out[2] = scalar * vec[2];
 }
 
-// GRAHAM BEECH
+// GB.
 void divideVectorByScalar(double scalar, double vec[3], double out[3])
 {
 	out[0] = vec[0] / scalar;
@@ -376,7 +379,7 @@ void divideVectorByScalar(double scalar, double vec[3], double out[3])
 	out[2] = vec[2] / scalar;
 }
 
-// Graham Beech.
+// GB.
 void setArrayEquivalentToReference(double arrayToBeChanged[3], double reference[3])
 {
 	arrayToBeChanged[0] = reference[0];
@@ -384,7 +387,7 @@ void setArrayEquivalentToReference(double arrayToBeChanged[3], double reference[
 	arrayToBeChanged[2] = reference[2];
 }
 
-// Graham Beech.
+// GB.
 void setArrayEquivalentToZero(double array[3])
 {
 	array[0] = 0.0;
@@ -392,13 +395,13 @@ void setArrayEquivalentToZero(double array[3])
 	array[2] = 0.0;
 }
 
-// Graham Beech.
+// GB.
 void consolePrintArray(string id, double array[3])
 {
 	cout << id << " " << array[0] << " " << array[1] << " " << array[2] << "\n";
 }
 
-// GRAHAM BEECH
+// GB.
 double linearInterpolationWithBoundedEnds(std::vector<std::vector<double>> table, double tableInput)
 {
 	int lowIndex = -100000;
@@ -447,7 +450,7 @@ double linearInterpolationWithBoundedEnds(std::vector<std::vector<double>> table
 	return interpolatedValue;
 }
 
-// GRAHAM BEECH
+// GB.
 double biLinearInterpolationWithBoundedBorders(std::vector<std::vector<double>> table, double tableRowInput, double tableColumnInput)
 {
 	int lowRowIndex = -100000;
