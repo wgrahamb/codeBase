@@ -11,7 +11,7 @@ Folder Structure: - Go through each project and make sure any executable can be 
                            from this directory. Write bash scripts to automate the creation
                            of build folders. Follow template laid forth in SRAAM V1.
 
-	3DOFS - Clean and convert to CMake.
+	3DOFS - Clean and convert to CMake. Re write RK4 3DOF.
 
 	Includes multiple three degree of freedom models. Some 3DOF translational and
 	one 3DOF side scroller. Has a base CPP model and a base python model intended
