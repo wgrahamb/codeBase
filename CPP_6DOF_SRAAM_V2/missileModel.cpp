@@ -1954,7 +1954,7 @@ int main()
 	ifstream InputFile;
 
 	// Open input file.
-	InputFile.open("CPP_6DOF_SRAAM_V2/input.txt");
+	InputFile.open("CPP_6DOF_SRAAM_V2/input/input.txt");
 
 	// Populate input.
 	InputFile
@@ -1976,7 +1976,7 @@ int main()
 	Missile missile;
 
 	// Format data tables. Only happens once.
-	formatTables(missile, "CPP_6DOF_SRAAM_V2/shortRangeInterceptorTables.txt");
+	formatTables(missile, "CPP_6DOF_SRAAM_V2/input/tables.txt");
 
 	// Trajectory and integration type.
 	missile.BALLISTIC = ballistic;

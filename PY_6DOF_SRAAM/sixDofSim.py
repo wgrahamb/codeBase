@@ -81,16 +81,15 @@ class sixDofSim:
           self.go = True
           self.timeStep = 0.005 # SECONDS
           self.maxTime = 400 # SECONDS
-
-          # TARGET.
-          self.tgtPos = npa([5000.0, 5000.0, 1000.0])
-          self.tgtVel = np.zeros(3)
-          # self.tgtVel = npa([-75.0, -75.0, 0.0])
-
+          
           # Input.
+          # TARGET.
+          self.tgtPos = npa([3000.0, 3000.0, 3000.0])
+          # self.tgtVel = np.zeros(3)
+          self.tgtVel = npa([-75.0, -75.0, 0.0])
           # RADIANS >>> ONLY POSITIVE NUMBERS 0-360,
           # MEASURED COUNTER CLOCKWISE FROM TRUE EAST
-          mslAz = np.radians(40) 
+          mslAz = np.radians(30) 
           mslEl = np.radians(55)
 
           ### MSL STATE ###
@@ -242,14 +241,14 @@ class sixDofSim:
           self.CLMDQ = 0.0 # PER DEGREE
           self.CLNP = 0.0 # ND
           self.mass = 0.0 # KILOGRAMS
-          self.unAdjThrust = 0.0 # NEWTONS
+          self.vacuumThrust = 0.0 # NEWTONS
           self.tmoi = 0.0 # KILOGRAMS * METERS^2
           self.amoi = 0.0 # KILOGRAMS * METERS^2
           self.cgFromNose = 0.0 # METERS
           self.alphaPrimeMax = 40.0 # DEGREES
 
           # PROPULSION
-          self.seaLevelPress = 101325
+          self.seaLevelPressure = 101325
           self.thrust = 0.0
 
           # AERO DYNAMIC COEFFICIENTS
@@ -261,7 +260,7 @@ class sixDofSim:
           self.CM = 0 # PITCHING MOMENT COEFFICIENT
           self.CN = 0 # YAWING MOMENT COEFFICIENT
 
-          # AERO DYNAMIC REFERENCE DATA
+          # AERO DYNAMIC DERIVATIVES.
           self.aeroDers = {}
           self.staticMargin = 0
 
@@ -425,27 +424,27 @@ class sixDofSim:
                ) # METERS PER SECOND^2
                self.normCommand = command[2] # METERS PER SECOND^2
                self.sideCommand = command[1] # METERS PER SECOND^2
-          
+
           # LINE OF ATTACK.
           else:
                lineOfAttack = npa(
-                    [
-                         forwardLeftUpMslToInterceptRelPosU[0],
-                         forwardLeftUpMslToInterceptRelPosU[1],
-                         self.loft
-                    ]
+               [
+                    forwardLeftUpMslToInterceptRelPosU[0],
+                    forwardLeftUpMslToInterceptRelPosU[1],
+                    self.loft
+               ]
                ) # ND
                forwardLeftUpMslToInterceptLineOfAttackVel = \
                projection(lineOfAttack, self.mslVelB) # METERS PER SECOND
                G = 1 - np.exp(-1 * la.norm(self.forwardLeftUpMslToInterceptRelPos) / 10000) # ND
                command = npa(
-                    [
-                         0.0,
-                         self.K * (forwardLeftUpMslToInterceptLineOfSightVel[1] + \
-                         G * forwardLeftUpMslToInterceptLineOfAttackVel[1]),
-                         self.K * (forwardLeftUpMslToInterceptLineOfSightVel[2] + \
-                         G * forwardLeftUpMslToInterceptLineOfAttackVel[2]),
-                    ]
+               [
+                    0.0,
+                    self.K * (forwardLeftUpMslToInterceptLineOfSightVel[1] + \
+                    G * forwardLeftUpMslToInterceptLineOfAttackVel[1]),
+                    self.K * (forwardLeftUpMslToInterceptLineOfSightVel[2] + \
+                    G * forwardLeftUpMslToInterceptLineOfAttackVel[2]),
+               ]
                ) # METERS PER SECOND^2
                self.normCommand = command[2] # METERS PER SECOND^2
                self.sideCommand = command[1] # METERS PER SECOND^2
@@ -462,7 +461,7 @@ class sixDofSim:
 
           # MANEUVERING
           if len(self.aeroDers) > 0 and self.mslMach > 0.6:
-                    
+
                CNA = self.aeroDers["CNA"] * RAD_TO_DEG # ND
                CMA = self.aeroDers["CMA"] * RAD_TO_DEG # ND
                CMD = self.aeroDers["CMD"] * RAD_TO_DEG # ND
@@ -685,7 +684,7 @@ class sixDofSim:
 
           self.CLNP = self.lookUpValues["CLNP"](self.mslMach, self.alphaPrimeDeg)[0] # ND
           self.mass = self.lookUpValues["MASS"](self.mslTof) # KILOGRAMS
-          self.unAdjThrust = self.lookUpValues["THRUST"](self.mslTof) # NEWTONS
+          self.vacuumThrust = self.lookUpValues["THRUST"](self.mslTof) # NEWTONS
           self.tmoi = self.lookUpValues["TRANSVERSE MOI"](self.mslTof) # KG * METERS^2
           self.amoi = self.lookUpValues["AXIAL MOI"](self.mslTof) # KG * METERS ^ 2
           self.cgFromNose = self.lookUpValues["CENTER OF GRAVITY"](self.mslTof) # METERS
@@ -708,8 +707,8 @@ class sixDofSim:
           if self.mslTof > self.mslBurnOut:
                self.thrust = 0
           else:
-               self.thrust = self.unAdjThrust + \
-               (self.seaLevelPress - self.P) * self.mslExitArea # NEWTONS
+               self.thrust = self.vacuumThrust + \
+               (self.seaLevelPressure - self.P) * self.mslExitArea # NEWTONS
 
      def aerodynamics(self):
 

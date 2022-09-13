@@ -1,3 +1,4 @@
+
 // Standard.
 #include "iostream"
 #include "iomanip"
@@ -16,7 +17,6 @@ const double TIME_STEP = 1.0 / 1000.0;
 const double MAX_TIME = 200.0;
 
 // Missile struct.
-
 struct Missile
 {
 
@@ -69,13 +69,6 @@ void waypoint(Missile &missile, double pip[3])
 
 }
 
-void timeOfFlight(Missile &missile)
-{
-
-	missile.timeOfFlight += TIME_STEP;
-
-}
-
 void guidance(Missile &missile)
 {
 
@@ -104,7 +97,7 @@ void guidance(Missile &missile)
 
 }
 
-void integrate(Missile &missile)
+void missileMotion(Missile &missile)
 {
 
 	missile.FLUAcceleration[0] = 0.0;
@@ -124,44 +117,41 @@ void integrate(Missile &missile)
 	addTwoVectors(missile.ENUPosition, deltaPosition, newMissilePosition);
 	setArrayEquivalentToReference(missile.ENUPosition, newMissilePosition);
 
+	missile.timeOfFlight += TIME_STEP;
+
 	double distanceTravelled;
 	magnitude(deltaPosition, distanceTravelled);
 	missile.range += distanceTravelled;
-
-}
-
-void orientation(Missile &missile)
-{
 
 	azAndElFromVector(missile.yaw, missile.pitch, missile.ENUVelocity);
 	flightPathAnglesToLocalOrientation(missile.yaw, -1 * missile.pitch, missile.ENUToFLU);
 
 }
 
-void performanceAndTerminationCheck(Missile &missile)
+void endCheck(Missile &missile)
 {
 
 	magnitude(missile.FLUMissileToPipPosition, missile.missDistance);
 
 	if (missile.ENUPosition[2] < 0.0)
 	{
-		missile.lethality = "GROUND COLLISION";
+		missile.lethality = "GROUND";
 	}
 	else if (missile.missDistance < 5.0)
 	{
-		missile.lethality = "SUCCESSFUL INTERCEPT";
+		missile.lethality = "INTERCEPT";
 	}
 	else if (missile.FLUMissileToPipPosition[0] < 0.0)
 	{
-		missile.lethality = "POINT OF CLOSEST APPROACH PASSED";
+		missile.lethality = "POCA"; // POINT OF CLOSEST APPROACH.
 	}
 	else if (isnan(missile.ENUPosition[0]))
 	{
-		missile.lethality = "NOT A NUMBER";
+		missile.lethality = "NAN";
 	}
 	else if (missile.timeOfFlight > MAX_TIME)
 	{
-		missile.lethality = "MAXIMUM SIMULATION TIME EXCEEDED";
+		missile.lethality = "TIME";
 	}
 
 }
@@ -169,15 +159,13 @@ void performanceAndTerminationCheck(Missile &missile)
 void fly(Missile &missile)
 {
 
-	timeOfFlight(missile);
 	guidance(missile);
-	integrate(missile);
-	orientation(missile);
-	performanceAndTerminationCheck(missile);
+	missileMotion(missile);
+	endCheck(missile);
 
 }
 
-void flyout(Missile &missile, bool LogData, bool ConsoleReport, string identity)
+void fly(Missile &missile, bool LogData, bool ConsoleReport, string identity)
 {
 
 	// Run.
@@ -214,11 +202,14 @@ void flyout(Missile &missile, bool LogData, bool ConsoleReport, string identity)
 			auto print_it = static_cast<int>(round(missile.timeOfFlight * 10000.0)) % 10000;
 			if (print_it == 0)
 			{
-				cout << setprecision(10) << "STATUS AT TIME OF FLIGHT " << missile.timeOfFlight << " X " << missile.ENUPosition[0] << " Y " << missile.ENUPosition[1] << " Z " << missile.ENUPosition[2] << " RANGE " << missile.range << endl;
+				cout << setprecision(10) <<
+				"TOF " << missile.timeOfFlight <<
+				" ENU " << missile.ENUPosition[0] <<
+				" " << missile.ENUPosition[1] <<
+				" " << missile.ENUPosition[2] << endl;
 				lastTime = missile.timeOfFlight;
 			}
 		}
-		
 	}
 
 	// Console report.
@@ -304,7 +295,7 @@ void pipSelection(Missile &missile, vector<vector<double>> Trajectory, bool Cons
 		// Copy reference missile and flyout.
 		Missile copiedMissile = missile;
 		waypoint(copiedMissile, pip);
-		flyout(copiedMissile, true, false, to_string(loopCount));
+		fly(copiedMissile, true, false, to_string(loopCount));
 
 		// Good shot check.
 		double check = copiedMissile.timeOfFlight / Trajectory.at(index).at(0);
@@ -374,7 +365,7 @@ int main()
 	waypoint(originalMissile, GoodShot);
 
 	// Fly good shot.
-	flyout(originalMissile, true, true, "originalMissile");
+	fly(originalMissile, true, true, "originalMissile");
 
 	// Run time.
 	cout << "\n";
