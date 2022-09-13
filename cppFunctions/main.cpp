@@ -28,22 +28,6 @@ using namespace std;
 int main()
 {
 
-     shared_ptr<randomNumbers> rn = make_shared<randomNumbers>();
-
-     long seed1 = 42000;
-     long seed2 = 100000;
-     long seed3 = 7777777;
-
-     rn->init(seed3);
-     for (int i = 0; i < 10000; i++)
-     {
-          float x = rn->makeNormalDraw(to_string(i), 0.1, 0.5);
-          // float x = rn->makeUniformDraw(to_string(i), -0.1, 0.1);
-     }
-     string relFilePath = "output/MCData.txt";
-     rn->writeDraws(relFilePath);
-     cout << "\n";
-
      cout << "HOWDY\n";
 
 }

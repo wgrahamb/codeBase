@@ -1,3 +1,3 @@
 import subprocess
-process = subprocess.Popen(["./build/UTIL_TESTS"])
+process = subprocess.Popen(["cppFunctions/build/UTIL_TESTS"])
 process.wait()

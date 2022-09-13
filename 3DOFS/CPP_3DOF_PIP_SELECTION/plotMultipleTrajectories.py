@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import os
 from matPlotLibColors import matPlotLibColors
 
-directory = "3DOFS/CPP_3DOF_PipSelection/output"
+directory = "3DOFS/CPP_3DOF_PIP_SELECTION/output"
 dfs = []
 
 for f in os.listdir(directory):

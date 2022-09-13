@@ -10,8 +10,7 @@ using namespace std;
 
 // GLOBALS
 bool go; // FLAG
-double VARIABLE_TIME_STEP; // SECONDS
-const double CONSTANT_TIME_STEP = 0.001; // SECONDS
+const double TIME_STEP = 0.001; // SECONDS
 double maxSimulationTime; // SECONDS
 double wayPoint[3]; // METERS
 string lethality; // FLAG
@@ -45,7 +44,6 @@ void init()
 	inPut >> wayPoint[0] >> wayPoint[1] >> wayPoint[2] >> missileLocalVelocity[0] >> missileLocalVelocity[1] >> missileLocalVelocity[2];
 
 	go = true;
-	VARIABLE_TIME_STEP = CONSTANT_TIME_STEP;
 	maxSimulationTime = 100000.0;
 	lethality = "FLYING";
 	missileTimeOfFlight = 0.0;
@@ -79,7 +77,7 @@ void timeOfFlight()
 
 	if (PASS == 0)
 	{
-		missileTimeOfFlight += CONSTANT_TIME_STEP;
+		missileTimeOfFlight += TIME_STEP;
 	}
 
 }
@@ -145,6 +143,8 @@ void rk4Integrate()
 	if (PASS == 0)
 	{
 
+		// Wasted pass. Still works.
+
 		P1[0] = missileLocalPosition[0];
 		P1[1] = missileLocalPosition[1];
 		P1[2] = missileLocalPosition[2];
@@ -162,7 +162,6 @@ void rk4Integrate()
 		missileLocalVelocity[2] = V1[2];
 
 		PASS += 1;
-		VARIABLE_TIME_STEP = CONSTANT_TIME_STEP / 2.0;
 
 	}
 
@@ -173,13 +172,13 @@ void rk4Integrate()
 		A1[1] = missileLocalAcceleration[1];
 		A1[2] = missileLocalAcceleration[2];
 
-		P2[0] = P1[0] + V1[0] * VARIABLE_TIME_STEP;
-		P2[1] = P1[1] + V1[1] * VARIABLE_TIME_STEP;
-		P2[2] = P1[2] + V1[2] * VARIABLE_TIME_STEP;
+		P2[0] = P1[0] + V1[0] * TIME_STEP / 2.0;
+		P2[1] = P1[1] + V1[1] * TIME_STEP / 2.0;
+		P2[2] = P1[2] + V1[2] * TIME_STEP / 2.0;
 
-		V2[0] = V1[0] + A1[0] * VARIABLE_TIME_STEP;
-		V2[1] = V1[1] + A1[1] * VARIABLE_TIME_STEP;
-		V2[2] = V1[2] + A1[2] * VARIABLE_TIME_STEP;
+		V2[0] = V1[0] + A1[0] * TIME_STEP / 2.0;
+		V2[1] = V1[1] + A1[1] * TIME_STEP / 2.0;
+		V2[2] = V1[2] + A1[2] * TIME_STEP / 2.0;
 
 		missileLocalPosition[0] = P2[0];
 		missileLocalPosition[1] = P2[1];
@@ -190,7 +189,7 @@ void rk4Integrate()
 		missileLocalVelocity[2] = V2[2];
 
 		PASS += 1;
-		VARIABLE_TIME_STEP = CONSTANT_TIME_STEP / 2.0;
+		missileTimeOfFlight += TIME_STEP / 2.0;
 
 	}
 
@@ -201,13 +200,13 @@ void rk4Integrate()
 		A2[1] = missileLocalAcceleration[1];
 		A2[2] = missileLocalAcceleration[2];
 
-		P3[0] = P1[0] + V2[0] * VARIABLE_TIME_STEP;
-		P3[1] = P1[1] + V2[1] * VARIABLE_TIME_STEP;
-		P3[2] = P1[2] + V2[2] * VARIABLE_TIME_STEP;
+		P3[0] = P1[0] + V2[0] * TIME_STEP / 2.0;
+		P3[1] = P1[1] + V2[1] * TIME_STEP / 2.0;
+		P3[2] = P1[2] + V2[2] * TIME_STEP / 2.0;
 
-		V3[0] = V1[0] + A2[0] * VARIABLE_TIME_STEP;
-		V3[1] = V1[1] + A2[1] * VARIABLE_TIME_STEP;
-		V3[2] = V1[2] + A2[2] * VARIABLE_TIME_STEP;
+		V3[0] = V1[0] + A2[0] * TIME_STEP / 2.0;
+		V3[1] = V1[1] + A2[1] * TIME_STEP / 2.0;
+		V3[2] = V1[2] + A2[2] * TIME_STEP / 2.0;
 
 		missileLocalPosition[0] = P3[0];
 		missileLocalPosition[1] = P3[1];
@@ -218,7 +217,6 @@ void rk4Integrate()
 		missileLocalVelocity[2] = V3[2];
 
 		PASS += 1;
-		VARIABLE_TIME_STEP = CONSTANT_TIME_STEP;
 
 	}
 
@@ -229,13 +227,13 @@ void rk4Integrate()
 		A3[1] = missileLocalAcceleration[1];
 		A3[2] = missileLocalAcceleration[2];
 
-		P4[0] = P1[0] + V3[0] * VARIABLE_TIME_STEP;
-		P4[1] = P1[1] + V3[1] * VARIABLE_TIME_STEP;
-		P4[2] = P1[2] + V3[2] * VARIABLE_TIME_STEP;
+		P4[0] = P1[0] + V3[0] * TIME_STEP;
+		P4[1] = P1[1] + V3[1] * TIME_STEP;
+		P4[2] = P1[2] + V3[2] * TIME_STEP;
 
-		V4[0] = V1[0] + A3[0] * VARIABLE_TIME_STEP;
-		V4[1] = V1[1] + A3[1] * VARIABLE_TIME_STEP;
-		V4[2] = V1[2] + A3[2] * VARIABLE_TIME_STEP;
+		V4[0] = V1[0] + A3[0] * TIME_STEP;
+		V4[1] = V1[1] + A3[1] * TIME_STEP;
+		V4[2] = V1[2] + A3[2] * TIME_STEP;
 
 		missileLocalPosition[0] = P4[0];
 		missileLocalPosition[1] = P4[1];
@@ -246,7 +244,7 @@ void rk4Integrate()
 		missileLocalVelocity[2] = V4[2];
 
 		PASS += 1;
-		VARIABLE_TIME_STEP = CONSTANT_TIME_STEP / 6.0;
+		missileTimeOfFlight += TIME_STEP / 2.0;
 
 	}
 
@@ -257,17 +255,16 @@ void rk4Integrate()
 		A4[1] = missileLocalAcceleration[1];
 		A4[2] = missileLocalAcceleration[2];
 
-		missileLocalPosition[0] = P1[0] + (V1[0] + 2 * V2[0] + 2 * V3[0] + V4[0]) * VARIABLE_TIME_STEP;
-		missileLocalPosition[1] = P1[1] + (V1[1] + 2 * V2[1] + 2 * V3[1] + V4[1]) * VARIABLE_TIME_STEP;
-		missileLocalPosition[2] = P1[2] + (V1[2] + 2 * V2[2] + 2 * V3[2] + V4[2]) * VARIABLE_TIME_STEP;
+		missileLocalPosition[0] = P1[0] + (V1[0] + 2 * V2[0] + 2 * V3[0] + V4[0]) * TIME_STEP / 6.0;;
+		missileLocalPosition[1] = P1[1] + (V1[1] + 2 * V2[1] + 2 * V3[1] + V4[1]) * TIME_STEP / 6.0;;
+		missileLocalPosition[2] = P1[2] + (V1[2] + 2 * V2[2] + 2 * V3[2] + V4[2]) * TIME_STEP / 6.0;;
 
-		missileLocalVelocity[0] = V1[0] + (A1[0] + 2 * A2[0] + 2 * A3[0] + A4[0]) * VARIABLE_TIME_STEP;
-		missileLocalVelocity[1] = V1[1] + (A1[1] + 2 * A2[1] + 2 * A3[1] + A4[1]) * VARIABLE_TIME_STEP;
-		missileLocalVelocity[2] = V1[2] + (A1[2] + 2 * A2[2] + 2 * A3[2] + A4[2]) * VARIABLE_TIME_STEP;
+		missileLocalVelocity[0] = V1[0] + (A1[0] + 2 * A2[0] + 2 * A3[0] + A4[0]) * TIME_STEP / 6.0;;
+		missileLocalVelocity[1] = V1[1] + (A1[1] + 2 * A2[1] + 2 * A3[1] + A4[1]) * TIME_STEP / 6.0;;
+		missileLocalVelocity[2] = V1[2] + (A1[2] + 2 * A2[2] + 2 * A3[2] + A4[2]) * TIME_STEP / 6.0;;
 
 		// Reset variables.
 		PASS = 0;
-		VARIABLE_TIME_STEP = CONSTANT_TIME_STEP;
 		P1[0] = 0.0;
 		P1[1] = 0.0;
 		P1[2] = 0.0;

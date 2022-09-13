@@ -8,10 +8,14 @@ They should only require a "cmake" from the command line, and then your preferre
 method of building. This includes the CADAC_SIMULATIONS.
 
 Folder Structure: - Go through each project and make sure any executable can be made
-                           from this directory. Write python scripts to automate the creation
-                           of build folders.
+                           from this directory. Write bash scripts to automate the creation
+                           of build folders. Follow template laid forth in SRAAM V1.
 
+<<<<<<< HEAD
 	3DOFS - add an objective cpp 3dof base.
+=======
+	3DOFS - Clean and convert to CMake. Re write RK4 3DOF.
+>>>>>>> 2fb4eafeb16e2fdd3b3b829f6ae7a700fbc2a1a3
 
 	Includes multiple three degree of freedom models. Some 3DOF translational and
 	one 3DOF side scroller. Has a base CPP model and a base python model intended
@@ -43,7 +47,7 @@ Folder Structure: - Go through each project and make sure any executable can be 
 	to use in modeling environments. I have not started this project.
 
 
-	CPP_6DOF_SRAAM_V1 - Convert to CMAKE and clean directory.
+	CPP_6DOF_SRAAM_V1
 
 	This is a port from CADAC_SIMULATIONS SRAAM6, Seemingly based on a Sidewinder,
 	this is the very first CPP six degree of freedom missile model I wrote. I am fond
