@@ -11,7 +11,7 @@ Folder Structure: - Go through each project and make sure any executable can be 
                            from this directory. Write python scripts to automate the creation
                            of build folders.
 
-	3DOFS - Swap CPP base model for model from pipselection.
+	3DOFS - add an objective cpp 3dof base.
 
 	Includes multiple three degree of freedom models. Some 3DOF translational and
 	one 3DOF side scroller. Has a base CPP model and a base python model intended
