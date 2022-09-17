@@ -208,22 +208,18 @@ def Fly5DOF(
 	STATE_V0 = ENUVEL
 	STATE_E0 = ENUEULER
 	STATE_EDOT0 = BODYRATE
-
 	V1 = np.zeros(3)
 	A1 = np.zeros(3)
 	EDOT1 = np.zeros(3)
 	EDOTDOT1 = np.zeros(3)
-
 	V2 = np.zeros(3)
 	A2 = np.zeros(3)
 	EDOT2 = np.zeros(3)
 	EDOTDOT2 = np.zeros(3)
-
 	V3 = np.zeros(3)
 	A3 = np.zeros(3)
 	EDOT3 = np.zeros(3)
 	EDOTDOT3 = np.zeros(3)
-
 	V4 = np.zeros(3)
 	A4 = np.zeros(3)
 	EDOT4 = np.zeros(3)

@@ -18,12 +18,12 @@ using namespace std;
 #include "util.h"
 
 // GB. Lists the files in the input directory.
-void loopThroughDirectory(string filepath)
+void loopThroughDirectory(string dirpath)
 {
 
 	struct dirent *entry = nullptr;
 	DIR *dp = nullptr;
-	dp = opendir(filepath.c_str());
+	dp = opendir(dirpath.c_str());
 	if (dp != nullptr)
 	{
 		while ((entry = readdir(dp)))

@@ -14,7 +14,6 @@ from utility.coordinateTransformations import ORIENTATION_TO_LOCAL_TM
 from utility.loadPickle import loadpickle as lp
 from utility.unitVector import unitvector
 from utility.returnAzAndElevation import returnAzAndElevation
-from utility.projection import projection
 from utility.SecondOrderActuator import SecondOrderActuator
 from utility.ATM1976 import ATM1976
 from utility import loggingFxns as lf
@@ -79,33 +78,33 @@ class sixDofSim:
           # SIM CONTROL.
           self.wallClockStart = time.time()
           self.go = True
-          self.timeStep = 0.005 # SECONDS
+          self.timeStep = 1.0 / 125.0 # SECONDS
           self.maxTime = 400 # SECONDS
           
           # Input.
           # TARGET.
-          self.tgtPos = npa([3000.0, 3000.0, 3000.0])
+          self.tgtPos = npa([6000.0, 6000.0, 6000.0])
           # self.tgtVel = np.zeros(3)
-          self.tgtVel = npa([-75.0, -75.0, 0.0])
+          self.tgtVel = npa([-200.0, -200.0, -200.0])
           # RADIANS >>> ONLY POSITIVE NUMBERS 0-360,
           # MEASURED COUNTER CLOCKWISE FROM TRUE EAST
-          mslAz = np.radians(30) 
+          mslAz = np.radians(1) 
           mslEl = np.radians(55)
 
           ### MSL STATE ###
           self.mslTof = 0.0 # SECONDS
 
           # FRAME
-          self.mslENUtoFLU = FLIGHTPATH_TO_LOCAL_TM(mslAz, -mslEl) # ND
+          self.mslFLUtoENU = FLIGHTPATH_TO_LOCAL_TM(mslAz, -mslEl) # ND
           self.mslPosEnu = np.zeros(3)# METERS
-          self.mslVelEnu = self.mslENUtoFLU[0] # METERS PER SECOND
+          self.mslVelEnu = self.mslFLUtoENU[0] # METERS PER SECOND
           self.mslAccEnu = np.zeros(3) # METERS PER SECOND^2
           self.mslEulerEnu = npa([0.0, mslEl, mslAz]) # RADIANS
           self.mslEulerDotEnu = np.zeros(3) # RADIANS PER SECOND
 
           # BODY.
-          self.mslVelB = self.mslENUtoFLU @ self.mslVelEnu # METERS PER SECOND
-          self.mslSpecificForce = self.mslENUtoFLU @ self.mslAccEnu # METERS PER SECOND^2
+          self.mslVelB = self.mslFLUtoENU @ self.mslVelEnu # METERS PER SECOND
+          self.mslSpecificForce = self.mslFLUtoENU @ self.mslAccEnu # METERS PER SECOND^2
           self.mslSpeed = la.norm(self.mslVelB) # METERS PER SECOND
           self.mslMach = 0.0 # ND
           self.mslRange = 0.0 # METERS
@@ -134,7 +133,7 @@ class sixDofSim:
 
           # SEEKER >>> INITIALIZE BY POINTING THE SEEKER DIRECTLY AT THE TARGET
           relPosU = unitvector(self.tgtPos - self.mslPosEnu) # ND
-          mslToInterceptU = self.mslENUtoFLU @ relPosU # ND
+          mslToInterceptU = self.mslFLUtoENU @ relPosU # ND
           mslToInterceptAz, mslToInterceptEl = returnAzAndElevation(mslToInterceptU) # RADIANS
           self.seekerPitch = mslToInterceptEl # RADIANS
           self.seekerYaw = mslToInterceptAz # RADIANS
@@ -166,9 +165,6 @@ class sixDofSim:
 
           # GUIDANCE
           self.forwardLeftUpMslToInterceptRelPos = np.zeros(3) # METERS
-          self.loft = 0.2 # ND >>> THIS IS THE ELEVATION PARAMETER OF THE LINE OF
-          # ATTACK, ASSUMING LINE OF SIGHT FOR THE AZIMUTH PARAMETER
-          self.K = 0.7 # ND
           self.proNavGain = 3 # ND
           self.normCommand = 0.0 # METERS PER SECOND^2
           self.sideCommand = 0.0 # METERS PER SECOND^2
@@ -309,19 +305,20 @@ class sixDofSim:
 
      def target(self):
 
-          # # MANEUVERING TARGET.
-          # target = npa([10.0, 10.0, 0.0])
-          # relPos = target - self.tgtPos
-          # relPosU = unitvector(relPos)
-          # closingVel = -1 * self.tgtVel # METERS PER SECOND
-          # closingVelMag = la.norm(closingVel) # METERS PER SECOND
-          # TEMP1 = np.cross(relPos, closingVel)
-          # TEMP2 = np.dot(relPos, relPos)
-          # lineOfSightRate = TEMP1 / TEMP2 # RADIANS PER SECOND
-          # command = \
-          # np.cross(-1 * self.proNavGain * closingVelMag * relPosU, lineOfSightRate)
+          # MANEUVERING TARGET.
+          target = npa([10.0, 10.0, 0.0])
+          relPos = target - self.tgtPos
+          relPosU = unitvector(relPos)
+          closingVel = -1 * self.tgtVel # METERS PER SECOND
+          closingVelMag = la.norm(closingVel) # METERS PER SECOND
+          TEMP1 = np.cross(relPos, closingVel)
+          TEMP2 = np.dot(relPos, relPos)
+          lineOfSightRate = TEMP1 / TEMP2 # RADIANS PER SECOND
+          command = \
+          np.cross(-1 * self.proNavGain * closingVelMag * relPosU, lineOfSightRate)
 
-          deltaVel = np.zeros(3) * self.timeStep
+          # deltaVel = np.zeros(3) * self.timeStep
+          deltaVel = command * self.timeStep
           self.tgtVel += deltaVel
           deltaPos = self.tgtVel * self.timeStep
           self.tgtPos += deltaPos
@@ -337,7 +334,7 @@ class sixDofSim:
           self.mslMach = self.ATMOS.mach # Non dimensional.
 
           gravLocalVec = npa([0.0, 0.0, -self.G]) # METERS PER SECOND^2
-          self.FLUgrav = self.mslENUtoFLU @ gravLocalVec # METERS PER SECOND^2
+          self.FLUgrav = self.mslFLUtoENU @ gravLocalVec # METERS PER SECOND^2
 
      def seeker(self):
 
@@ -388,7 +385,7 @@ class sixDofSim:
           localRelPos = self.tgtPos - self.mslPosEnu # METERS
           seekerAttitudeToLocalTM = \
           ORIENTATION_TO_LOCAL_TM(0, -self.seekerPitch, self.seekerYaw) # ND
-          self.seekerLocalOrient = seekerAttitudeToLocalTM @ self.mslENUtoFLU # ND
+          self.seekerLocalOrient = seekerAttitudeToLocalTM @ self.mslFLUtoENU # ND
           seekerToInterceptRelPos = (self.seekerLocalOrient @ localRelPos) \
           * npa([1.0, 0.5, 0.2]) # METERS >>> ARRAY AT THE END SIMULATES ERROR
           self.seekYawErr, self.seekPitchErr = \
@@ -401,53 +398,22 @@ class sixDofSim:
           # INPUT FROM SEEKER.
           forwardLeftUpMslToInterceptRelPosU = \
           unitvector(self.forwardLeftUpMslToInterceptRelPos) # ND
-          forwardLeftUpMslToInterceptLineOfSightVel = \
-          projection(forwardLeftUpMslToInterceptRelPosU, self.mslVelB) # M/S
-
-          # TIME TO GO.
-          timeToGo = la.norm(self.forwardLeftUpMslToInterceptRelPos) / \
-          la.norm(forwardLeftUpMslToInterceptLineOfSightVel) # SECONDS
 
           # PROPORTIONAL GUIDANCE.
-          if timeToGo < 3:
-               closingVel = self.mslENUtoFLU @ (self.tgtVel - self.mslVelEnu)
-               closingVelMag = la.norm(closingVel) # METERS PER SECOND
-               TEMP1 = np.cross(self.forwardLeftUpMslToInterceptRelPos, closingVel)
-               TEMP2 = np.dot(
-                    self.forwardLeftUpMslToInterceptRelPos,
-                    self.forwardLeftUpMslToInterceptRelPos
-               )
-               lineOfSightRate = TEMP1 / TEMP2 # RADIANS PER SECOND
-               command = np.cross(
-                    -1 * self.proNavGain * closingVelMag * forwardLeftUpMslToInterceptRelPosU,
-                    lineOfSightRate
-               ) # METERS PER SECOND^2
-               self.normCommand = command[2] # METERS PER SECOND^2
-               self.sideCommand = command[1] # METERS PER SECOND^2
-
-          # LINE OF ATTACK.
-          else:
-               lineOfAttack = npa(
-               [
-                    forwardLeftUpMslToInterceptRelPosU[0],
-                    forwardLeftUpMslToInterceptRelPosU[1],
-                    self.loft
-               ]
-               ) # ND
-               forwardLeftUpMslToInterceptLineOfAttackVel = \
-               projection(lineOfAttack, self.mslVelB) # METERS PER SECOND
-               G = 1 - np.exp(-1 * la.norm(self.forwardLeftUpMslToInterceptRelPos) / 10000) # ND
-               command = npa(
-               [
-                    0.0,
-                    self.K * (forwardLeftUpMslToInterceptLineOfSightVel[1] + \
-                    G * forwardLeftUpMslToInterceptLineOfAttackVel[1]),
-                    self.K * (forwardLeftUpMslToInterceptLineOfSightVel[2] + \
-                    G * forwardLeftUpMslToInterceptLineOfAttackVel[2]),
-               ]
-               ) # METERS PER SECOND^2
-               self.normCommand = command[2] # METERS PER SECOND^2
-               self.sideCommand = command[1] # METERS PER SECOND^2
+          closingVel = self.mslFLUtoENU @ (self.tgtVel - self.mslVelEnu)
+          closingVelMag = la.norm(closingVel) # METERS PER SECOND
+          TEMP1 = np.cross(self.forwardLeftUpMslToInterceptRelPos, closingVel)
+          TEMP2 = np.dot(
+               self.forwardLeftUpMslToInterceptRelPos,
+               self.forwardLeftUpMslToInterceptRelPos
+          )
+          lineOfSightRate = TEMP1 / TEMP2 # RADIANS PER SECOND
+          command = np.cross(
+               -1 * self.proNavGain * closingVelMag * forwardLeftUpMslToInterceptRelPosU,
+               lineOfSightRate
+          ) # METERS PER SECOND^2
+          self.normCommand = command[2] # METERS PER SECOND^2
+          self.sideCommand = command[1] # METERS PER SECOND^2
 
           # LIMIT ACCELERATION.
           accMag = la.norm(npa([self.sideCommand, self.normCommand]))
@@ -848,7 +814,7 @@ class sixDofSim:
 
           self.mslEulerDotEnu = npa([newPhiDot, newThetaDot, newPsiDot])
           self.mslRateDot = npa([newRollRateDot, newPitchRateDot, newYawRateDot])
-          self.mslAccEnu = self.mslSpecificForce @ self.mslENUtoFLU # METERS PER SECOND^2
+          self.mslAccEnu = self.mslSpecificForce @ self.mslFLUtoENU # METERS PER SECOND^2
 
           # UPDATE TIME OF FLIGHT.
           self.mslTof += self.timeStep # SECONDS
@@ -858,6 +824,7 @@ class sixDofSim:
           deltaRate = self.mslRateDot * self.timeStep
           deltaPos = self.mslVelEnu * self.timeStep # METERS
           deltaVel = self.mslAccEnu * self.timeStep # METERS PER SECOND
+
           self.mslEulerEnu += deltaEuler
           self.mslRate += deltaRate
           self.mslPosEnu += deltaPos # METERS
@@ -865,12 +832,12 @@ class sixDofSim:
           self.mslRange += la.norm(deltaPos) # METERS
 
           # ATTITUDE.
-          self.mslENUtoFLU = ORIENTATION_TO_LOCAL_TM(
+          self.mslFLUtoENU = ORIENTATION_TO_LOCAL_TM(
                self.mslEulerEnu[0],
                -self.mslEulerEnu[1],
                self.mslEulerEnu[2]
           )
-          self.mslVelB = self.mslENUtoFLU @ self.mslVelEnu # METERS PER SECOND
+          self.mslVelB = self.mslFLUtoENU @ self.mslVelEnu # METERS PER SECOND
           self.mslSpeed = la.norm(self.mslVelB) # METERS PER SECOND
           self.mslAlpha = -1 * np.arctan2(self.mslVelB[2], self.mslVelB[0]) # RADIANS
           self.mslBeta = np.arctan2(self.mslVelB[1], self.mslVelB[0])
@@ -880,9 +847,7 @@ class sixDofSim:
           lf.writeData(self.STATE, self.logFile)
 
      def endCheck(self):
-
           self.missDistance = la.norm(self.forwardLeftUpMslToInterceptRelPos)
-
           if self.mslPosEnu[2] < 0.0:
                self.lethality = endChecks.groundCollision
                self.go = False

@@ -20,12 +20,12 @@
 
 // Namespace.
 using namespace std;
+auto wallClockStart = chrono::high_resolution_clock::now();
 
 /*
 
 TO DO:
 Integrate into pip selection algorithms in 3DOFS.
-Need to define constructors. Clone method.
 
 */
 
@@ -2007,6 +2007,9 @@ int main()
 	threeDofFly(missile2, "missile", LogData, ConsoleReport, 400.0);
 
 	// Console report and terminate.
+	auto wallClockEnd = chrono::high_resolution_clock::now();
+	auto simRealRunTime = chrono::duration_cast<chrono::milliseconds>(wallClockEnd - wallClockStart);
+	cout << "SIMULATION RUN TIME :" << simRealRunTime.count() << " MILLISECONDS" << endl;
 	cout << "\n";
 	return 0;
 
