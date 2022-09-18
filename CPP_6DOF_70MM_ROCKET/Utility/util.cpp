@@ -405,7 +405,7 @@ void setArrayEquivalentToZero(double array[3])
 // GB.
 void consolePrintArray(string id, double array[3])
 {
-	cout << id << " " << array[0] << " " << array[1] << " " << array[2] << "\n";
+	cout << setprecision(2) << id << " " << array[0] << " " << array[1] << " " << array[2] << "\n";
 }
 
 // GB.

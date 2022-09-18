@@ -115,6 +115,66 @@ struct Rocket
 
 };
 
+void writeHeader(ofstream &logFile)
+{
+
+	logFile <<
+	"tof " <<
+	"spd " <<
+	"u " <<
+	"v " <<
+	"w " <<
+	"alpha " <<
+	"beta " <<
+	"udot " <<
+	"vdot " <<
+	"wdot " <<
+	"p " <<
+	"q " <<
+	"r " <<
+	"enuPosX " <<
+	"enuPosY " <<
+	"enuPosZ " <<
+	"enuVelX " <<
+	"enuVelY " <<
+	"enuVelZ " <<
+	"enuPhi " <<
+	"enuTht " <<
+	"enuPsi" <<
+	"\n";
+
+}
+
+void writeData(Rocket &rocket, ofstream &logFile)
+{
+
+	logFile << setprecision(10) << fixed <<
+	rocket.tof << " " <<
+	rocket.spd << " " <<
+	rocket.velB[0] << " " <<
+	rocket.velB[1] << " " <<
+	rocket.velB[2] << " " <<
+	rocket.alpha << " " <<
+	rocket.beta << " " <<
+	rocket.specificForce[0] << " " <<
+	rocket.specificForce[1] << " " <<
+	rocket.specificForce[2] << " " <<
+	rocket.rate[0] << " " <<
+	rocket.rate[1] << " " <<
+	rocket.rate[2] << " " <<
+	rocket.enuPos[0] << " " <<
+	rocket.enuPos[1] << " " <<
+	rocket.enuPos[2] << " " <<
+	rocket.enuVel[0] << " " <<
+	rocket.enuVel[1] << " " <<
+	rocket.enuVel[2] << " " <<
+	rocket.enuEuler[0] << " " <<
+	rocket.enuEuler[1] << " " <<
+	rocket.enuEuler[2] << " " <<
+	"\n";
+
+}
+
 void emplace(Rocket &rocket, double phiDeg, double thtDeg, double psiDeg)
 {
 
@@ -148,8 +208,8 @@ void fly(Rocket &rocket, double DT)
 {
 
 	// Input.
-	double tempTimeStep;
-	if (DT > rocket.DT_LIM)
+	double tempTimeStep = DT;
+	if (tempTimeStep > rocket.DT_LIM)
 	{
 		tempTimeStep = rocket.DT_LIM;
 	}
@@ -158,16 +218,24 @@ void fly(Rocket &rocket, double DT)
 	// Set max time.
 	const double MAX_TIME = rocket.tof + DT;
 
+	// Data.
+	ofstream logFile;
+	logFile.open("CPP_6DOF_70MM_ROCKET/visual/log.txt");
+	writeHeader(logFile);
+	writeData(rocket, logFile);
+
 	// Loop.
 	while (rocket.lethality == Lethality::flying)
 	{
+
+		rocket.tof += theTimeStep;
 
 		// Atmosphere.
 		double tempRho; // kg per m^3.
 		double tempPressure; // pascals.
 		double tempTemperature; // Kelvin.
 		double tempA; // meters per second.
-		us76_nasa2002(rocket.enuPos[2], &tempRho,
+		us76_nasa2002(rocket.enuPos[2] * (1.0 / M_TO_FT), &tempRho,
 			&tempPressure, &tempTemperature, &tempA);
 
 		rocket.rho = tempRho * KGPM3_TO_LBMPFT3; // lbm per ft^3.
@@ -311,7 +379,41 @@ void fly(Rocket &rocket, double DT)
 		setArrayEquivalentToReference(rocket.enuEuler, newEnuEuler);
 		setArrayEquivalentToReference(rocket.rate, newRate);
 
-		break;
+		// Attitude.
+		eulerAnglesToLocalOrientation(
+			rocket.enuEuler[0],
+			-1.0 * rocket.enuEuler[1],
+			rocket.enuEuler[2],
+			rocket.fluToEnuMatrix
+		);
+		threeByThreeTimesThreeByOne(rocket.fluToEnuMatrix, rocket.enuVel, rocket.velB);
+		magnitude(rocket.velB, rocket.spd);
+		rocket.alpha = -1.0 * atan2_0(rocket.velB[2], rocket.velB[0]);
+		rocket.beta = -1.0 * atan2_0(rocket.velB[1], rocket.velB[0]);
+
+		// Report.
+		cout << rocket.tof << "\n";
+		consolePrintArray("ENU", rocket.enuPos);
+		cout << "\n";
+
+		// Data.
+		writeData(rocket, logFile);
+
+		// Implicit end checks.
+		if (rocket.enuPos[2] < 0.0)
+		{
+			rocket.lethality = Lethality::ground;
+		}
+		else if (isnan(rocket.enuPos[2]))
+		{
+			rocket.lethality = Lethality::nan;
+		}
+		else if (rocket.tof > MAX_TIME)
+		{
+			rocket.lethality = Lethality::maxTime;
+		}
+
+		// break;
 
 	}
 
@@ -342,7 +444,7 @@ int main()
 	Rocket rocket0;
 	emplace(rocket0, 0.0, 45.0, 0.0);
 	launch(rocket0);
-	update(rocket0, double(1.0 / 500.0));
+	update(rocket0, double(100.0));
 
 	return 0;
 
