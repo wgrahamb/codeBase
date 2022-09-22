@@ -90,7 +90,7 @@ def populateState():
 	return STATE
 
 STATE = populateState()
-LOGFILE = open("PY_6DOF_70MM_ROCKET\data\log.txt", "w")
+LOGFILE = open("PY_6DOF_70MM_ROCKET/data/log.txt", "w")
 lf.writeHeader(STATE, LOGFILE)
 lf.writeData(STATE, LOGFILE)
 

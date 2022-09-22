@@ -11,11 +11,8 @@ Folder Structure: - Go through each project and make sure any executable can be 
                            from this directory. Write bash scripts to automate the creation
                            of build folders. Follow template laid forth in SRAAM V1.
 
-<<<<<<< HEAD
 	3DOFS - add an objective cpp 3dof base.
-=======
 	3DOFS - Clean and convert to CMake. Re write RK4 3DOF.
->>>>>>> 2fb4eafeb16e2fdd3b3b829f6ae7a700fbc2a1a3
 
 	Includes multiple three degree of freedom models. Some 3DOF translational and
 	one 3DOF side scroller. Has a base CPP model and a base python model intended
@@ -32,7 +29,7 @@ Folder Structure: - Go through each project and make sure any executable can be 
 	as myself, learn the complexities of modeling.
 
 
-	CPP_6DOF_70MM_ROCKET - In development.
+	PY_6DOF_70MM_ROCKET - In development.
 
 	I found this paper early in my career. It was released by the Government for public use.
 	It gives enough data of a 70MM HYDRA rocket to model its dynamics. I have not

@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import matPlotLibColors as mc
 
-f = open("PY_6DOF_70MM_ROCKET\data\log.txt")
+f = open("PY_6DOF_70MM_ROCKET/data/log.txt")
 df = pd.read_csv(f, delim_whitespace=True)
 
 fig = plt.figure()
