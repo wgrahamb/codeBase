@@ -1,3 +1,0 @@
-/home/graham/codeBase/CPP_6DOF_70MM_ROCKET/build/CMakeFiles/rebuild_cache.dir
-/home/graham/codeBase/CPP_6DOF_70MM_ROCKET/build/CMakeFiles/edit_cache.dir
-/home/graham/codeBase/CPP_6DOF_70MM_ROCKET/build/CMakeFiles/70MM_ROCKET.dir
