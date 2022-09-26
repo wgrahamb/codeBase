@@ -1,4 +1,4 @@
-from unitvector import unitvector
+from unitVector import unitvector
 
 # Input: must be numpy arrays, equivalent shapes, and of the float type. (position vector)
 # Output: yields line of sight from a1 to a2.

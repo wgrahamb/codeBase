@@ -177,6 +177,33 @@ randomNumbers.cpp.s:
 	$(MAKE) -f CMakeFiles/UTIL_TESTS.dir/build.make CMakeFiles/UTIL_TESTS.dir/randomNumbers.cpp.s
 .PHONY : randomNumbers.cpp.s
 
+secondOrderActuator.o: secondOrderActuator.cpp.o
+
+.PHONY : secondOrderActuator.o
+
+# target to build an object file
+secondOrderActuator.cpp.o:
+	$(MAKE) -f CMakeFiles/UTIL_TESTS.dir/build.make CMakeFiles/UTIL_TESTS.dir/secondOrderActuator.cpp.o
+.PHONY : secondOrderActuator.cpp.o
+
+secondOrderActuator.i: secondOrderActuator.cpp.i
+
+.PHONY : secondOrderActuator.i
+
+# target to preprocess a source file
+secondOrderActuator.cpp.i:
+	$(MAKE) -f CMakeFiles/UTIL_TESTS.dir/build.make CMakeFiles/UTIL_TESTS.dir/secondOrderActuator.cpp.i
+.PHONY : secondOrderActuator.cpp.i
+
+secondOrderActuator.s: secondOrderActuator.cpp.s
+
+.PHONY : secondOrderActuator.s
+
+# target to generate assembly for a file
+secondOrderActuator.cpp.s:
+	$(MAKE) -f CMakeFiles/UTIL_TESTS.dir/build.make CMakeFiles/UTIL_TESTS.dir/secondOrderActuator.cpp.s
+.PHONY : secondOrderActuator.cpp.s
+
 util.o: util.cpp.o
 
 .PHONY : util.o
@@ -246,6 +273,9 @@ help:
 	@echo "... randomNumbers.o"
 	@echo "... randomNumbers.i"
 	@echo "... randomNumbers.s"
+	@echo "... secondOrderActuator.o"
+	@echo "... secondOrderActuator.i"
+	@echo "... secondOrderActuator.s"
 	@echo "... util.o"
 	@echo "... util.i"
 	@echo "... util.s"

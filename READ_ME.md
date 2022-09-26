@@ -13,6 +13,7 @@ Folder Structure: - Go through each project and make sure any executable can be 
                     Additionally import any scripts written for graduate degree
                     into pythonFunctions.
 
+
      3DOFS - add an objective cpp 3dof base.
      3DOFS - Clean and convert to CMake. Re write RK4 3DOF.
 
@@ -29,6 +30,7 @@ Folder Structure: - Go through each project and make sure any executable can be 
      This is the source code provided with the textbook listed above. It is written by
      Peter H. Zipfel. It is a very good resource, written to help students such
      as myself, learn the complexities of modeling.
+
 
      CPP_6DOF_SAM - In development.
 

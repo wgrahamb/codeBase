@@ -23,10 +23,15 @@
 using namespace std;
 
 // Include.
+#include "secondOrderActuator.h"
 #include "randomNumbers.h"
+#include "ATM1976.h"
 
 int main()
 {
+
+     ATM1976 *x = new ATM1976();
+     ATM1976_OUT data = x->update(1000.0, 100.0);
 
      cout << "HOWDY\n";
 

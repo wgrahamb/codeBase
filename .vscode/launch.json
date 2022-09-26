@@ -5,7 +5,7 @@
 			"name": "g++ build and debug active file",
 			"type": "cppdbg",
 			"request": "launch",
-			"program": "/home/graham/codeBase/CPP_6DOF_70MM_ROCKET/build/70MM_ROCKET",
+			"program": "/home/graham/codeBase/cppFunctions/build/UTIL_TESTS",
 			"args": [],
 			"stopAtEntry": false,
 			"cwd": "${workspaceFolder}",
