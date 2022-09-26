@@ -10,7 +10,7 @@ from numpy import linalg as la
 
 # UTILITY
 from utility.coordinateTransformations import FLIGHTPATH_TO_LOCAL_TM
-from utility.coordinateTransformations import ORIENTATION_TO_LOCAL_TM
+from utility.coordinateTransformations import ATTITUDE_TO_LOCAL_TM
 from utility.loadPickle import loadpickle as lp
 from utility.unitVector import unitvector
 from utility.returnAzAndElevation import returnAzAndElevation
@@ -384,7 +384,7 @@ class sixDofSim:
           # TRANSFORM.
           localRelPos = self.tgtPos - self.mslPosEnu # METERS
           seekerAttitudeToLocalTM = \
-          ORIENTATION_TO_LOCAL_TM(0, -self.seekerPitch, self.seekerYaw) # ND
+          ATTITUDE_TO_LOCAL_TM(0, -self.seekerPitch, self.seekerYaw) # ND
           self.seekerLocalOrient = seekerAttitudeToLocalTM @ self.mslFLUtoENU # ND
           seekerToInterceptRelPos = (self.seekerLocalOrient @ localRelPos) \
           * npa([1.0, 0.5, 0.2]) # METERS >>> ARRAY AT THE END SIMULATES ERROR
@@ -832,7 +832,7 @@ class sixDofSim:
           self.mslRange += la.norm(deltaPos) # METERS
 
           # ATTITUDE.
-          self.mslFLUtoENU = ORIENTATION_TO_LOCAL_TM(
+          self.mslFLUtoENU = ATTITUDE_TO_LOCAL_TM(
                self.mslEulerEnu[0],
                -self.mslEulerEnu[1],
                self.mslEulerEnu[2]

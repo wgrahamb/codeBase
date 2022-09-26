@@ -414,8 +414,8 @@ void guidance(Missile &missile)
 		magnitude(missile.FLUMissileToPipRelativePosition, forwardLeftUpMissileToInterceptPositionMagnitude);
 		magnitude(forwardLeftUpMissileToInterceptLineOfSightVel, forwardLeftUpMissileToInterceptLineOfSightVelMagnitude);
 		missile.timeToGo = forwardLeftUpMissileToInterceptPositionMagnitude / forwardLeftUpMissileToInterceptLineOfSightVelMagnitude;
-		if (missile.timeToGo < 5)
-		// if (true)
+		// if (missile.timeToGo < 5)
+		if (true)
 		{
 			if (!missile.homing)
 			{

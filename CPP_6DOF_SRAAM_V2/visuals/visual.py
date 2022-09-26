@@ -1,6 +1,8 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib
+matplotlib.use('WebAgg')
 
 f1 = r"CPP_6DOF_SRAAM_V2/output/missile_6DOF.txt"
 

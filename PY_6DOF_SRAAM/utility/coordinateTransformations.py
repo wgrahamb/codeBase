@@ -31,7 +31,7 @@ def FLIGHTPATH_TO_LOCAL_TM(AZIMUTH, ELEVATION):
 	return FP_TO_L_TM
 
 # Input: Phi, theta, and psi in radians.
-def ORIENTATION_TO_LOCAL_TM(PHI, THETA, PSI):
+def ATTITUDE_TO_LOCAL_TM(PHI, THETA, PSI):
 	O_TO_L_TM = npa(
 		[
 			[

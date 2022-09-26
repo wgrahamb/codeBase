@@ -1,5 +1,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
+import matplotlib
+matplotlib.use('WebAgg')
 import numpy as np
 from utility import matPlotLibColors as mc
 

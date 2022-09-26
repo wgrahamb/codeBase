@@ -1,6 +1,8 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
+import matplotlib
+matplotlib.use('WebAgg')
 
 f1 = "CPP_6DOF_SRAAM_V1/visual/log.txt"
 

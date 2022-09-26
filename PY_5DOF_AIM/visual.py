@@ -1,5 +1,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
+import matplotlib
+matplotlib.use('WebAgg')
 import numpy as np
 
 df = pd.read_csv("PY_5DOF_AIM/log.txt", delimiter=" ")

@@ -40,7 +40,7 @@ def FLIGHTPATH_TO_LOCAL_TM(AZIMUTH, ELEVATION):
 	return FP_TO_L_TM
 
 # Input: Phi, theta, and psi in radians.
-def ORIENTATION_TO_LOCAL_TM(PHI, THETA, PSI):
+def ATTITUDE_TO_LOCAL_TM(PHI, THETA, PSI):
 	O_TO_L_TM = npa(
 		[
 			[
@@ -62,45 +62,3 @@ def ORIENTATION_TO_LOCAL_TM(PHI, THETA, PSI):
 	)
 	return O_TO_L_TM
 
-def PHYSICAL_GIMBAL_PITCH_AND_ROLL_TO_BODY_TM(THETA, PHI):
-	GH_TO_B_TM = npa(
-		[
-			[
-				np.cos(THETA),
-				np.sin(THETA) * np.sin(PHI),
-				-np.sin(THETA) * np.cos(PHI)
-			],
-			[
-				0.0,
-				np.cos(PHI),
-				np.sin(PHI)
-			],
-			[
-				np.sin(THETA),
-				-np.cos(THETA) * np.sin(PHI),
-				np.cos(THETA) * np.cos(PHI)
-			]
-		]
-	)
-	return GH_TO_B_TM
-
-def VIRTUAL_GIMBAL_PITCH_AND_YAW_TO_BODY_TM(THETA, PSI):
-	return npa(
-		[
-			[
-				np.cos(THETA) * np.cos(PSI),
-				np.cos(THETA) * np.sin(PSI),
-				-np.sin(THETA)
-			],
-			[
-				-np.sin(PSI),
-				np.cos(PSI),
-				0.0
-			],
-			[
-				np.sin(THETA) * np.cos(PSI),
-				np.sin(THETA) * np.sin(PSI),
-				np.cos(THETA)
-			]
-		]
-	)
