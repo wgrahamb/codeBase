@@ -4,6 +4,7 @@ from numpy import linalg as la
 import utility.loggingFxns as lf
 import utility.coordinateTransformations as ct
 from utility.ATM_IMPERIAL import ATM_IMPERIAL
+np.set_printoptions(precision=2, suppress=True)
 
 # INPUTS.
 ALT = 10000 # FEET
@@ -51,7 +52,7 @@ MACH = ATM.mach
 BETA = np.sqrt(MACH ** 2 - 1) # ND
 
 # MASS AND MOTOR. (NO MOTOR FOR NOW.)
-MASS = 1000 # LBM
+MASS = 22.95 # LBM
 TMOI = (MASS * (3 * ((0.5 * REF_DIAM) ** 2) \
 	+ REF_LNGTH ** 2)) / (12 * G) # LBF - FT - S^2
 
@@ -72,7 +73,7 @@ ALPHA = 0.0
 # SIM CONTROL.
 TOF = 0.0
 DT = 0.01
-MAXT = 10
+MAXT = 3
 
 # DATA
 def populateState():
@@ -94,20 +95,8 @@ LOGFILE = open("PY_6DOF_70MM_ROCKET/data/log.txt", "w")
 lf.writeHeader(STATE, LOGFILE)
 lf.writeData(STATE, LOGFILE)
 
+LASTT = None
 while TOF <= MAXT:
-
-	# ATMOSPHERE.
-	SPD = la.norm(VEL)
-	ATM.update(POS[1], SPD)
-	RHO = ATM.rho
-	G = ATM.g
-	Q = ATM.q
-	A = ATM.a
-	MACH = ATM.mach
-	if MACH > 1:
-		BETA = np.sqrt(MACH ** 2 - 1) # ND
-	else:
-		BETA = MACH
 
 	# CN AND CM.
 	CN = 2 * ALPHA + \
@@ -145,3 +134,7 @@ while TOF <= MAXT:
 	# DATA.
 	STATE = populateState()
 	lf.writeData(STATE, LOGFILE)
+
+	# REPORT.
+	if round(TOF, 3).is_integer() and LASTT != TOF:
+		print(f"{TOF:.0f} POS {POS}")

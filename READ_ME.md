@@ -6,6 +6,7 @@ Start with numpy, pandas, and matplotlib.
 - All CPP projects are configured by CMAKE and require a compiler.
 They should only require a "cmake" from the command line, and then your preferred
 method of building. This includes the CADAC_SIMULATIONS.
+- Check RK2 integrations.
 
 Folder Structure: - Go through each project and make sure any executable can be made
                     from this directory. Write bash scripts to automate the creation
