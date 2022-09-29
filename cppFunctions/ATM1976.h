@@ -16,46 +16,47 @@
 // Namespace.
 using namespace std;
 
-struct ATM1976_OUT
+namespace
 {
 
-	float rho; // kg per m^3
-	float p; // pascals
-	float a; // m/s
-	float g; // m/s^2
-	float q; // pascals
-	float tk; // Kelvin
-	float mach; // non dimensional
-
-};
-
-class ATM1976
-{
-
-	private:
-
-	const float R = 287.053; // air constant
-	const float G = 6.673e-11; // gravity constant
-	const float earthMass = 5.973e24; // kg
-	const float rEarth = 6369; // radius of earth, km
-	const float gmr = 34.63195; // gas constant
-	const float rhosl = 1.225; // rho sea level, kg/m^3
-	const float pressl = 101325; // pressure sea level, pascals
-	const float tempksl = 288.15; // rho sea level, kg/m^3
-	const vector<float> htab =
-	{0.0, 11.0, 20.0, 32.0, 47.0, 51.0, 71.0, 84.852};
-	const vector<float> ttab =
-	{288.15, 216.65, 216.65, 228.65, 270.65, 270.65, 214.65, 186.946};
-	const vector<float> ptab =
-	{1.0, 2.233611e-1, 5.403295e-2, 8.5666784e-3,
-	1.0945601e-3, 6.6063531e-4, 3.9046834e-5, 3.68501e-6};
-	const vector<float> gtab =
-	{-6.5, 0.0, 1.0, 2.8, 0.0, -2.8, -2.0, 0.0};
-
-	public:
-
-	inline ATM1976_OUT update(float altitude, float speed) // m, m/s
+	struct ATM1976_OUT
 	{
+
+		float rho; // kg per m^3
+		float p; // pascals
+		float a; // m/s
+		float g; // m/s^2
+		float q; // pascals
+		float tk; // Kelvin
+		float mach; // non dimensional
+
+	};
+
+}
+
+namespace ATM1976
+{
+
+	static inline ATM1976_OUT update(float altitude, float speed) // m, m/s
+	{
+
+		const float R = 287.053; // air constant
+		const float G = 6.673e-11; // gravity constant
+		const float earthMass = 5.973e24; // kg
+		const float rEarth = 6369; // radius of earth, km
+		const float gmr = 34.63195; // gas constant
+		const float rhosl = 1.225; // rho sea level, kg/m^3
+		const float pressl = 101325; // pressure sea level, pascals
+		const float tempksl = 288.15; // rho sea level, kg/m^3
+		const vector<float> htab =
+		{0.0, 11.0, 20.0, 32.0, 47.0, 51.0, 71.0, 84.852};
+		const vector<float> ttab =
+		{288.15, 216.65, 216.65, 228.65, 270.65, 270.65, 214.65, 186.946};
+		const vector<float> ptab =
+		{1.0, 2.233611e-1, 5.403295e-2, 8.5666784e-3,
+		1.0945601e-3, 6.6063531e-4, 3.9046834e-5, 3.68501e-6};
+		const vector<float> gtab =
+		{-6.5, 0.0, 1.0, 2.8, 0.0, -2.8, -2.0, 0.0};
 
 		ATM1976_OUT ret;
 		

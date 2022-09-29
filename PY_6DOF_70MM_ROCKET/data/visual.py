@@ -4,7 +4,7 @@ import matPlotLibColors as mc
 import matplotlib
 matplotlib.use('WebAgg')
 
-f = open("PY_6DOF_70MM_ROCKET/data/log.txt")
+f = open("PY_6DOF_70MM_ROCKET/data/log.txt", "r")
 df = pd.read_csv(f, delim_whitespace=True)
 
 fig = plt.figure()

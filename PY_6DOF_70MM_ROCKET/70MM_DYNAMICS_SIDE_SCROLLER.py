@@ -8,8 +8,9 @@ from utility.interpolationGivenTwoVectors import linearInterpolation
 np.set_printoptions(precision=2, suppress=True)
 
 # INPUTS.
+AERO_TYPE = 1
 ALT = 10000 # FEET
-SPD = 1200 # FEET PER SEC
+SPD = 200 # FEET PER SEC
 DEFL_D = 0 # DEGREES
 DEFL = np.radians(DEFL_D) # RADIANS
 
@@ -18,33 +19,7 @@ REF_DIAM = 0.23 # FEET
 REF_LNGTH = 4.59 # FEET
 REF_AREA = np.pi * (REF_DIAM ** 2) / 4
 
-# AERODYNAMIC METHOD ONE, AIRFRAME LINEARIZATION.
-# AIRFRAME.
-NOSE_LNGTH = 1.11 # FEET
-WNG_HLF_SPN = 0 # FEET
-WNG_TIP_CHRD = 0 # FEET
-WNG_ROOT_CHRD = 0 # FEET
-TAIL_HLF_SPN = 0.04 # FEET
-TAIL_TIP_CHRD = 0.27 # FEET
-TAIL_ROOT_CHRD = 0.27 # FEET
-BASE_OF_NOSE_TO_WNG = 0 # FEET
-XCD = REF_LNGTH - (TAIL_TIP_CHRD / 2.0) # FEET, FROM NOSE.
-
-# BODY.
-WNG_AREA = 0.5 * WNG_HLF_SPN * (WNG_TIP_CHRD + WNG_ROOT_CHRD)
-TAIL_AREA = 0.5 * TAIL_HLF_SPN * (TAIL_TIP_CHRD + TAIL_ROOT_CHRD)
-NOSE_AREA = NOSE_LNGTH * REF_DIAM
-PLANFORM_AREA = (REF_LNGTH - NOSE_LNGTH) * REF_DIAM + \
-	0.667 * NOSE_LNGTH * REF_DIAM
-XCP_NOSE = 0.67 * NOSE_LNGTH
-XCP_WNG = NOSE_LNGTH + BASE_OF_NOSE_TO_WNG + \
-	0.7 * WNG_ROOT_CHRD - 0.2 * WNG_TIP_CHRD
-AN = 0.67 * NOSE_LNGTH * REF_DIAM
-AB = (REF_LNGTH - NOSE_LNGTH) * REF_DIAM
-XCP_BODY = (0.67 * AN * NOSE_LNGTH + \
-	AB * (NOSE_LNGTH + 0.5 * (REF_LNGTH - NOSE_LNGTH))) / (AN + AB)
-
-# AERODYNAMIC METHOD TWO, TABLES.
+# AERODYNAMIC TABLES.
 # 70 MM ROCKET TABLES.
 MACHS = [0.0, 0.6, 0.9, 1.15, 1.3, 1.6, 2.48, 2.97, 100.0]
 CMQS = [1060.0, 1060.0, 1460.0, 1385.0, 1193.0, 1069.0, 850.0, 800.0, 800.0]
@@ -65,7 +40,6 @@ G = ATM.g
 Q = ATM.q
 A = ATM.a
 MACH = ATM.mach
-BETA = np.sqrt(MACH ** 2 - 1) # ND
 
 # MASS AND MOTOR. (NO MOTOR FOR NOW.)
 T1S = [0.0, 1.112, 1000.0] # seconds
@@ -80,6 +54,7 @@ THRUSTS = [0.0, 1304.3, 1400.0, 1439.1, 1245.7, 1109.0, 1267.2, 1276.9, 1451.8, 
 	1654.1, 1780.1, 1792.8, 1463.5, 1070.8, 491.4, 146.6, 0.0, 0.0]
 
 THRUST = linearInterpolation(0.0, T2S, THRUSTS)
+
 XCG = REF_LNGTH - (linearInterpolation(0.0, T1S, XCGS) / 12.0) # FT
 MASS = linearInterpolation(0.0, T1S, WEIGHTS) # LBM
 TMOI = (linearInterpolation(0.0, T1S, TMOIS)) / (144.0 * 32.2) # LBF - FT - S^2
@@ -106,7 +81,7 @@ ALPHA0 = 0.0
 
 # SIM CONTROL.
 TOF = 0.0
-DT = 1.0 / 1000.0
+DT = 1.0 / 100.0
 MAXT = 10
 
 # DATA
@@ -146,23 +121,14 @@ while TOF <= MAXT:
 	Q = ATM.q
 	A = ATM.a
 	MACH = ATM.mach
-	if MACH > 1:
-		BETA = np.sqrt(MACH ** 2 - 1) # ND
-	else:
-		BETA = MACH
 
-	# CN AND CM.
-	CN = 2 * ALPHA + \
-		(1.5 * PLANFORM_AREA * ALPHA * ALPHA) / REF_AREA + \
-		(8 * WNG_AREA * ALPHA) / (BETA * REF_AREA) + \
-		(8 * TAIL_AREA * (ALPHA + DEFL)) / (BETA * REF_AREA)
-	CM = 2 * ALPHA * ((XCG - XCP_NOSE) / REF_DIAM) + \
-		((1.5 * PLANFORM_AREA * ALPHA * ALPHA) / REF_AREA) * \
-		((XCG - XCP_BODY) / REF_DIAM) + \
-		((8 * WNG_AREA * ALPHA) / (BETA * REF_AREA)) * \
-		((XCG - XCP_WNG) / REF_DIAM) + \
-		((8 * TAIL_AREA * (ALPHA + DEFL)) / (BETA * REF_AREA)) * \
-		((XCG - XCD) / REF_DIAM)
+	# CN AND CM LOOK UP.
+	CMQ = linearInterpolation(MACH, MACHS, CMQS)
+	CNA = linearInterpolation(MACH, MACHS, CNAS)
+	XCP = linearInterpolation(MACH, MACHS, XCPS)
+	CN = CNA * ALPHA
+	CM = CN * (XCG - XCP) / REF_DIAM + \
+		(REF_DIAM / (2 * SPD)) * (CMQ) * RATE
 
 	# DERIVATIVES.
 	ADOT = RATE - (SPECIFIC_FORCE[1] / SPD) # RADS PER S
@@ -208,11 +174,13 @@ while TOF <= MAXT:
 		INT_PASS = 0
 		TOF += (DT / 2.0)
 
-		POS = POS0 + VEL * (DT / 2.0)
-		VEL = VEL0 + ACC * (DT / 2.0)
-		THT = THT0 + RATE * (DT / 2.0)
-		RATE = RATE0 + QDOT * (DT / 2.0)
-		ALPHA = ALPHA0 + ADOT * (DT / 2.0)
+		DIVISOR = 1.0
+
+		POS = POS0 + VEL * (DT / DIVISOR)
+		VEL = VEL0 + ACC * (DT / DIVISOR)
+		THT = THT0 + RATE * (DT / DIVISOR)
+		RATE = RATE0 + QDOT * (DT / DIVISOR)
+		ALPHA = ALPHA0 + ADOT * (DT / DIVISOR)
 
 		POS0 = np.zeros(2)
 		VEL0 = np.zeros(2)

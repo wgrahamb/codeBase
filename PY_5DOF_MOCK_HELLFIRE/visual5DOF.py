@@ -16,7 +16,8 @@ for index, header in enumerate(df.columns):
 startIndex = 1
 stopIndex = -1
 colors = matPlotLibColors()
-fig = plt.figure(figsize=(20, 20))
+fig = plt.figure()
+# fig = plt.figure(figsize=(20, 20))
 
 # Trajectory
 scale = True

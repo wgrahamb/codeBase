@@ -110,6 +110,6 @@ if __name__ == "__main__":
 			Y = MSL["STATE"]["ENUPOSY"]
 			Z = MSL["STATE"]["ENUPOSZ"]
 			MACH = MSL["STATE"]["MACH"]
-			print(f"TOF {TOF:.3} ENU {X:.2f} {Y:.2f} {Z:.2f} MACH {MACH:.2f}")
+			print(f"TOF {TOF:.0f} ENU {X:.2f} {Y:.2f} {Z:.2f} MACH {MACH:.2f}")
 			LAST_TIME = TOF
 
