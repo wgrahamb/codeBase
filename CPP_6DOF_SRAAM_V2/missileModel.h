@@ -38,7 +38,7 @@ const double ALPHA_PRIME_MAX = 40.0; // Degrees.
 const double SEA_LEVEL_PRESSURE = 101325; // Pascals.
 const double LAUNCH_CENTER_OF_GRAVITY_FROM_NOSE = 1.5357; // Meters.
 
-/* This struct fully represents a missile. Can be deep copied without need of defined copy constructor because there are no pointers. */
+/* This struct fully represents a missile. */
 struct Missile
 {
 

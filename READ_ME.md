@@ -2,7 +2,9 @@
 Use:
 - This repository is intended to be run from a linux terminal. If you wish
 to use a project on Windows, I suggest isolating it and tailoring it
-from there.
+from there. Visual Studio should support the CMake for all of these
+projects with minimal effort. Any input path nested within the code
+will need to be modified.
 - Anything that can run is designed to run from the parent directory.
 - All PY scripts require a python interpreter and a few pip installs.
 Start with numpy, pandas, and matplotlib.
@@ -13,14 +15,15 @@ Folder Structure:
 
      3DOFS.
 
-     Includes multiple three degree of freedom models. Some 3DOF translational and
-     one 3DOF side scroller. Has a base CPP model and a base python model intended
-     for development and rapid prototype test beds.
+     Includes multiple three degree of freedom models. Some 3DOF
+     translational and some 3DOF side scrollers. Has a base CPP model
+     and a base python model intended for development and rapid
+     prototype test beds.
 
 
      CADAC_SIMULATIONS - Convert to CMake projects.
 
-     REFERENCE: Modeling and Simulation of Aerospace Vehicle Dynamics,
+     REF: Modeling and Simulation of Aerospace Vehicle Dynamics,
      Second Edition, Peter H. Zipfel.
 
      This is the source code provided with the textbook listed above. It is
@@ -55,7 +58,7 @@ Folder Structure:
      model used in V1 tends to harsh alpha rates (it could be wrong), while
      this one stabilizes. It also has a simpler and more barbaric control
      theory. The utility in V1 has been moved to a seperate file. The actuators
-     have been  re-written and componentized. There are three methods of
+     have been re-written and componentized. There are three methods of
      integration. Euler, RK2, and RK4. The logging and visual contain
      higher fidelity. It runs pretty fast, but not as fast as V1. Also
      included is a way to fly the missile in a 3DOF motion model, very useful

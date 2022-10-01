@@ -4,6 +4,14 @@ import pandas as pd
 from numpy import array as npa
 from numpy import linalg as la
 
+"""
+
+Functions developed while in MAE 540 Rocket Propulsion at The
+University of Alabama in Huntsville. Taught by Dr. Robert
+Frederick.
+
+"""
+
 # Constants.
 NauticalMilesToFeet = 6076 # Feet.
 MilesToFeet = 5280 # Feet.

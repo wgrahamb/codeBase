@@ -35,7 +35,8 @@ Integrate into pip selection algorithms from 3DOFS.
 /*
 #
 # Author - Wilson Graham Beech.
-# Reference - Modeling and Simulation of Aerospace Vehicle Dynamics, Second Edition - Peter H. Zipfel.
+# Reference - Modeling and Simulation of Aerospace Vehicle Dynamics,
+# Second Edition - Peter H. Zipfel.
 #
 # ENU = East, North, Up Coordinate System.
 # FLU = Forward, Left, Up Coordinate System.
@@ -46,13 +47,13 @@ Integrate into pip selection algorithms from 3DOFS.
 # Array 2, Normal - Looking down the nozzle of the interceptor, this points out the top side.
 #
 #                                  Positive normal.
-#                                            |
-#                                            |
-#                                            |
+#                                     |
+#                                     |
+#                                     |
 #               Positive side. -------O------- Negative side.
-#                                            |
-#                                            |
-#                                            |
+#                                     |
+#                                     |
+#                                     |
 #                                  Negative normal.
 #
 # Negative axis is pointing out of the screen directly at you.
@@ -1990,15 +1991,15 @@ int main()
 	missile1.INTEGRATION_METHOD = 0;
 	sixDofFly(missile1, "missile1", LogData, ConsoleReport, 400.0);
 
-	// Six dof missile flight.
-	Missile missile2 = clone(missile);
-	missile2.INTEGRATION_METHOD = 1;
-	sixDofFly(missile2, "missile2", LogData, ConsoleReport, 400.0);
+	// // Six dof missile flight.
+	// Missile missile2 = clone(missile);
+	// missile2.INTEGRATION_METHOD = 1;
+	// sixDofFly(missile2, "missile2", LogData, ConsoleReport, 400.0);
 
-	// Six dof missile flight.
-	Missile missile3 = clone(missile);
-	missile3.INTEGRATION_METHOD = 2;
-	sixDofFly(missile3, "missile3", LogData, ConsoleReport, 400.0);
+	// // Six dof missile flight.
+	// Missile missile3 = clone(missile);
+	// missile3.INTEGRATION_METHOD = 2;
+	// sixDofFly(missile3, "missile3", LogData, ConsoleReport, 400.0);
 
 	// Console report and terminate.
 	auto wallClockEnd = chrono::high_resolution_clock::now();

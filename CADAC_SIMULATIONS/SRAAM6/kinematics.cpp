@@ -228,6 +228,7 @@ void Flat6::kinematics(double int_step)
 	if(fabs(dum)>1)
 		dum=1*sign(dum);
 	alpp=acos(dum);
+
 	if(vbeb2==0 && vbeb3==0)
 		phip=0;
 	//note: if vbeb2 is <EPS the value if phip is forced to be 0 or PI
