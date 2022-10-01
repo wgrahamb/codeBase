@@ -358,7 +358,7 @@ void merge_plot_files(string *plot_file_list,int num_aim,char *title)
 	if(file_istream_list==0)
 		{cerr<<"*** Error: file_istream_list[] allocation failed *** \n";system("pause");exit(1);}
 
-	ofstream fmerge("plot.asc");
+	ofstream fmerge("CADAC_SIMULATIONS/AIM5/plot.asc");
 
 	for(i=0;i<num_aim;i++)
 	{
@@ -367,7 +367,7 @@ void merge_plot_files(string *plot_file_list,int num_aim,char *title)
 	}
 
 	//determining number of lines to be stripped of ploti.asc, i=1,2,3...
-	ifstream fplot1("plot1.asc");
+	ifstream fplot1("CADAC_SIMULATIONS/AIM5/plot1.asc");
 	fplot1.getline(line_clear,CHARL,'\n');
 	fplot1>>buff;
 	fplot1>>buff;
@@ -1206,7 +1206,7 @@ void document_input(Document *doc_aim5,Document *doc_aircraft3)
 
 	//creating new output stream to file 'input.asc' and destroying all previous data
 	ofstream input;
-	input.open("input.asc",ios::out|ios::trunc);
+	input.open("CADAC_SIMULATIONS/AIM5/input.asc",ios::out|ios::trunc);
 
 	//reset file pointers to beginning
 	fcopy.seekp(ios::beg);

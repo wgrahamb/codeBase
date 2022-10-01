@@ -3,7 +3,7 @@ from numpy import array as npa
 from numpy import linalg as la
 import loggingFxns as lf
 import coordinateTransformations as ct
-from ATM_IMPERIAL import ATM_IMPERIAL
+from atmNASA_imperial import atmNASA_imperial
 
 # INPUTS.
 ALT = 10000 # FEET
@@ -41,7 +41,7 @@ XCP_BODY = (0.67 * AN * NOSE_LNGTH + \
 	AB * (NOSE_LNGTH + 0.5 * (REF_LNGTH - NOSE_LNGTH))) / (AN + AB)
 
 # ATMOSPHERE.
-ATM = ATM_IMPERIAL()
+ATM = atmNASA_imperial()
 ATM.update(ALT, SPD)
 RHO = ATM.rho
 G = ATM.g
@@ -89,10 +89,10 @@ def populateState():
 	}
 	return STATE
 
-STATE = populateState()
-LOGFILE = open("PY_6DOF_70MM_ROCKET/data/log.txt", "w")
-lf.writeHeader(STATE, LOGFILE)
-lf.writeData(STATE, LOGFILE)
+# STATE = populateState()
+# LOGFILE = open("log.txt", "w")
+# lf.writeHeader(STATE, LOGFILE)
+# lf.writeData(STATE, LOGFILE)
 
 while TOF <= MAXT:
 
@@ -142,6 +142,6 @@ while TOF <= MAXT:
 	RATE += QDOT * DT
 	ALPHA += ADOT * DT
 
-	# DATA.
-	STATE = populateState()
-	lf.writeData(STATE, LOGFILE)
+	# # DATA.
+	# STATE = populateState()
+	# lf.writeData(STATE, LOGFILE)

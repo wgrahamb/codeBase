@@ -3,6 +3,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from distance import DISTANCE
 import random
+import matplotlib
+matplotlib.use('WebAgg')
 
 # INPUT SHOULD BE A LIST COMPRISED OF NUMPY ARRAYS
 def sortListByNearestPoint(inputList):

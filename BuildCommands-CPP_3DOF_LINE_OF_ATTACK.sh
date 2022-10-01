@@ -1,5 +1,0 @@
-rm -rf 3DOFS/CPP_3DOF_LINE_OF_ATTACK/build
-mkdir 3DOFS/CPP_3DOF_LINE_OF_ATTACK/build
-cd 3DOFS/CPP_3DOF_LINE_OF_ATTACK/build
-cmake ../
-make

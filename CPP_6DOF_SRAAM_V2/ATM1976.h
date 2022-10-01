@@ -19,7 +19,7 @@ using namespace std;
 namespace
 {
 
-	struct ATM1976_OUT
+	struct atm1976_output
 	{
 
 		float rho; // kg per m^3
@@ -34,10 +34,10 @@ namespace
 
 }
 
-namespace ATM1976
+namespace atm1976_metric
 {
 
-	static inline ATM1976_OUT update(float altitude, float speed) // m, m/s
+	static inline atm1976_output update(float altitude, float speed) // m, m/s
 	{
 
 		const float R = 287.053; // air constant
@@ -58,7 +58,7 @@ namespace ATM1976
 		const vector<float> gtab =
 		{-6.5, 0.0, 1.0, 2.8, 0.0, -2.8, -2.0, 0.0};
 
-		ATM1976_OUT ret;
+		atm1976_output ret;
 
 		float delta;
 		float alt = altitude / 1000.0;

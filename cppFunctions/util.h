@@ -9,7 +9,10 @@
 #include <map>
 #include <algorithm>
 #include <string>
+
+#ifndef WIN32
 #include <dirent.h>
+#endif
 
 // Namespace.
 using namespace std;
@@ -24,15 +27,11 @@ const double pi = 3.14159265358979323846;
 const double twoTimesPi = 2 * pi;
 const double gravity = 9.81;
 
+#ifndef WIN32
 void loopThroughDirectory(string fullpath);
+#endif
+
 double signum(double x);
-double atan2_0(double y, double x);
-double exponentialDistribution(double density);
-double gaussianDistribution(double mean, double sig);
-double markovDistribution(double sigma,double bcor,double time,double intstep,double &value_saved);
-double rayleighDistribution(double mode);
-double uniformDistribution(double min,double max);
-double randomNumberBetweenZeroAndOne();
 double trapezoidIntegrate(double dy_new, double dy, double y, double intStep);
 void flightPathAnglesToLocalOrientation (double azimuth, double elevation, double localFrame[3][3]);
 void eulerAnglesToLocalOrientation (double phi, double theta, double psi, double matrix[3][3]);

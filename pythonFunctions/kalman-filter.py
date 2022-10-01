@@ -8,6 +8,8 @@ provided system dynamics matrices are set up properly.
 Included example is the prediction of position, velocity and acceleration based on position measurements.
 Synthetic data is generated for the purpose of illustration.
 
+https://github.com/zziz/kalman-filter
+
 """
 
 import numpy as np

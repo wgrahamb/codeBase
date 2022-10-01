@@ -1,5 +1,6 @@
 import numpy as np
 from numpy import linalg as la
+from numpy import array as npa
 
 # CONSTANTS.
 WEII3 = 7.292115e-5 # Rotation speed of earth. Radians per second.
@@ -157,3 +158,32 @@ def GEODETIC_GRAV(ECIPOS, TIME):
 	ECIGRAV[1] = 0.0
 	ECIGRAV[2] = DUM1 * (1.0 + (DUM2 / 2.0) * C20 * DUM3 * (3 * (np.sin(LLAREF[0] ** 2)) - 1.0))
 	return ECIGRAV
+
+def ECEF_DISPLACEMENT_TO_ENU(RELPOS, LAT0, LON0):
+	TEMP = np.cos(LON0) * RELPOS[0] + np.sin(LON0) * RELPOS[1]
+	E = -1.0 * np.sin(LON0) * RELPOS[0] + np.cos(LON0) * RELPOS[1]
+	N = np.cos(LAT0) * TEMP + np.sin(LAT0) * RELPOS[2]
+	U = -1.0 * np.sin(LAT0) * TEMP + np.cos(LAT0) * RELPOS[2]
+	ENU = npa([E, N, U])
+	return ENU
+
+def LLA_TO_ECEF(LLA): # Lat - Rads, Lon - Rads, Alt - Meters.
+	REARTH = 6370987.308 # Meters.
+	ECEF = np.zeros(3)
+	RADIUS = -1.0 * (LLA[2] + REARTH)
+	TGE = np.zeros((3, 3))
+	CLON = np.cos(LLA[1])
+	SLON = np.sin(LLA[1])
+	CLAT = np.cos(LLA[0])
+	SLAT = np.sin(LLA[0])
+	TGE[0, 0] = -1.0 * SLAT * CLON
+	TGE[0, 1] = -1.0 * SLAT * SLON
+	TGE[0, 2] = CLAT
+	TGE[1, 0] = -1.0 * SLON
+	TGE[1, 1] = CLON
+	TGE[1, 2] = 0.0
+	TGE[2, 0] = -1.0 * CLAT * CLON
+	TGE[2, 1] = -1.0 * CLAT * SLON
+	TGE[2, 2] = -1.0 * SLAT
+	ECEF = TGE.transpose() @ npa([0.0, 0.0, RADIUS])
+	return ECEF

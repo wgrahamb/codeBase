@@ -138,24 +138,24 @@ int main()
 	///////////////////////////////////////////////////////////////////////////
 
 	//creating an input stream object and opening 'input.asc' file
-	fstream input("input.asc");
+	fstream input("CADAC_SIMULATIONS/ADS6/input.asc");
 	if(input.fail())
 	{cerr<<"*** Error: File stream 'input.asc' failed to open (check spelling) ***\n";exit(1);}
 
 	//creating an output stream object and opening 'tabout.asc' file
-	ofstream ftabout("tabout.asc");
+	ofstream ftabout("CADAC_SIMULATIONS/ADS6/tabout.asc");
 	if(!ftabout){cout<<" *** Error: cannot open 'tabout.asc' file *** \n";exit(1);}
 
 	//creating an output stream object and opening 'doc.asc' file
-	ofstream fdoc("doc.asc");
+	ofstream fdoc("CADAC_SIMULATIONS/ADS6/doc.asc");
 	if(!fdoc){cout<<" *** Error: cannot open 'doc.asc' file *** \n";exit(1);}
 
 	//creating an output stream object and opening 'traj.asc' file
-	ofstream ftraj("traj.asc");
+	ofstream ftraj("CADAC_SIMULATIONS/ADS6/traj.asc");
 	if(!ftraj){cout<<" *** Error: cannot open 'traj.asc' file *** \n";exit(1);}
 
 	//creating file 'input_copy.asc' in local directory for use in 'document_input()'
-	ofstream fcopy("input_copy.asc");
+	ofstream fcopy("CADAC_SIMULATIONS/ADS6/input_copy.asc");
 	if(!fcopy){cout<<" *** Error: cannot open 'input_copy.asc' file *** \n";exit(1);}
 
 	///////////////////////////////////////////////////////////////////////////
@@ -321,7 +321,7 @@ int main()
 
 						//building names for plot files
 						sprintf(index,"%i",i+1);
-						plotiasc="plot"+string(index)+".asc"; //using Standard Library string constructor
+						plotiasc="CADAC_SIMULATIONS/ADS6/plot"+string(index)+".asc"; //using Standard Library string constructor
 						plot_file_list[i]=plotiasc;
 						name=plotiasc.c_str(); //using string member function to convert to char array 
 

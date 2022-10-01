@@ -26,7 +26,8 @@ auto wallClockStart = chrono::high_resolution_clock::now();
 /*
 
 TO DO:
-Integrate into pip selection algorithms in 3DOFS.
+Clean threeDofFly
+Integrate into pip selection algorithms from 3DOFS.
 
 */
 
@@ -69,6 +70,7 @@ Integrate into pip selection algorithms in 3DOFS.
 #
 */
 
+// GB.
 // Parses text file with missile model tables. Should only be called once.
 void formatTables (Missile &missile, string dataFile)
 {
@@ -306,7 +308,7 @@ void atmosphere(Missile &missile)
 {
 
 	magnitude(missile.ENUVelocity, missile.speed);
-	auto ATM = ATM1976::update(missile.ENUPosition[2], missile.speed);
+	auto ATM = atm1976_metric::update(missile.ENUPosition[2], missile.speed);
 	missile.grav = ATM.g;
 	missile.pressure = ATM.p;
 	missile.dynamicPressure = ATM.q;

@@ -3,6 +3,8 @@ from numpy import array as npa
 from numpy import linalg as la
 import pandas as pd
 import matplotlib.pyplot as plt
+import matplotlib
+matplotlib.use('WebAgg')
 
 # INPUTS
 altitude = 50000 # FEET

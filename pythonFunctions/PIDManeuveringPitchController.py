@@ -7,7 +7,8 @@ from unitVector import unitvector
 from numpy import linalg as la
 from ambiance import Atmosphere as atm
 from interpolationGivenTwoVectors import linearInterpolation
-
+import matplotlib
+matplotlib.use('WebAgg')
 
 np.set_printoptions(suppress=True, precision=2)
 
@@ -45,12 +46,12 @@ TEMP4 = (centerOfGravityFromNose - noseCenterOfPressure) / refDiameter
 # Missile.
 missileTof = 0.0
 missilePos = npa([0.0, 0.0])
-missileVel = npa([400.0, 1000.0])
+missileVel = npa([1200.0, 800.0])
 missileAcc = npa([0.0, 0.0])
 
 # Target.
 targetPos = npa([30000.0, 10000.0])
-targetVel = npa([-80.0, 0.0])
+targetVel = npa([-200.0, -200.0])
 
 # Simulation control.
 timeStep = 0.001
@@ -106,7 +107,6 @@ while go:
 	if accCommMag > limit:
 		new = limit * np.sign(normalAccCommand)
 		normalAccCommand = new
-	normalAccCommand = 0.0
 
 	# Atmosphere.
 	altitude = missilePos[1] # Feet.

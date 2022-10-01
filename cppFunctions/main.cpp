@@ -25,12 +25,14 @@ using namespace std;
 // Include.
 #include "secondOrderActuator.h"
 #include "randomNumbers.h"
-#include "ATM1976.h"
+#include "atm1976_metric.h"
+#include "atmNASA_imperial.h"
 
 int main()
 {
 
-     auto data = ATM1976::update(1000.0, 100.0);
+     auto data = atm1976_metric::update(1000.0, 100.0);
+     auto x = atmNASA_imperial::update(1000.0, 100.0);
      cout << "HOWDY\n";
 
 }

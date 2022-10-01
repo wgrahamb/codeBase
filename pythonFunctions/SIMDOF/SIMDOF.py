@@ -96,7 +96,7 @@ class assetBaseClass:
 		self.loopCount = 0
 		self.lastFunctionOutput = 0.0
 		self.currentFunctionOutput = 0.0
-		self.classDataStorage = open(f"SIMDOF/output/{self.id}.txt", "w")
+		self.classDataStorage = open(f"pythonFunctions/SIMDOF/output/{self.id}.txt", "w")
 		self.classDataStorage.write(f"TIMER START_TIME END_TIME VALUE\n")
 		print(self.id, f"CONSTRUCTED")
 
@@ -153,7 +153,7 @@ class watchTowerBaseClass:
 		self.loopCount = 0
 		self.assets = assets
 		
-		self.classDataStorage = open(f"SIMDOF/output/{self.id}.txt", "w")
+		self.classDataStorage = open(f"pythonFunctions/SIMDOF/output/{self.id}.txt", "w")
 		self.classDataStorage.write(f"TIMER START_TIME END_TIME\n")
 		print(self.id, f"CONSTRUCTED")
 

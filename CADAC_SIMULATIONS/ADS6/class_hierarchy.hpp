@@ -363,7 +363,7 @@ public:
 	Matrix guidance_term_comp(double int_step);
 	Matrix guidance_term_pronav(double int_step);
 	
-	Matrix Missile::guidance_line(Matrix SIBLC,double psiflx,double thtflx);
+	Matrix guidance_line(Matrix SIBLC,double psiflx,double thtflx);
 	void sensor_rf_dyn(double &lamdrb,double &lamdqb,double &dab,double &ddab, double &ethtc,double &epsic,
 					    double &aztbx, double &eltbx, Matrix SBTL,double int_step);
 	Matrix sensor_rf_glint();

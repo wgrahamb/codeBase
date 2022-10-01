@@ -255,7 +255,7 @@ int main()
 
 				//building names for plot files
 				sprintf(index,"%i",i+1);
-				plotiasc="plot"+string(index)+".asc"; //using Standard Library string constructor
+				plotiasc="CADAC_SIMULATIONS/AIM5/plot"+string(index)+".asc"; //using Standard Library string constructor
 				plot_file_list[i]=plotiasc;
 				name=plotiasc.c_str(); //using string member function to convert to char array 
 

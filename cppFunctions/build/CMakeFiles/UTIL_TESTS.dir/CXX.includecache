@@ -6,7 +6,31 @@
 
 #IncludeRegexTransform: 
 
-/home/graham/codeBase/cppFunctions/ATM1976.h
+/home/graham/codeBase/cppFunctions/atm1976_metric.h
+iostream
+-
+fstream
+-
+sstream
+-
+iomanip
+-
+chrono
+-
+math.h
+-
+vector
+-
+map
+-
+algorithm
+-
+string
+-
+vector
+-
+
+/home/graham/codeBase/cppFunctions/atmNASA_imperial.h
 iostream
 -
 fstream
@@ -79,8 +103,10 @@ secondOrderActuator.h
 /home/graham/codeBase/cppFunctions/secondOrderActuator.h
 randomNumbers.h
 /home/graham/codeBase/cppFunctions/randomNumbers.h
-ATM1976.h
-/home/graham/codeBase/cppFunctions/ATM1976.h
+atm1976_metric.h
+/home/graham/codeBase/cppFunctions/atm1976_metric.h
+atmNASA_imperial.h
+/home/graham/codeBase/cppFunctions/atmNASA_imperial.h
 
 /home/graham/codeBase/cppFunctions/randomNumbers.cpp
 iostream

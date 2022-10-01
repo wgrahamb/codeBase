@@ -11,6 +11,8 @@
 #include "class_hierarchy.hpp"
 #include <vector>
 #include <sstream>
+#include <cstring>
+#include <string>
 using namespace std;
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -385,7 +387,7 @@ void merge_plot_files(string *plot_file_list,int num_missile,char *title)
 	if(file_istream_list==0)
 		{cerr<<"*** Error: file_istream_list[] allocation failed *** \n";exit(1);}
 
-	ofstream fmerge("plot.asc");
+	ofstream fmerge("CADAC_SIMULATIONS/ADS6/plot.asc");
 
 	for(i=0;i<num_missile;i++)
 	{
@@ -1751,11 +1753,11 @@ void document_input(Document *doc_missile6,Document *doc_rocket5,Document *doc_a
 	bool def_found=false;
 
 	//opening existing input.asc file
-	fstream input1("input.asc");
+	fstream input1("CADAC_SIMULATIONS/ADS6/input.asc");
 	if(!input1){cout<<" *** Error: cannot open 'input1.asc' file *** \n";exit(1);}
 
 	//opening new copy file
-	fstream fcopy("input_copy.asc");
+	fstream fcopy("CADAC_SIMULATIONS/ADS6/input_copy.asc");
 	if(!fcopy){cout<<" *** Error: cannot open 'input_copy.asc' file *** \n";exit(1);}
 
 	//copying 'input.asc' to 'input_copy.asc'
@@ -1771,7 +1773,7 @@ void document_input(Document *doc_missile6,Document *doc_rocket5,Document *doc_a
 
 	//creating new output stream to file 'input.asc' and destroying all previous data
 	ofstream input;
-	input.open("input.asc",ios::out|ios::trunc);
+	input.open("CADAC_SIMULATIONS/ADS6/input.asc",ios::out|ios::trunc);
 
 	//reset file pointers to beginning
 	fcopy.seekp(ios::beg);
@@ -2197,6 +2199,11 @@ void document_input(Document *doc_missile6,Document *doc_rocket5,Document *doc_a
 	input.close();
 	fcopy.close();  
 }
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <cstdlib>
+
 ///////////////////////////////////////////////////////////////////////////////
 //Write output files 'plot' and 'traj' in 'comma separated variable' format
 // with OPTION flag 'y_csv' set
@@ -2219,7 +2226,8 @@ void parse_plot_traj_csv(string *files, int num_ucav, bool merge, string type)
 
 		int num=i+1;
 		char cnum[3];
-		_itoa(num,cnum,10);
+		// itoa(num,cnum,10);
+		snprintf(cnum, sizeof(cnum), "%d", num);
 		string n(cnum);
 		string file;
 		ofstream csv_file;

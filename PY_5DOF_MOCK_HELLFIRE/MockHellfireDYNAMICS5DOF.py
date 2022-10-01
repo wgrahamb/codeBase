@@ -17,7 +17,6 @@ import utility.earthTransforms as et
 # Classes.
 from classes.ATM1976 import ATM1976
 from classes.MockHellfireMassAndMotor import MockHellfireMassAndMotor
-from classes.SphericalNoseDrag import SphericalNoseDrag
 
 """
 
@@ -226,9 +225,6 @@ def Fly5DOF(
 	EDOTDOT4 = np.zeros(3)
 
 	# AIRFRAME. ###############################################################################
-	# x = SphericalNoseDrag()
-	# CD_LOOKUP = x.getCDValues()
-	# MACH_LOOKUP = x.getMachValues()
 	CD_LOOKUP = [0.1, 0.6]
 	MACH_LOOKUP = [0.6, 2.5]
 	MM_TO_M = 1.0 / 1000.0
