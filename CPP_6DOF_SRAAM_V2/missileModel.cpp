@@ -17,6 +17,7 @@
 // Missile model.
 #include "missileModel.h"
 #include "secondOrderActuator.h"
+#include "ATM1976.h"
 
 // Namespace.
 using namespace std;
@@ -304,28 +305,12 @@ void seekerOn(Missile &missile)
 void atmosphere(Missile &missile)
 {
 
-	int index;
-
-	double alt = missile.ENUPosition[2] * mToKm;
-
-	index = missile.tableNameIndexPairs["RHO"];
-	double rho = linearInterpolationWithBoundedEnds(missile.tables[index], alt); // Kilograms per meter^3.
-
-	index = missile.tableNameIndexPairs["GRAVITY"];
-	missile.grav = linearInterpolationWithBoundedEnds(missile.tables[index], alt); // Meters per second^2.
-
-	double gravLocalVec[3] = {0.0, 0.0, -missile.grav};
-	threeByThreeTimesThreeByOne(missile.missileENUToFLUMatrix, gravLocalVec, missile.FLUGravity);
-
-	index = missile.tableNameIndexPairs["PRESSURE"];
-	missile.pressure = linearInterpolationWithBoundedEnds(missile.tables[index], alt);
-
-	index = missile.tableNameIndexPairs["SPEED_OF_SOUND"];
-	double a = linearInterpolationWithBoundedEnds(missile.tables[index], alt); // Meters per second^2.
-
 	magnitude(missile.ENUVelocity, missile.speed);
-	missile.machSpeed = missile.speed / a;
-	missile.dynamicPressure = 0.5 * rho * missile.speed * missile.speed;
+	auto ATM = ATM1976::update(missile.ENUPosition[2], missile.speed);
+	missile.grav = ATM.g;
+	missile.pressure = ATM.p;
+	missile.dynamicPressure = ATM.q;
+	missile.machSpeed = ATM.mach;
 
 }
 
@@ -2000,11 +1985,18 @@ int main()
 
 	// Six dof missile flight.
 	Missile missile1 = clone(missile);
-	sixDofFly(missile1, "missile", LogData, ConsoleReport, 400.0);
+	missile1.INTEGRATION_METHOD = 0;
+	sixDofFly(missile1, "missile1", LogData, ConsoleReport, 400.0);
 
-	// Three dof missile flight.
+	// Six dof missile flight.
 	Missile missile2 = clone(missile);
-	threeDofFly(missile2, "missile", LogData, ConsoleReport, 400.0);
+	missile2.INTEGRATION_METHOD = 1;
+	sixDofFly(missile2, "missile2", LogData, ConsoleReport, 400.0);
+
+	// Six dof missile flight.
+	Missile missile3 = clone(missile);
+	missile3.INTEGRATION_METHOD = 2;
+	sixDofFly(missile3, "missile3", LogData, ConsoleReport, 400.0);
 
 	// Console report and terminate.
 	auto wallClockEnd = chrono::high_resolution_clock::now();

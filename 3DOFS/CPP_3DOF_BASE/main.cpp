@@ -1,91 +1,89 @@
+
+// Standard.
 #include "iostream"
 #include "iomanip"
 #include "chrono"
 #include "math.h"
+#include "vector"
 
+//Utility.
 #include "util.h"
 
+// Namespace.
 using namespace std;
 
-// GLOBALS
-bool go; // FLAG
-double timeOfFlightStep; // SECONDS
-double maxSimulationTime; // SECONDS
-double wayPoint[3]; // METERS
-string lethality; // FLAG
-double missileTimeOfFlight; // SECONDS
-double missileLocalPosition[3]; // METERS
-double missileRange; // METERS
-double forwardLeftUpMissileToInterceptPosition[3]; // METERS
-double missDistance; // METERS
-double missileYaw; // RADIANS
-double missilePitch; // RADIANS
-double missileLocalOrientation[3][3]; // NON DIMENSIONAL
-double missileVelocity[3]; // METERS PER SECOND
-double missileBodyVelocity[3]; // METERS PER SECOND
-double normalGuidanceCommand; // METERS PER S^2
-double sideGuidanceCommand; // METERS PER S^2
-double missileAcceleration[3]; // METERS PER S^2
-double missileBodyAcceleration[3]; // METERS PER S^2
+// Constant time step.
+const double TIME_STEP = 1.0 / 1000.0;
+const double MAX_TIME = 200.0;
 
-void init()
+// Missile struct.
+struct Missile
 {
 
-	go = true;
-	timeOfFlightStep = 0.001;
-	maxSimulationTime = 100000.0;
-	wayPoint[0] = 5000000.0;
-	wayPoint[1] = 5000000.0;
-	wayPoint[2] = 5000000.0; // THIS IS THE TARGET
-	lethality = "FLYING";
-	missileTimeOfFlight = 0.0;
-	missileLocalPosition[0] = 0.0;
-	missileLocalPosition[1] = 0.0;
-	missileLocalPosition[2] = 0.0;
-	missileRange = 0.0;
-	missileVelocity[0] = unituni() * 200.0;
-	missileVelocity[1] = unituni() * 200.0;
-	missileVelocity[2] = unituni() * 200.0; // THIS IS THE MISSILES SPEED, IT RESPONDS TO GUIDANCE COMMANDS, AND ENCOUNTERS NO RESISTANCE. IT WILL HIT.
-	azAndElFromVector(missileYaw, missilePitch, missileVelocity);
-	flightPathAnglesToLocalOrientation(missileYaw, -1 * missilePitch, missileLocalOrientation);
-	double localRelativePosition[3];
-	subtractTwoVectors(missileLocalPosition, wayPoint, localRelativePosition);
-	threeByThreeTimesThreeByOne(missileLocalOrientation, localRelativePosition, forwardLeftUpMissileToInterceptPosition);
-	threeByThreeTimesThreeByOne(missileLocalOrientation, missileVelocity, missileBodyVelocity);
-	normalGuidanceCommand = 0.0;
-	sideGuidanceCommand = 0.0;
-	missileAcceleration[0] = 0.0;
-	missileAcceleration[1] = 0.0;
-	missileAcceleration[2] = 0.0;
-	missileBodyAcceleration[0] = 0.0;
-	missileBodyAcceleration[1] = 0.0;
-	missileBodyAcceleration[2] = 0.0;
-	magnitude(wayPoint, missDistance);
+	double pip[3]; // Meters.
+	string lethality; // Lethality.
+	double timeOfFlight; // Seconds.
+	double ENUPosition[3]; // Meters.
+	double range; // Meters.
+	double FLUMissileToPipPosition[3]; // Meters.
+	double missDistance; // Meters.
+	double yaw; // Radians.
+	double pitch; // Radians.
+	double ENUToFLU[3][3]; // Non dimensional.
+	double ENUVelocity[3]; // Meters per second.
+	double FLUVelocity[3]; // Meters per second.
+	double normalGuidanceCommand; // Meters per s^2.
+	double sideGuidanceCommand; // Meters per s^2.
+	double ENUAcceleration[3]; // Meters per s^2.
+	double FLUAcceleration[3]; // Meters per s^2.
+
+};
+
+void emplace(Missile &missile, double azimuthDegrees, double elevationDegrees, double missileSpeed)
+{
+
+	missile.lethality = "LOITERING";
+	missile.timeOfFlight = 0.0;
+	setArrayEquivalentToZero(missile.ENUPosition);
+	missile.range = 0.0;
+	missile.yaw = azimuthDegrees * degToRad;
+	missile.pitch = elevationDegrees * degToRad;
+	flightPathAnglesToLocalOrientation(missile.yaw, -1.0 * missile.pitch, missile.ENUToFLU);
+	multiplyVectorTimesScalar(missileSpeed, missile.ENUToFLU[0], missile.ENUVelocity);
+	threeByThreeTimesThreeByOne(missile.ENUToFLU, missile.ENUVelocity, missile.FLUVelocity);
+	missile.normalGuidanceCommand = 0.0;
+	missile.sideGuidanceCommand = 0.0;
+	setArrayEquivalentToZero(missile.ENUAcceleration);
+	setArrayEquivalentToZero(missile.FLUAcceleration);
 
 }
 
-void timeOfFlight()
+void waypoint(Missile &missile, double pip[3])
 {
 
-	missileTimeOfFlight += timeOfFlightStep;
+	setArrayEquivalentToReference(missile.pip, pip);
+	double ENUMissileToPipPosition[3];
+	subtractTwoVectors(missile.ENUPosition, missile.pip, ENUMissileToPipPosition);
+	threeByThreeTimesThreeByOne(missile.ENUToFLU, ENUMissileToPipPosition, missile.FLUMissileToPipPosition);
+	magnitude(missile.FLUMissileToPipPosition, missile.missDistance);
 
 }
 
-void guidance()
+void guidance(Missile &missile)
 {
 
 	double localRelativePosition[3];
-	subtractTwoVectors(missileLocalPosition, wayPoint, localRelativePosition);
-	threeByThreeTimesThreeByOne(missileLocalOrientation, localRelativePosition, forwardLeftUpMissileToInterceptPosition);
+	subtractTwoVectors(missile.ENUPosition, missile.pip, localRelativePosition);
+	threeByThreeTimesThreeByOne(missile.ENUToFLU, localRelativePosition, missile.FLUMissileToPipPosition);
 	double forwardLeftUpMissileToInterceptPositionUnitVector[3];
-	unitVec(forwardLeftUpMissileToInterceptPosition, forwardLeftUpMissileToInterceptPositionUnitVector);
+	unitVec(missile.FLUMissileToPipPosition, forwardLeftUpMissileToInterceptPositionUnitVector);
 	double closingVelocity[3];
-	multiplyVectorTimesScalar(-1.0, missileBodyVelocity, closingVelocity);
+	multiplyVectorTimesScalar(-1.0, missile.FLUVelocity, closingVelocity);
 	double closingSpeed;
 	magnitude(closingVelocity, closingSpeed);
 	double TEMP1[3], TEMP2;
-	crossProductTwoVectors(forwardLeftUpMissileToInterceptPosition, closingVelocity, TEMP1);
-	dotProductTwoVectors(forwardLeftUpMissileToInterceptPosition, forwardLeftUpMissileToInterceptPosition, TEMP2);
+	crossProductTwoVectors(missile.FLUMissileToPipPosition, closingVelocity, TEMP1);
+	dotProductTwoVectors(missile.FLUMissileToPipPosition, missile.FLUMissileToPipPosition, TEMP2);
 	double lineOfSightRate[3];
 	divideVectorByScalar(TEMP2, TEMP1, lineOfSightRate);
 	double TEMP3, TEMP4[3];
@@ -94,132 +92,174 @@ void guidance()
 	multiplyVectorTimesScalar(TEMP3, forwardLeftUpMissileToInterceptPositionUnitVector, TEMP4);
 	double COMMAND[3];
 	crossProductTwoVectors(TEMP4, lineOfSightRate, COMMAND);
-	normalGuidanceCommand = COMMAND[2];
-	sideGuidanceCommand = COMMAND[1];
+	missile.normalGuidanceCommand = COMMAND[2];
+	missile.sideGuidanceCommand = COMMAND[1];
 
 }
 
-void integrate()
+void missileMotion(Missile &missile)
 {
 
-	missileBodyAcceleration[0] = 0.0;
-	missileBodyAcceleration[1] = sideGuidanceCommand;
-	missileBodyAcceleration[2] = normalGuidanceCommand;
-	oneByThreeTimesThreeByThree(missileBodyAcceleration, missileLocalOrientation, missileAcceleration);
+	missile.FLUAcceleration[0] = 0.0;
+	missile.FLUAcceleration[1] = missile.sideGuidanceCommand;
+	missile.FLUAcceleration[2] = missile.normalGuidanceCommand;
+	oneByThreeTimesThreeByThree(missile.FLUAcceleration, missile.ENUToFLU, missile.ENUAcceleration);
 
 	double deltaVelocity[3];
-	multiplyVectorTimesScalar(timeOfFlightStep, missileAcceleration, deltaVelocity);
+	multiplyVectorTimesScalar(TIME_STEP, missile.ENUAcceleration, deltaVelocity);
 	double newMissileVelocity[3];
-	addTwoVectors(missileVelocity, deltaVelocity, newMissileVelocity);
-	missileVelocity[0] = newMissileVelocity[0];
-	missileVelocity[1] = newMissileVelocity[1];
-	missileVelocity[2] = newMissileVelocity[2];
+	addTwoVectors(missile.ENUVelocity, deltaVelocity, newMissileVelocity);
+	setArrayEquivalentToReference(missile.ENUVelocity, newMissileVelocity);
 
 	double deltaPosition[3];
-	multiplyVectorTimesScalar(timeOfFlightStep, missileVelocity, deltaPosition);
+	multiplyVectorTimesScalar(TIME_STEP, missile.ENUVelocity, deltaPosition);
 	double newMissilePosition[3];
-	addTwoVectors(missileLocalPosition, deltaPosition, newMissilePosition);
-	missileLocalPosition[0] = newMissilePosition[0];
-	missileLocalPosition[1] = newMissilePosition[1];
-	missileLocalPosition[2] = newMissilePosition[2];
+	addTwoVectors(missile.ENUPosition, deltaPosition, newMissilePosition);
+	setArrayEquivalentToReference(missile.ENUPosition, newMissilePosition);
+
+	missile.timeOfFlight += TIME_STEP;
 
 	double distanceTravelled;
 	magnitude(deltaPosition, distanceTravelled);
-	missileRange += distanceTravelled;
+	missile.range += distanceTravelled;
+
+	azAndElFromVector(missile.yaw, missile.pitch, missile.ENUVelocity);
+	flightPathAnglesToLocalOrientation(missile.yaw, -1 * missile.pitch, missile.ENUToFLU);
 
 }
 
-void orientation()
+void endCheck(Missile &missile)
 {
 
-	azAndElFromVector(missileYaw, missilePitch, missileVelocity);
-	flightPathAnglesToLocalOrientation(missileYaw, -1 * missilePitch, missileLocalOrientation);
+	magnitude(missile.FLUMissileToPipPosition, missile.missDistance);
 
-}
-
-void performance()
-{
-	magnitude(forwardLeftUpMissileToInterceptPosition, missDistance);
-}
-
-void endCheck()
-{
-
-	if (missileLocalPosition[2] < 0.0)
+	if (missile.ENUPosition[2] < 0.0)
 	{
-		lethality = "GROUND COLLISION";
-		go = false;
+		missile.lethality = "GROUND";
 	}
-	else if (missDistance < 5.0)
+	else if (missile.missDistance < 5.0)
 	{
-		lethality = "SUCCESSFUL INTERCEPT";
-		go = false;
+		missile.lethality = "INTERCEPT";
 	}
-	else if (forwardLeftUpMissileToInterceptPosition[0] < 0.0)
+	else if (missile.FLUMissileToPipPosition[0] < 0.0)
 	{
-		lethality = "POINT OF CLOSEST APPROACH PASSED";
-		go = false;
+		missile.lethality = "POCA"; // POINT OF CLOSEST APPROACH.
 	}
-	else if (isnan(missileLocalPosition[0]))
+	else if (isnan(missile.ENUPosition[0]))
 	{
-		lethality = "NOT A NUMBER";
-		go = false;
+		missile.lethality = "NAN";
 	}
-	else if (missileTimeOfFlight > maxSimulationTime)
+	else if (missile.timeOfFlight > MAX_TIME)
 	{
-		lethality = "MAXIMUM SIMULATION TIME EXCEEDED";
-		go = false;
+		missile.lethality = "TIME";
 	}
 
 }
 
-void fly()
+void update(Missile &missile)
 {
-	timeOfFlight();
-	guidance();
-	integrate();
-	orientation();
-	performance();
-	endCheck();
+
+	guidance(missile);
+	missileMotion(missile);
+	endCheck(missile);
+
+}
+
+void fly(Missile &missile, bool LogData, bool ConsoleReport, string identity)
+{
+
+	// Run.
+	double lastTime = 0;
+	ofstream LogFile;
+	if (LogData)
+	{
+		string fileName = "3DOFS/CPP_3DOF_BASE/output/flyout_" + identity + ".txt";
+		LogFile.open(fileName);
+		LogFile << "tof posE posN posU tgtE tgtN tgtU\n";
+	}
+
+	if (ConsoleReport)
+	{
+		cout << identity << " LAUNCH" << endl;
+	}
+
+	missile.lethality = "FLYING";
+	while (missile.lethality == "FLYING")
+	{
+		update(missile);
+		if (LogData)
+		{
+			LogFile << missile.timeOfFlight << " " <<
+			missile.ENUPosition[0] << " " <<
+			missile.ENUPosition[1] << " " <<
+			missile.ENUPosition[2] << " " <<
+			missile.pip[0] << " " <<
+			missile.pip[1] << " " <<
+			missile.pip[2] << "\n";
+		}
+		if (ConsoleReport)
+		{
+			auto print_it = static_cast<int>(round(missile.timeOfFlight * 10000.0)) % 10000;
+			if (print_it == 0)
+			{
+				cout << setprecision(10) <<
+				"TOF " << missile.timeOfFlight <<
+				" ENU " << missile.ENUPosition[0] <<
+				" " << missile.ENUPosition[1] <<
+				" " << missile.ENUPosition[2] << endl;
+				lastTime = missile.timeOfFlight;
+			}
+		}
+	}
+
+	// Console report.
+	if (ConsoleReport)
+	{
+		cout << "\n";
+		cout << identity << " REPORT" << endl;
+		cout << setprecision(10) << "FINAL STATUS AT TIME OF FLIGHT " << missile.timeOfFlight << " X " << missile.ENUPosition[0] << " Y " << missile.ENUPosition[1] << " Z " << missile.ENUPosition[2] << " RANGE " << missile.range << endl;
+		cout << setprecision(10) << "MISS DISTANCE " << missile.missDistance << " >>> FORWARD, LEFT, UP MISS DISTANCE " << missile.FLUMissileToPipPosition[0] << " " << missile.FLUMissileToPipPosition[1] << " " << missile.FLUMissileToPipPosition[2] << endl;
+		cout << "SIMULATION RESULT: " << missile.lethality << endl;
+	}
+
 }
 
 int main()
 {
 
-	// START WALL CLOCK
+	// Start wall clock.
 	auto wallClockStart = chrono::high_resolution_clock::now();
 
-	// FORMAT CONSOLE OUTPUT
-	cout << "\n" << endl;
+	// Create missile.
+	Missile originalMissile;
 
-	// INITIATE FUNCTION
-	init();
+	// Format console output.
+	cout << "\n";
 
-	// RUN SIMULATION
-	double lastTime = 0;
-	while (go)
-	{
-		fly();
-		auto print_it = static_cast<int>(round(missileTimeOfFlight * 10000.0)) % 10000;
-		if (print_it == 0)
-		{
-			cout << setprecision(10) << "STATUS AT TIME OF FLIGHT " << missileTimeOfFlight << " X " << missileLocalPosition[0] << " Y " << missileLocalPosition[1] << " Z " << missileLocalPosition[2] << " RANGE " << missileRange << endl;
-			lastTime = missileTimeOfFlight;
-		}
-	}
+	// Initialize.
+	double launchAzimuth = 45.0;
+	double launchElevation = 75.0;
+	double missileSpeed = 350.0;
+	emplace(originalMissile, launchAzimuth, launchElevation, missileSpeed);
 
-	// CONSOLE REPORT
-	cout << "\n" << endl;
-	cout << "MISSION REPORT" << endl;
-	cout << setprecision(10) << "FINAL STATUS AT TIME OF FLIGHT " << missileTimeOfFlight << " X " << missileLocalPosition[0] << " Y " << missileLocalPosition[1] << " Z " << missileLocalPosition[2] << " RANGE " << missileRange << endl;
-	cout << setprecision(10) << "MISS DISTANCE " << missDistance << " >>> FORWARD, LEFT, UP MISS DISTANCE " << forwardLeftUpMissileToInterceptPosition[0] << " " << forwardLeftUpMissileToInterceptPosition[1] << " " << forwardLeftUpMissileToInterceptPosition[2] << endl;
-	cout << "SIMULATION RESULT: " << lethality << endl;
+	// Set pip.
+	double pip[3];
+	pip[0] = 3000.0;
+	pip[1] = 3000.0;
+	pip[2] = 3000.0;
+	waypoint(originalMissile, pip);
+
+	// Fly good shot.
+	fly(originalMissile, true, true, "originalMissile");
+
+	// Run time.
+	cout << "\n";
 	auto wallClockEnd = chrono::high_resolution_clock::now();
 	auto simRealRunTime = chrono::duration_cast<chrono::milliseconds>(wallClockEnd - wallClockStart);
 	cout << "SIMULATION RUN TIME :" << simRealRunTime.count() / 1000.0 << " SECONDS" << endl;
 	cout << "\n" << endl;
 
-	// TERMINATE PROGRAM
+	// Terminate program.
 	return 0;
 
 }

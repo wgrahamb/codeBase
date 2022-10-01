@@ -3,6 +3,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os
 from matPlotLibColors import matPlotLibColors
+import matplotlib
+matplotlib.use("WebAgg")
 
 directory = "3DOFS/CPP_3DOF_PIP_SELECTION/output"
 dfs = []

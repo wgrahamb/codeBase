@@ -1187,11 +1187,11 @@ void document_input(Document *doc_aim5,Document *doc_aircraft3)
 	bool def_found=false;
 
 	//opening existing input.asc file
-	fstream input1("input.asc");
-	if(!input1){cout<<" *** Error: cannot open 'input1.asc' file *** \n";system("pause");exit(1);}
+	fstream input1("CADAC_SIMULATIONS/AIM5/input.asc");
+	if(!input1){cout<<" *** Error: cannot open 'input.asc' file *** \n";system("pause");exit(1);}
 
 	//opening new copy file
-	fstream fcopy("input_copy.asc");
+	fstream fcopy("CADAC_SIMULATIONS/AIM5/input_copy.asc");
 	if(!fcopy){cout<<" *** Error: cannot open 'input_copy.asc' file *** \n";system("pause");exit(1);}
 
 	//copying 'input.asc' to 'input_copy.asc'

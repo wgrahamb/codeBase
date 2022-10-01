@@ -2,10 +2,9 @@
 Use:
 - Each individual project is configured to run from this directory level.
 - All PY scripts require a python interpreter and a few pip installs.
-Start with numpy, pandas, and matplotlib.  
+Start with numpy, pandas, and matplotlib.
 - All CPP projects are configured by CMAKE and require a compiler.
-They should only require a "cmake" from the command line, and then your preferred
-method of building. This includes the CADAC_SIMULATIONS.
+Build instruction bash scripts are included.
 - Check RK2 integrations.
 
 Folder Structure: - Go through each project and make sure any executable can be made
@@ -15,8 +14,7 @@ Folder Structure: - Go through each project and make sure any executable can be 
                     into pythonFunctions.
 
 
-     3DOFS - add an objective cpp 3dof base.
-     3DOFS - Clean and convert to CMake. Re write RK4 3DOF.
+     3DOFS.
 
      Includes multiple three degree of freedom models. Some 3DOF translational and
      one 3DOF side scroller. Has a base CPP model and a base python model intended
@@ -48,8 +46,8 @@ Folder Structure: - Go through each project and make sure any executable can be 
      this is the very first CPP six degree of freedom missile model I wrote. I am
      fond of it. So, it will live here forever. It is not very good code or
      modeling. It does however hit its target, and that doesn't happen on accident.
-     It also run very fast and is good for batch runs. Included are scripts
-     to run the model.
+     It also run very fast and is good for batch runs or multi process applications.
+     Included are scripts to run the model.
 
 
      CPP_6DOF_SRAAM_V2 - See main for to do list.
@@ -65,7 +63,7 @@ Folder Structure: - Go through each project and make sure any executable can be 
      useful for predictor models. There is a use-case provided in the main function.
 
 
-     cppFunctions
+     cppFunctions - write metric model, clean up util.h
 
      Includes multiple CPP functions for modeling, some written by me, some written by Zipfel.
      It also includes any stand alone classes or functions that I find useful. It will build as its

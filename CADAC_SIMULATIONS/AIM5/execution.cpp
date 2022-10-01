@@ -116,24 +116,24 @@ int main()
 	///////////////////////////////////////////////////////////////////////////
 
 	//creating an input stream object and opening 'input.asc' file
-	fstream input("input.asc");
+	fstream input("CADAC_SIMULATIONS/AIM5/input.asc");
 	if(input.fail())
 	{cerr<<"*** Error: File stream 'input.asc' failed to open (check spelling) ***\n";system("pause");exit(1);}
 
 	//creating an output stream object and opening 'tabout.asc' file
-	ofstream ftabout("tabout.asc");
+	ofstream ftabout("CADAC_SIMULATIONS/AIM5/tabout.asc");
 	if(!ftabout){cout<<" *** Error: cannot open 'tabout.asc' file *** \n";system("pause");exit(1);}
 
 	//creating an output stream object and opening 'doc.asc' file
-	ofstream fdoc("doc.asc");
+	ofstream fdoc("CADAC_SIMULATIONS/AIM5/doc.asc");
 	if(!fdoc){cout<<" *** Error: cannot open 'doc.asc' file *** \n";system("pause");exit(1);}
 
 	//creating an output stream object and opening 'traj.asc' file
-	ofstream ftraj("traj.asc");
+	ofstream ftraj("CADAC_SIMULATIONS/AIM5/traj.asc");
 	if(!ftraj){cout<<" *** Error: cannot open 'traj.asc' file *** \n";system("pause");exit(1);}
 
 	//creating file 'input_copy.asc' in local directory for use in 'document_input()'
-	ofstream fcopy("input_copy.asc");
+	ofstream fcopy("CADAC_SIMULATIONS/AIM5/input_copy.asc");
 	if(!fcopy){cout<<" *** Error: cannot open 'input_copy.asc' file *** \n";system("pause");exit(1);}
 
 	///////////////////////////////////////////////////////////////////////////

@@ -3,6 +3,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os
 from utility.matPlotLibColors import matPlotLibColors
+import matplotlib
+matplotlib.use("WebAgg")
 
 directory = "3DOFS/PY_3DOF_ROTATING_EARTH/output"
 dfs = []

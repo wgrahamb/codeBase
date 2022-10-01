@@ -2,6 +2,8 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from utility.matPlotLibColors import matPlotLibColors
+import matplotlib
+matplotlib.use("WebAgg")
 
 RAD_TO_DEG = 57.2957795130823
 
@@ -14,7 +16,7 @@ for index, header in enumerate(df.columns):
 startIndex = 1
 stopIndex = -1
 colors = matPlotLibColors()
-fig = plt.figure(figsize=(20, 20))
+fig = plt.figure()
 
 # Trajectory
 scale = True

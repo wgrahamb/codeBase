@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import matplotlib
 matplotlib.use('WebAgg')
 
-f1 = r"CPP_6DOF_SRAAM_V2/output/missile_6DOF.txt"
+f1 = r"CPP_6DOF_SRAAM_V2/output/missile1_6DOF.txt"
 
 viewFile = f1
 
@@ -16,7 +16,7 @@ for index, header in enumerate(df.columns):
 startIndex = 1
 stopIndex = -1
 
-fig = plt.figure(figsize=(20, 20))
+fig = plt.figure()
 
 # Trajectory
 scale = True

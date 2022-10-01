@@ -3,6 +3,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os
 from matPlotLibColors import matPlotLibColors
+import matplotlib
+matplotlib.use('WebAgg')
 
 directory = "CPP_6DOF_SRAAM_V2/output"
 dfs = []

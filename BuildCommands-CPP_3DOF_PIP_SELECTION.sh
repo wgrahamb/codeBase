@@ -1,0 +1,5 @@
+rm -rf 3DOFS/CPP_3DOF_PIP_SELECTION/build
+mkdir 3DOFS/CPP_3DOF_PIP_SELECTION/build
+cd 3DOFS/CPP_3DOF_PIP_SELECTION/build
+cmake ../
+make

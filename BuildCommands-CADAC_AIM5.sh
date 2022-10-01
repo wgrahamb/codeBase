@@ -1,0 +1,5 @@
+rm -rf CADAC_SIMULATIONS/AIM5/build
+mkdir CADAC_SIMULATIONS/AIM5/build
+cd CADAC_SIMULATIONS/AIM5/build
+cmake ../
+make

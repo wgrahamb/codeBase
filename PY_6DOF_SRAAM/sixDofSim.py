@@ -85,7 +85,7 @@ class sixDofSim:
           # TARGET.
           self.tgtPos = npa([6000.0, 6000.0, 6000.0])
           # self.tgtVel = np.zeros(3)
-          self.tgtVel = npa([-200.0, -200.0, -200.0])
+          self.tgtVel = npa([-200.0, -200.0, -300.0])
           # RADIANS >>> ONLY POSITIVE NUMBERS 0-360,
           # MEASURED COUNTER CLOCKWISE FROM TRUE EAST
           mslAz = np.radians(1) 

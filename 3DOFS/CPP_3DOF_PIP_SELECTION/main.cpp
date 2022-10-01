@@ -156,7 +156,7 @@ void endCheck(Missile &missile)
 
 }
 
-void fly(Missile &missile)
+void update(Missile &missile)
 {
 
 	guidance(missile);
@@ -186,7 +186,7 @@ void fly(Missile &missile, bool LogData, bool ConsoleReport, string identity)
 	missile.lethality = "FLYING";
 	while (missile.lethality == "FLYING")
 	{
-		fly(missile);
+		update(missile);
 		if (LogData)
 		{
 			LogFile << missile.timeOfFlight << " " <<
