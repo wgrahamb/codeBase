@@ -22,5 +22,5 @@ if __name__ == "__main__":
 
 	lower = 0
 	upper = 2
-	stepsize = 0.001
+	stepsize = 0.1
 	rk4(stepsize, lower, upper, fxn, fxnprime)

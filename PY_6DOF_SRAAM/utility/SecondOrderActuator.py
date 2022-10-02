@@ -18,7 +18,7 @@ class SecondOrderActuator:
 		self.DEFLECTION_DOT = 0.0 # Radians per second.
 		self.DEFLECTION_DOT_DER = 0.0 #  # Radians per second.squared.
 
-		self.LOGFILE = open(f"PY_6DOF_SRAAM/output/{ID}.txt", "w")
+		# self.LOGFILE = open(f"PY_6DOF_SRAAM/output/{ID}.txt", "w")
 
 		self.STATE = {
 			"TIME": self.TIME,
@@ -26,10 +26,10 @@ class SecondOrderActuator:
 			"DEFL": self.DEFLECTION
 		}
 
-		lf.writeHeader(self.STATE, self.LOGFILE)
-		lf.writeData(self.STATE, self.LOGFILE)
+		# lf.writeHeader(self.STATE, self.LOGFILE)
+		# lf.writeData(self.STATE, self.LOGFILE)
 
-		print("SECOND ORDER ACTUATOR LOADED")
+		# print("SECOND ORDER ACTUATOR LOADED")
 
 	def update(self, DEFLECTION_COMMAND, TIMESTEP):
 
@@ -61,5 +61,5 @@ class SecondOrderActuator:
 			"DEFL": self.DEFLECTION
 		}
 
-		lf.writeData(self.STATE, self.LOGFILE)
+		# lf.writeData(self.STATE, self.LOGFILE)
 

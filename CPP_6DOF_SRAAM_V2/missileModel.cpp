@@ -26,7 +26,6 @@ auto wallClockStart = chrono::high_resolution_clock::now();
 /*
 
 TO DO:
-Clean threeDofFly
 Integrate into pip selection algorithms from 3DOFS.
 
 */
@@ -66,7 +65,7 @@ Integrate into pip selection algorithms from 3DOFS.
 # Fin orientation, looking down the nozzle of the missile.
 #
 #                    Fin 4    Fin 1
-#                            X
+#                           X
 #                    Fin 3    Fin 2
 #
 */
@@ -1727,7 +1726,7 @@ void threeDofFly(Missile &missile, string flyOutID, bool writeData, bool console
 	while (missile.lethality == "FLYING")
 	{
 
-		// Used throughout;
+		// Common.
 		int index;
 		double TEMP;
 
@@ -1739,51 +1738,21 @@ void threeDofFly(Missile &missile, string flyOutID, bool writeData, bool console
 		flightPathAnglesToLocalOrientation(missileAzimuth, -1.0 * missileElevation, missile.missileENUToFLUMatrix);
 
 		// Atmosphere.
-		double altitude = missile.ENUPosition[2] * mToKm;
-		index = missile.tableNameIndexPairs["RHO"];
-		double rho = linearInterpolationWithBoundedEnds(missile.tables[index], altitude);
-		index = missile.tableNameIndexPairs["GRAVITY"];
-		missile.grav = linearInterpolationWithBoundedEnds(missile.tables[index], altitude);
-		double gravityENU[3] = {0.0, 0.0, -1.0 * missile.grav};
-		threeByThreeTimesThreeByOne(missile.missileENUToFLUMatrix, gravityENU, missile.FLUGravity);
-		index = missile.tableNameIndexPairs["PRESSURE"];
-		missile.pressure = linearInterpolationWithBoundedEnds(missile.tables[index], altitude);
-		index = missile.tableNameIndexPairs["SPEED_OF_SOUND"];
-		double a = linearInterpolationWithBoundedEnds(missile.tables[index], altitude);
 		magnitude(missile.ENUVelocity, missile.speed);
-		missile.machSpeed = missile.speed / a;
-		missile.dynamicPressure = 0.5 * rho * missile.speed * missile.speed;
+		auto ATM = atm1976_metric::update(missile.ENUPosition[2], missile.speed);
+		missile.grav = ATM.g;
+		missile.pressure = ATM.p;
+		missile.dynamicPressure = ATM.q;
+		missile.machSpeed = ATM.mach;
 
 		// Aero ballistic angles.
-		missile.alphaPrimeRadians = acos(cos(missile.alphaRadians) * cos(missile.betaRadians));
-		missile.alphaPrimeDegrees = missile.alphaPrimeRadians * radToDeg;
-		double phiPrimeRadians = atan2_0(tan(missile.betaRadians), sin(missile.alphaRadians));
-		double phiPrimeDegrees = phiPrimeRadians * radToDeg;
-		missile.alphaDegrees = missile.alphaRadians * radToDeg;
-		missile.betaDegrees = missile.betaRadians * radToDeg;
-		missile.sinOfFourTimesPhiPrime = sin(4 * phiPrimeRadians);
-		TEMP = sin(2 * phiPrimeRadians);
-		missile.squaredSinOfTwoTimesPhiPrime = TEMP * TEMP;
-		missile.cosPhiPrime = cos(phiPrimeRadians);
-		missile.sinPhiPrime = sin(phiPrimeRadians);
+		aerodynamicAnglesAndConversions(missile);
 
-		// Mass and thrust look up.
+		// Lookups.
 		index = missile.tableNameIndexPairs["MASS"];
 		missile.mass = linearInterpolationWithBoundedEnds(missile.tables[index], missile.timeOfFlight);
 		index = missile.tableNameIndexPairs["THRUST"];
 		missile.unadjustedThrust = linearInterpolationWithBoundedEnds(missile.tables[index], missile.timeOfFlight);
-
-		// Propulsion.
-		if (missile.timeOfFlight <= ROCKET_BURN_OUT_TIME)
-		{
-			missile.thrust = missile.unadjustedThrust + (SEA_LEVEL_PRESSURE - missile.pressure) * THRUST_EXIT_AREA;
-		}
-		else
-		{
-			missile.thrust = 0.0;
-		}
-
-		// Axial coefficient look ups.
 		index = missile.tableNameIndexPairs["CA0"];
 		missile.CA0 = linearInterpolationWithBoundedEnds(missile.tables[index], missile.machSpeed);
 		index = missile.tableNameIndexPairs["CAA"];
@@ -1797,13 +1766,9 @@ void threeDofFly(Missile &missile, string flyOutID, bool writeData, bool console
 			index = missile.tableNameIndexPairs["CAOFF"];
 			missile.CA_POWER_CORRECTION = linearInterpolationWithBoundedEnds(missile.tables[index], missile.machSpeed);
 		}
-
-		// Side coefficient look ups.
 		index = missile.tableNameIndexPairs["CYP"];
 		missile.CYP = biLinearInterpolationWithBoundedBorders(missile.tables[index], missile.machSpeed, missile.alphaPrimeDegrees);
 		double CYP_Max = biLinearInterpolationWithBoundedBorders(missile.tables[index], missile.machSpeed, ALPHA_PRIME_MAX);
-
-		// Normal coefficient look ups.
 		index = missile.tableNameIndexPairs["CN0"];
 		missile.CN0 = biLinearInterpolationWithBoundedBorders(missile.tables[index], missile.machSpeed, missile.alphaPrimeDegrees);
 		double CN0_Max = biLinearInterpolationWithBoundedBorders(missile.tables[index], missile.machSpeed, ALPHA_PRIME_MAX);
@@ -1811,20 +1776,29 @@ void threeDofFly(Missile &missile, string flyOutID, bool writeData, bool console
 		missile.CNP = biLinearInterpolationWithBoundedBorders(missile.tables[index], missile.machSpeed, missile.alphaPrimeDegrees);
 		double CNP_Max = biLinearInterpolationWithBoundedBorders(missile.tables[index], missile.machSpeed, ALPHA_PRIME_MAX);
 
-		// Axial coefficients.
-		missile.CX = missile.CA0 + missile.CAA * missile.alphaPrimeDegrees + missile.CA_POWER_CORRECTION;
 
-		// Side and normal coefficients.
+		// Propulsion.
+		if (missile.timeOfFlight <= ROCKET_BURN_OUT_TIME)
+		{
+			missile.thrust = missile.unadjustedThrust + (SEA_LEVEL_PRESSURE - missile.pressure) * THRUST_EXIT_AREA;
+		}
+		else
+		{
+			missile.thrust = 0.0;
+		}
+
+		// Aerodynamics
 		double CYAERO_Actual = missile.CYP * missile.sinOfFourTimesPhiPrime;
 		double CYAERO_Max = CYP_Max * missile.sinOfFourTimesPhiPrime;
 		double CZAERO_Actual = missile.CN0 + missile.CNP * missile.squaredSinOfTwoTimesPhiPrime;
 		double CZAERO_Max = CN0_Max + CNP_Max * missile.squaredSinOfTwoTimesPhiPrime;
-		missile.CY = CYAERO_Actual * missile.cosPhiPrime - CZAERO_Actual * missile.sinPhiPrime;
 		double CY_Max = CYAERO_Max * missile.cosPhiPrime - CZAERO_Max * missile.sinPhiPrime;
-		missile.CZ = CYAERO_Actual * missile.sinPhiPrime + CZAERO_Actual * missile.cosPhiPrime;
 		double CZ_Max = CYAERO_Max * missile.sinPhiPrime + CZAERO_Max * missile.cosPhiPrime;
+		missile.CX = missile.CA0 + missile.CAA * missile.alphaPrimeDegrees + missile.CA_POWER_CORRECTION;
+		missile.CZ = CYAERO_Actual * missile.sinPhiPrime + CZAERO_Actual * missile.cosPhiPrime;
+		missile.CY = CYAERO_Actual * missile.cosPhiPrime - CZAERO_Actual * missile.sinPhiPrime;
 
-		// Limit guidance commands.
+		// Guidance.
 		if (!missile.BALLISTIC)
 		{
 			double relPos[3];
@@ -1839,11 +1813,6 @@ void threeDofFly(Missile &missile, string flyOutID, bool writeData, bool console
 		}
 		else
 		{
-			double relPos[3];
-			subtractTwoVectors(missile.ENUPosition, missile.pip, relPos);
-			double mslToIntercept[3];
-			threeByThreeTimesThreeByOne(missile.missileENUToFLUMatrix, relPos, mslToIntercept);
-			setArrayEquivalentToReference(missile.FLUMissileToPipRelativePosition, mslToIntercept);
 			missile.guidanceNormalCommand = 0;
 			missile.guidanceSideCommand = 0;
 		}
@@ -1993,13 +1962,7 @@ int main()
 
 	// Six dof missile flight.
 	Missile missile2 = clone(missile);
-	missile2.INTEGRATION_METHOD = 1;
-	sixDofFly(missile2, "missile2", LogData, ConsoleReport, 400.0);
-
-	// Six dof missile flight.
-	Missile missile3 = clone(missile);
-	missile3.INTEGRATION_METHOD = 2;
-	sixDofFly(missile3, "missile3", LogData, ConsoleReport, 400.0);
+	threeDofFly(missile2, "missile2", LogData, ConsoleReport, 400.0);
 
 	// Console report and terminate.
 	auto wallClockEnd = chrono::high_resolution_clock::now();

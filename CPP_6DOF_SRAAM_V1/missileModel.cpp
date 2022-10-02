@@ -679,10 +679,11 @@ void init() {
 	inPut.open("CPP_6DOF_SRAAM_V1/input/input.txt");
 
 	// INITIALIZE INPUTS
+	string id;
 	double phi, theta, psi, tgtE, tgtN, tgtU;
 
 	// READ INPUTS
-	inPut >> phi >> theta >> psi >> tgtE >> tgtN >> tgtU;
+	inPut >> id >> phi >> theta >> psi >> tgtE >> tgtN >> tgtU;
 
 	// TARGET
 	pip[0] = tgtE; // METERS
@@ -745,7 +746,8 @@ void init() {
 	lethality = ec.flying; // STATUS
 
 	// LOG DATA
-	logFile.open("CPP_6DOF_SRAAM_V1/visual/log.txt");
+	string log_id = "CPP_6DOF_SRAAM_V1/output/" + id + ".txt";
+	logFile.open(log_id);
 	logFile << fixed << setprecision(10) << "tof posE posN posU tgtE tgtN tgtU normComm normAch pitchRate thetaRate pitchDefl alpha theta sideComm sideAch yawRate psiRate yawDefl beta psi rollComm phiRate rollRate rollDefl roll seekPitchErr seekYawErr staticMargin mach" << endl;
 
 	// FLY
@@ -1398,8 +1400,8 @@ int main () {
 	cout << "MISSION REPORT" << endl;
 	cout << setprecision(6) << "FINAL POSITION AT " << mslTof << " E " << mslPos[0] << " N " << mslPos[1] << " U " << mslPos[2] << " RANGE " << mslRange << " MACH " << mslMach << endl;
 	cout << setprecision(6) << "MISS DISTANCE " << missDistance << " FORWARD, LEFT, UP, MISS DISTANCE " << forwardLeftUpMslToInterceptPos[0] << " " << forwardLeftUpMslToInterceptPos[1] << " " << forwardLeftUpMslToInterceptPos[2] << endl;
-	logFile << "\n";
-	logFile << setprecision(6) << "MISS DISTANCE " << missDistance << " FORWARD, LEFT, UP, MISS DISTANCE " << forwardLeftUpMslToInterceptPos[0] << " " << forwardLeftUpMslToInterceptPos[1] << " " << forwardLeftUpMslToInterceptPos[2] << endl;
+	// logFile << "\n";
+	// logFile << setprecision(6) << "MISS DISTANCE " << missDistance << " FORWARD, LEFT, UP, MISS DISTANCE " << forwardLeftUpMslToInterceptPos[0] << " " << forwardLeftUpMslToInterceptPos[1] << " " << forwardLeftUpMslToInterceptPos[2] << endl;
 	cout << "SIMULATION RESULT: " << lethality << endl;
 	auto wallClockEnd = chrono::high_resolution_clock::now();
 	auto simRealRunTime = chrono::duration_cast<chrono::milliseconds>(wallClockEnd - wallClockStart);

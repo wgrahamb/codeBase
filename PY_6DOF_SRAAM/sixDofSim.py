@@ -31,7 +31,13 @@ class endChecks(Enum):
 
 class sixDofSim:
 
-     def __init__(self):
+     def __init__(
+          self,
+          id,
+          enuPos,
+          enuAttitude,
+          pip
+     ):
 
           ############################################################################
           #
@@ -80,23 +86,24 @@ class sixDofSim:
           self.go = True
           self.timeStep = 1.0 / 125.0 # SECONDS
           self.maxTime = 400 # SECONDS
+
+          # TARGET.
+          # 
           
           # Input.
-          # TARGET.
-          self.tgtPos = npa([6000.0, 6000.0, 6000.0])
-          # self.tgtVel = np.zeros(3)
-          self.tgtVel = npa([-200.0, -200.0, -300.0])
-          # RADIANS >>> ONLY POSITIVE NUMBERS 0-360,
-          # MEASURED COUNTER CLOCKWISE FROM TRUE EAST
-          mslAz = np.radians(1) 
-          mslEl = np.radians(55)
+          self.id = id
+          self.pip = pip
+          self.tgtPos = pip
+          self.tgtVel = np.zeros(3)
+          self.mslPosEnu = enuPos
+          mslAz = enuAttitude[2]
+          mslEl = enuAttitude[1]
 
           ### MSL STATE ###
           self.mslTof = 0.0 # SECONDS
 
           # FRAME
           self.mslFLUtoENU = FLIGHTPATH_TO_LOCAL_TM(mslAz, -mslEl) # ND
-          self.mslPosEnu = np.zeros(3)# METERS
           self.mslVelEnu = self.mslFLUtoENU[0] # METERS PER SECOND
           self.mslAccEnu = np.zeros(3) # METERS PER SECOND^2
           self.mslEulerEnu = npa([0.0, mslEl, mslAz]) # RADIANS
@@ -132,7 +139,7 @@ class sixDofSim:
           self.FLUgrav = np.zeros(3) # METERS PER SECOND^2
 
           # SEEKER >>> INITIALIZE BY POINTING THE SEEKER DIRECTLY AT THE TARGET
-          relPosU = unitvector(self.tgtPos - self.mslPosEnu) # ND
+          relPosU = unitvector(self.pip - self.mslPosEnu) # ND
           mslToInterceptU = self.mslFLUtoENU @ relPosU # ND
           mslToInterceptAz, mslToInterceptEl = returnAzAndElevation(mslToInterceptU) # RADIANS
           self.seekerPitch = mslToInterceptEl # RADIANS
@@ -261,7 +268,7 @@ class sixDofSim:
           self.staticMargin = 0
 
           # DATA
-          self.logFile = open("PY_6DOF_SRAAM/log.txt", "w")
+          self.logFile = open(f"PY_6DOF_SRAAM/output/{id}.txt", "w")
           self.STATE = self.populateState()
           lf.writeHeader(self.STATE, self.logFile)
           lf.writeData(self.STATE, self.logFile)
@@ -276,9 +283,9 @@ class sixDofSim:
                "posE": self.mslPosEnu[0],
                "posN": self.mslPosEnu[1],
                "posU": self.mslPosEnu[2],
-               "tgtE": self.tgtPos[0],
-               "tgtN": self.tgtPos[1],
-               "tgtU": self.tgtPos[2],
+               "tgtE": self.pip[0],
+               "tgtN": self.pip[1],
+               "tgtU": self.pip[2],
                "normComm": self.normCommand / self.G,
                "normAch": self.mslSpecificForce[2] / self.G,
                "sideComm": self.sideCommand / self.G,
@@ -316,12 +323,12 @@ class sixDofSim:
           lineOfSightRate = TEMP1 / TEMP2 # RADIANS PER SECOND
           command = \
           np.cross(-1 * self.proNavGain * closingVelMag * relPosU, lineOfSightRate)
-
-          # deltaVel = np.zeros(3) * self.timeStep
           deltaVel = command * self.timeStep
           self.tgtVel += deltaVel
           deltaPos = self.tgtVel * self.timeStep
           self.tgtPos += deltaPos
+
+          self.pip = self.pip
 
      def atmosphere(self):
 
@@ -382,7 +389,7 @@ class sixDofSim:
           self.seekerPitch = self.wlq # RADIANS
 
           # TRANSFORM.
-          localRelPos = self.tgtPos - self.mslPosEnu # METERS
+          localRelPos = self.pip - self.mslPosEnu # METERS
           seekerAttitudeToLocalTM = \
           ATTITUDE_TO_LOCAL_TM(0, -self.seekerPitch, self.seekerYaw) # ND
           self.seekerLocalOrient = seekerAttitudeToLocalTM @ self.mslFLUtoENU # ND
@@ -850,23 +857,38 @@ class sixDofSim:
           self.missDistance = la.norm(self.forwardLeftUpMslToInterceptRelPos)
           if self.mslPosEnu[2] < 0.0:
                self.lethality = endChecks.groundCollision
+               print(self.lethality.name)
                self.go = False
           elif self.missDistance < 5.0:
                self.lethality = endChecks.intercept
+               wallClockEnd = time.time()
+               print(f"TIME {self.mslTof:.3f} : ENU {self.mslPosEnu}")
+               print(f"SIMULATION RESULT : {self.lethality.name}")
+               print(f"MISS DISTANCE : {self.missDistance:.4f}")
+               print(f"SIMULATION RUN TIME : {wallClockEnd - self.wallClockStart} SECONDS")
                self.go = False
           elif self.forwardLeftUpMslToInterceptRelPos[0] < 0.0:
                self.lethality = endChecks.pointOfClosestApproachPassed
+               wallClockEnd = time.time()
+               print(f"TIME {self.mslTof:.3f} : ENU {self.mslPosEnu}")
+               print(f"SIMULATION RESULT : {self.lethality.name}")
+               print(f"MISS DISTANCE : {self.missDistance:.4f}")
+               print(f"SIMULATION RUN TIME : {wallClockEnd - self.wallClockStart} SECONDS")
                self.go = False
           elif np.isnan(np.sum(self.mslPosEnu)):
                self.lethality = endChecks.notANumber
+               print(self.lethality.name)
                self.go = False
           elif self.mslTof > self.maxTime:
                self.lethality = endChecks.maxTimeExceeded
+               # print(self.lethality.name)
                self.go = False
           elif self.lethality == endChecks.forcedSimTermination:
+               print(self.lethality.name)
                self.go = False
 
      def fly(self):
+
           self.target()
           self.atmosphere()
           self.seeker()
@@ -883,20 +905,35 @@ class sixDofSim:
           self.logData()
           self.endCheck()
 
-     def main(self):
+     def update(self, flyForThisLong):
+
+          self.maxTime = self.mslTof + flyForThisLong
+          self.timeStep = flyForThisLong
+          DT_LIM = (1.0 / 125.0)
+          if self.timeStep > DT_LIM:
+               self.timeStep = DT_LIM
+
           while self.go:
                self.fly()
                if round(self.mslTof, 3).is_integer():
                     print(f"TIME {self.mslTof:.0f} : ENU {self.mslPosEnu}")
-          wallClockEnd = time.time()
-          print(f"TIME {self.mslTof:.3f} : ENU {self.mslPosEnu}")
-          print(f"SIMULATION RESULT : {self.lethality.name}")
-          print(f"MISS DISTANCE : {self.missDistance:.4f}")
-          print(f"SIMULATION RUN TIME : {wallClockEnd - self.wallClockStart} SECONDS")
 
 
 
 if __name__ == "__main__":
+
      np.set_printoptions(suppress=True, precision=2)
-     x = sixDofSim()
-     x.main()
+     missile = sixDofSim(
+          id="msl",
+          enuPos=npa([100.0, 100.0, 1.0]),
+          enuAttitude=npa([0.0, np.radians(45.0), np.radians(10)]),
+          pip=npa([3000.0, 3000.0, 3000.0])
+     )
+
+     while True:
+
+          missile.update(0.5)
+          if missile.lethality == endChecks.maxTimeExceeded:
+               missile.go = True
+          if missile.lethality != endChecks.maxTimeExceeded:
+                break

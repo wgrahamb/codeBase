@@ -5,7 +5,7 @@ matplotlib.use('WebAgg')
 import numpy as np
 from utility import matPlotLibColors as mc
 
-f1 = "PY_6DOF_SRAAM/log.txt"
+f1 = "PY_6DOF_SRAAM/output/msl_predictor_3.txt"
 
 df = pd.read_csv(open(f"{f1}"), delimiter=" ", skipfooter=3, engine="python")
 startIndex = 1

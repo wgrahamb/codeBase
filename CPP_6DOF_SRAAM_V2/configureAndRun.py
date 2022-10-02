@@ -1,6 +1,4 @@
 import subprocess
-import shutil
-import os
 
 ballistic = 0 # Boolean.
 INTEGRATION_METHOD = 1 # 0 = Euler, 1 = RK2, 2 = RK4.
