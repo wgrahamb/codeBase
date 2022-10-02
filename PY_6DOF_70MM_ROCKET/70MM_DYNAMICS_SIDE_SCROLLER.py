@@ -1,4 +1,5 @@
 import numpy as np
+import copy
 from numpy import array as npa
 from numpy import linalg as la
 import utility.loggingFxns as lf
@@ -8,11 +9,8 @@ from utility.interpolationGivenTwoVectors import linearInterpolation
 np.set_printoptions(precision=2, suppress=True)
 
 # INPUTS.
-AERO_TYPE = 1
 ALT = 10000 # FEET
-SPD = 200 # FEET PER SEC
-DEFL_D = 0 # DEGREES
-DEFL = np.radians(DEFL_D) # RADIANS
+SPD = 300 # FEET PER SEC
 
 # MISSILE CONSTANTS.
 REF_DIAM = 0.23 # FEET
@@ -67,21 +65,22 @@ QDOT = 0.0
 WDOT = 0.0
 
 # STATE.
-INT_PASS = 0
 POS = npa([0.0, ALT])
 VEL = npa([SPD, 0.0])
 THT = 0.0
 RATE = 0.0
 ALPHA = 0.0
-POS0 = np.zeros(2)
-VEL0 = np.zeros(2)
-THT0 = 0.0
-RATE0 = 0.0
-ALPHA0 = 0.0
+
+INT_PASS = 0
+POS0 = None
+VEL0 = None
+THT0 = None
+RATE0 = None
+ALPHA0 = None
 
 # SIM CONTROL.
 TOF = 0.0
-DT = 1.0 / 100.0
+DT = 1.0 / 1000.0
 MAXT = 10
 
 # DATA
@@ -157,11 +156,11 @@ while TOF <= MAXT:
 		INT_PASS += 1
 		TOF += (DT / 2.0)
 
-		POS0 = POS
-		VEL0 = VEL
-		THT0 = THT
-		RATE0 = RATE
-		ALPHA0 = ALPHA
+		POS0 = copy.deepcopy(POS)
+		VEL0 = copy.deepcopy(VEL)
+		THT0 = copy.deepcopy(THT)
+		RATE0 = copy.deepcopy(RATE)
+		ALPHA0 = copy.deepcopy(ALPHA)
 
 		POS += VEL * (DT / 2.0)
 		VEL += ACC * (DT / 2.0)
@@ -174,19 +173,17 @@ while TOF <= MAXT:
 		INT_PASS = 0
 		TOF += (DT / 2.0)
 
-		DIVISOR = 1.0
+		POS = POS0 + VEL * DT
+		VEL = VEL0 + ACC * DT
+		THT = THT0 + RATE * DT
+		RATE = RATE0 + QDOT * DT
+		ALPHA = ALPHA0 + ADOT * DT
 
-		POS = POS0 + VEL * (DT / DIVISOR)
-		VEL = VEL0 + ACC * (DT / DIVISOR)
-		THT = THT0 + RATE * (DT / DIVISOR)
-		RATE = RATE0 + QDOT * (DT / DIVISOR)
-		ALPHA = ALPHA0 + ADOT * (DT / DIVISOR)
-
-		POS0 = np.zeros(2)
-		VEL0 = np.zeros(2)
-		THT0 = 0.0
-		RATE0 = 0.0
-		ALPHA0 = 0.0
+		POS0 = None
+		VEL0 = None
+		THT0 = None
+		RATE0 = None
+		ALPHA0 = None
 
 
 

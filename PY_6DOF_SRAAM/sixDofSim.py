@@ -48,15 +48,15 @@ class sixDofSim:
           # ARRAY 2 >>> LOOKING DOWN THE NOZZLE OF THE INTERCEPTOR,
           # THIS POINTS OUT THE TOP SIDE OF THE INTERCEPTOR
           #
-          #                           POSITIVE NORMAL
-          #                                         |
-          #                                         |
-          #                                         |
+          #                       POSITIVE NORMAL
+          #                           |
+          #                           |
+          #                           |
           #  POSITIVE SIDE -----------O----------- NEGATIVE SIDE
-          #                                         |
-          #                                         |
-          #                                         |
-          #                          NEGATIVE NORMAL
+          #                           |
+          #                           |
+          #                           |
+          #                      NEGATIVE NORMAL
           #
           # NEGATIVE AXIS IS COMING OUT OF THE SCREEN STRAIGHT AT YOU
           # POSITIVE AXIS IS POINTING INTO THE SCREEN DIRECTLY AWAY FROM YOU
@@ -70,7 +70,7 @@ class sixDofSim:
           # LOOKING DOWN THE NOZZLE OF THE MISSILE
           #
           #                              FIN 4       FIN 1
-          #                                         X
+          #                                      X
           #                              FIN 3       FIN 2
           #
           ############################################################################

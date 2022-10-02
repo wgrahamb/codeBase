@@ -373,10 +373,10 @@ def Fly3DOF(MSL_INPUT, FLY_FOR_THIS_LONG, FIN_DEFL_DEG):
 				GO = False
 
 			# BEGIN INTEGRATION PASS.
-			STATE_P0 = POS_0
-			STATE_V0 = VEL_0
-			STATE_T0 = T_0
-			STATE_TDOT0 = TDOT_0
+			STATE_P0 = copy.deepcopy(POS_0)
+			STATE_V0 = copy.deepcopy(VEL_0)
+			STATE_T0 = copy.deepcopy(T_0)
+			STATE_TDOT0 = copy.deepcopy(TDOT_0)
 
 			V1 = VEL_0
 			A1 = ACC_0

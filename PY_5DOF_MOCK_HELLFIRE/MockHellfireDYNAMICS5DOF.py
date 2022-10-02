@@ -402,10 +402,10 @@ def Fly5DOF(
 				return MSL
 
 			# BEGIN INTEGRATION PASS.
-			STATE_P0 = ENUPOS
-			STATE_V0 = ENUVEL
-			STATE_E0 = ENUEULER
-			STATE_EDOT0 = BODYRATE
+			STATE_P0 = copy.deepcopy(ENUPOS)
+			STATE_V0 = copy.deepcopy(ENUVEL)
+			STATE_E0 = copy.deepcopy(ENUEULER)
+			STATE_EDOT0 = copy.deepcopy(BODYRATE)
 
 			V1 = ENUVEL
 			A1 = ACC_0

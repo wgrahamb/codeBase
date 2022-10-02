@@ -13,7 +13,7 @@ Build scripts written in python are included.
 
 Folder Structure:
 
-     3DOFS.
+     3DOFS
 
      Includes multiple three degree of freedom models. Some 3DOF
      translational and some 3DOF side scrollers. Has a base CPP model
@@ -31,11 +31,12 @@ Folder Structure:
      help students such as myself, learn the complexities of modeling.
 
 
-     CPP_6DOF_SAM - In development. Use quaternion.
+     CPP_6DOF_SAM - In development.
 
      This will be a partial port from CADAC_SIMULATIONS ADS6. This is
      a surface-to-air missile. It will start as a Dynamics engine, to
-     determine performance of the missile. It may stay that way. I may
+     determine performance of the missile. I have not used quaternions before
+     and I will integrate them into this project. It may stay that way. I may
      also write a simple shell around it to use in modeling environments.
      I have not started this project.
 

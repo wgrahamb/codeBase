@@ -1991,15 +1991,15 @@ int main()
 	missile1.INTEGRATION_METHOD = 0;
 	sixDofFly(missile1, "missile1", LogData, ConsoleReport, 400.0);
 
-	// // Six dof missile flight.
-	// Missile missile2 = clone(missile);
-	// missile2.INTEGRATION_METHOD = 1;
-	// sixDofFly(missile2, "missile2", LogData, ConsoleReport, 400.0);
+	// Six dof missile flight.
+	Missile missile2 = clone(missile);
+	missile2.INTEGRATION_METHOD = 1;
+	sixDofFly(missile2, "missile2", LogData, ConsoleReport, 400.0);
 
-	// // Six dof missile flight.
-	// Missile missile3 = clone(missile);
-	// missile3.INTEGRATION_METHOD = 2;
-	// sixDofFly(missile3, "missile3", LogData, ConsoleReport, 400.0);
+	// Six dof missile flight.
+	Missile missile3 = clone(missile);
+	missile3.INTEGRATION_METHOD = 2;
+	sixDofFly(missile3, "missile3", LogData, ConsoleReport, 400.0);
 
 	// Console report and terminate.
 	auto wallClockEnd = chrono::high_resolution_clock::now();
