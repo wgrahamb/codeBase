@@ -4,7 +4,7 @@ ballistic = 0 # Boolean.
 INTEGRATION_METHOD = 1 # 0 = Euler, 1 = RK2, 2 = RK4.
 phi = 0 # Degrees.
 theta = 55 # Degrees.
-psi = 35 # Degrees.
+psi = 30 # Degrees.
 posE = 0 # Meters.
 posN = 0 # Meters.
 posU = 0 # Meters.

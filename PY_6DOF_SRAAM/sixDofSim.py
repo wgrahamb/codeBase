@@ -931,7 +931,6 @@ if __name__ == "__main__":
      )
 
      while True:
-
           missile.update(0.5)
           if missile.lethality == endChecks.maxTimeExceeded:
                missile.go = True

@@ -119,7 +119,7 @@ Folder Structure:
      the pitch and yaw characteristics, but have not yet solved the roll.
 
 
-     pythonFunctions
+     pythonFunctions - clean zarchan ports
 
      Includes multiple python functions for modeling. Most of them are
      written by me, but some of it comes from elsewhere.

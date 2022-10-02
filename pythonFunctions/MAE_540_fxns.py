@@ -165,7 +165,7 @@ class Textbook_4_1:
 				break
 		return machGuess
 
-	# uses newton raphson method for function with two roots
+	# uses newton raphson method for function with more than one root
 	@staticmethod
 	def RobertFrederick_findMach(initialMachGuess, gamma, sigma):
 		StopCriteria = 0.000001
@@ -569,7 +569,6 @@ if __name__ == "__main__":
 	Textbook_2_11(ORBIT_ALT_2, ORBIT_LAT_2)
 	
 	### TEXTBOOK 3.3 ###
-	print("\n")
 	# Stage 2.
 	propMass, inertMass = Textbook_3_3(
 		iPropMassFraction=0.8,
@@ -594,7 +593,7 @@ if __name__ == "__main__":
 		M0=100,
 		MF=50
 	)
-	print(f"TEXTBOOK 3.4 : BURN TIME IS {x} SECONDS.")
+	print(f"TEXTBOOK 3.4 : BURN TIME IS {x} SECONDS.\n")
 
 	### TEXTBOOK 4.1 ###
 	psl = 101325 # pascals

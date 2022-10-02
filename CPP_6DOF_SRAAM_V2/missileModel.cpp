@@ -506,7 +506,7 @@ void control(Missile &missile)
 
 		// Pitch autopilot.
 		double pitchRateCommandLimit = 20;
-		double pitchRateProportionalGain = 0.11;
+		double pitchRateProportionalGain = 0.08;
 		double pitchRateDerivativeGain = 0.000375;
 		double pitchRateIntegralGain = 0.0018;
 		double guidancePitchRateCommand = -missile.guidanceNormalCommand * 6 / missile.speed;
