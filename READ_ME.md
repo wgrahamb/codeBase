@@ -11,7 +11,7 @@ Start with numpy, pandas, and matplotlib.
 - All CPP projects are configured by CMAKE and require a compiler.
 Build scripts written in python are included.
 
-Folder Structure:
+Folder Structure: Add all debug configurations to vscode file.
 
      3DOFS
 

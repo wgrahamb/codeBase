@@ -2,10 +2,30 @@
 	"version": "0.2.0",
 	"configurations": [
 		{
-			"name": "g++ build and debug active file",
+			"name": "debug cppFunctions",
 			"type": "cppdbg",
 			"request": "launch",
 			"program": "/home/graham/codeBase/cppFunctions/build/UTIL_TESTS",
+			"args": [],
+			"stopAtEntry": false,
+			"cwd": "${workspaceFolder}",
+			"environment": [],
+			"externalConsole": false,
+			"MIMode": "gdb",
+			"setupCommands": [
+				{
+					"description": "Enable pretty-printing for gdb",
+					"text": "-enable-pretty-printing",
+					"ignoreFailures": true
+				}
+			],
+			"miDebuggerPath": "/usr/bin/gdb"
+		},
+		{
+			"name": "debug CPP_3DOF_BASE",
+			"type": "cppdbg",
+			"request": "launch",
+			"program": "/home/graham/codeBase/3DOFS/CPP_3DOF_BASE/build/missileModel",
 			"args": [],
 			"stopAtEntry": false,
 			"cwd": "${workspaceFolder}",

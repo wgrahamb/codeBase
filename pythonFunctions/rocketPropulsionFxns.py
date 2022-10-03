@@ -224,6 +224,15 @@ class Textbook_4_1:
 		return ret
 
 	@staticmethod
+	def charVelocityImperial(Tc, MM, gamma): # rankine, lbm / lbm-mole, nd
+		Ru = 1543
+		t1 = (Ru * Tc / (gamma * MM)) * 32.2
+		t2 = 2 / (gamma + 1)
+		t3 = (-1.0 * (gamma + 1)) / (2 * (gamma - 1))
+		ret = np.sqrt(t1) * (t2 ** t3)
+		return ret
+
+	@staticmethod
 	# pascals, m^2, Kelvin, kg / kg-mol, ND
 	def mDot(Pc, At, Tc, M, gamma):
 		Ru = 8317 # N * m / kg * mol * Kelvin
@@ -233,6 +242,18 @@ class Textbook_4_1:
 		t4 = (-1.0 * (gamma + 1)) / (2.0 * (gamma - 1))
 		ret = t1 / (t2 * (t3 ** t4))
 		return ret
+
+	@staticmethod
+	# psi, in^2, Farenheit, lbm/lbm-mole
+	def mDotImperial(Pc, At, Tc, M, gamma):
+		Ru = 1543 # ft * lbf / lbm-mole * Rankine
+		t1 = Pc * At # psi * in^2 = lbf
+		TcR = Tc + 459.7 # Rankine
+		t2 = np.sqrt(Ru * TcR * 32.2 / (gamma * M))
+		t3 = 2 / (gamma + 1)
+		t4 = (-1.0 * (gamma + 1)) / (2.0 * (gamma - 1))
+		ret = t1 / (t2 * (t3 ** t4))
+		return ret * 32.2
 
 	@staticmethod
 	def calcIsp(cf, cstar, g):
@@ -557,6 +578,148 @@ def SP04A1():
 
 	plt.show()
 
+def SP04_B():
+
+	gamma = 1.2
+	sigmas = np.linspace(1.01, 100, 10000)
+	PcOverPa_iters = [2, 4, 10, 25, 75, 150, 500, 1000, 1000000000000]
+	# PcOverPa_iters = [2]
+
+	# uses newton raphson method for function with more than one root
+	def RobertFrederick_findMach(initialMachGuess, gamma, sigma):
+		StopCriteria = 0.000001
+		EA = StopCriteria * 1.1
+		AM2 = copy.deepcopy(initialMachGuess)
+		index = 0
+		while EA > StopCriteria and index < 100:
+			index += 1
+			AFUN = (2.0 + (gamma - 1) * AM2 * AM2) / (gamma + 1.0)
+			BFUN = (gamma + 1.0) / (2.0 * (gamma - 1.0))
+			CFUN = 1.0 / AFUN
+			DFUN = 1.0 / (AM2 * AM2)
+			DERFUN = (AFUN ** BFUN) * (CFUN - DFUN)
+			FUNFUN = (1.0 / AM2) * (AFUN ** BFUN) - sigma
+			AMOLD = AM2
+			AM2 -= (FUNFUN / DERFUN)
+			EA = np.abs((AM2 - AMOLD) / AM2) * 100.0
+		return AM2
+
+	def vacuumForceCoefficient(gamma, sigma, PcOverPe):
+		t1 = 2 * gamma * gamma / (gamma - 1)
+		t2 = 2 / (gamma + 1)
+		t3 = (gamma + 1) / (gamma - 1)
+		t4 = 1
+		t5 = 1.0 / PcOverPe
+		t6 = (gamma - 1) / gamma
+		t7 = (1.0 / PcOverPe) * sigma
+		ret = np.sqrt(t1 * (t2 ** t3) * (t4 - t5 ** t6)) + t7
+		return ret
+
+	def forceCoefficient(cfv, PcOverPa, sigma):
+		ret = (cfv - (1.0 / PcOverPa) * sigma)
+		return ret
+
+	def nozzleAreaRatio(mach, gamma):
+		t1 = (1 / mach)
+		t2 = 2 + (gamma - 1) * mach * mach
+		t3 = gamma + 1
+		t4 = (gamma + 1) / (2.0 * (gamma - 1))
+		t = t1 * ((t2 / t3) ** t4)
+		return t
+
+	def findMach(low, high, gamma, sigma):
+		l = low
+		h = high
+		index = 0
+		while True:
+			index += 1
+			machGuess = (l + h) / 2.0
+			x = nozzleAreaRatio(machGuess, gamma)
+			check = x / sigma
+			# print(f"REPORT\n  INDEX {index}\n  LOW {l}\n  HIGH {h}\n  MACH {machGuess:.2f}\n  CALC {x:.2f}\n  SIGMA {sigma:.2f}\n  CHECK {check:.2f}\n")
+			if 0.99 < check < 1.01:
+				# print(f"Solution found: {machGuess}\n")
+				break
+			elif check < 0.98:
+				l = machGuess
+			elif check > 1.02:
+				h = machGuess
+			if index == 20:
+				# print(f"Solution does not converge.\n")
+				break
+		return machGuess
+
+	def isentropicPressureRatio(gamma, mach):
+		t1 = 1
+		t2 = (gamma - 1) / 2.0
+		t3 = mach * mach
+		t4 = gamma / (gamma - 1)
+		ret = (t1 + t2 * t3) ** t4
+		return ret
+
+	def lineOfSeperation(sigma):
+		t1 = -1.0 * 0.0445 * (np.log(sigma) ** 2)
+		t2 = 0.5324 * np.log(sigma)
+		t3 = 0.1843
+		ret = t1 + t2 + t3
+		return ret
+
+	lineOfMaxCfsX = []
+	lineOfMaxCfsY = []
+	data = []
+	for index, n in enumerate(PcOverPa_iters):
+		x = []
+		y = []
+		flag = 0
+		for index, sigma in enumerate(sigmas):
+			PcOverPa = n
+			Pc = PcOverPa * 14.7
+			Me = None
+			if n == 2:
+				Me = RobertFrederick_findMach(2.0, gamma, sigma)
+			else:
+				Me = findMach(0, 5, gamma, sigma)
+			PcOverPe = isentropicPressureRatio(gamma, Me)
+			Pe = (1.0 / PcOverPe) * Pc
+			check = np.abs(Pe - 14.7)
+			cfv = vacuumForceCoefficient(gamma, sigma, PcOverPe)
+			cf = forceCoefficient(cfv, PcOverPa, sigma)
+			pd = (check / 14.7) * 100.0
+			if pd < 5:
+				if flag == 0:
+					lineOfMaxCfsX.append(sigma)
+					lineOfMaxCfsY.append(cf)
+					flag = 1
+				else:
+					pass
+			x.append(sigma)
+			y.append(cf)
+		if n == 1000000000000:
+			dp = [x, y, "INF"]
+		else:
+			dp = [x, y, f"{n}"]
+		data.append(dp)
+
+	x = []
+	y = []
+	for index, sigma in enumerate(sigmas):
+		n = lineOfSeperation(sigma)
+		x.append(sigma)
+		y.append(n)
+	dp = [x, y, "Line of Seperation"]
+	data.append(dp)
+
+	fig = plt.figure()
+	ax = fig.add_subplot(111)
+	ax.set_xscale("log")
+	ax.set_xlim([1.05, 100.0])
+	ax.set_ylim([0.6, 2.0])
+	for index, dataSet in enumerate(data):
+		ax.plot(dataSet[0], dataSet[1], label=dataSet[2])
+	ax.plot(lineOfMaxCfsX, lineOfMaxCfsY, label="Line of Max Thrust Coefficient")
+	ax.legend(fontsize="xx-small")
+	plt.show()
+
 if __name__ == "__main__":
 
 	### TEXTBOOK 2.11 ###
@@ -610,9 +773,10 @@ if __name__ == "__main__":
 	printValuesInADictionary(y)
 
 	### SP04-A1 ###
-	SP04A1()
+	SP04A1() # has plot
 
-
+	### SP04-B ###
+	SP04_B() # has plot
 
 
 
