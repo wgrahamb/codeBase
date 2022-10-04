@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
-from interpolationGivenTwoVectors import linearInterpolation
+from interpolation import interpTwoLists
 from atm1976_metric import atm1976_metric
 from matPlotLibColors import matPlotLibColors
 import matplotlib
@@ -290,10 +290,10 @@ def chargerBlueRocket():
 
 	# Plot first model.
 	dfRocket["MODEL1"]["A0"] = df1.iloc[0, 3]
-	dfRocket["MODEL1"]["AB"] = linearInterpolation(TB, df1.iloc[:, 0].to_list(), df1.iloc[:, 3].to_list())
-	dfRocket["MODEL1"]["VB"] = linearInterpolation(TB, df1.iloc[:, 0].to_list(), df1.iloc[:, 2].to_list())
+	dfRocket["MODEL1"]["AB"] = interpTwoLists(TB, df1.iloc[:, 0].to_list(), df1.iloc[:, 3].to_list())
+	dfRocket["MODEL1"]["VB"] = interpTwoLists(TB, df1.iloc[:, 0].to_list(), df1.iloc[:, 2].to_list())
 	dfRocket["MODEL1"]["VMAX"] = max(df1.iloc[:, 2].to_list())
-	dfRocket["MODEL1"]["HB"] = linearInterpolation(TB, df1.iloc[:, 0].to_list(), df1.iloc[:, 1].to_list())
+	dfRocket["MODEL1"]["HB"] = interpTwoLists(TB, df1.iloc[:, 0].to_list(), df1.iloc[:, 1].to_list())
 	dfRocket["MODEL1"]["HMAX"] = max(df1.iloc[:, 1].to_list())
 	dfRocket["MODEL1"]["TMAX"] = max(df1.iloc[:, 0].to_list())
 
@@ -307,9 +307,9 @@ def chargerBlueRocket():
 	# Plot second model.
 	dfRocket["MODEL2"]["A0"] = df2.iloc[0, 3]
 	dfRocket["MODEL2"]["AB"] = float(df2.loc[df2["TOF"] == 4.33]["ACC"])
-	dfRocket["MODEL2"]["VB"] = linearInterpolation(TB, df2.iloc[:, 0].to_list(), df2.iloc[:, 2].to_list())
+	dfRocket["MODEL2"]["VB"] = interpTwoLists(TB, df2.iloc[:, 0].to_list(), df2.iloc[:, 2].to_list())
 	dfRocket["MODEL2"]["VMAX"] = max(df2.iloc[:, 2].to_list())
-	dfRocket["MODEL2"]["HB"] = linearInterpolation(TB, df2.iloc[:, 0].to_list(), df2.iloc[:, 1].to_list())
+	dfRocket["MODEL2"]["HB"] = interpTwoLists(TB, df2.iloc[:, 0].to_list(), df2.iloc[:, 1].to_list())
 	dfRocket["MODEL2"]["HMAX"] = max(df2.iloc[:, 1].to_list())
 	dfRocket["MODEL2"]["TMAX"] = max(df2.iloc[:, 0].to_list())
 

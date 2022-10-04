@@ -20,7 +20,7 @@ RAD2DEG = 57.3
 ALT = 1000 # FEET
 INPUT_VEL = npa([100.0, 1500.0])
 TGT_POS = npa([8000.0, 8000.0])
-TGT_VEL = npa([-400.0, -250.0])
+TGT_VEL = npa([-250.0, -800.0])
 
 # MISSILE CONSTANTS
 REF_DIAM = 1 # FEET
@@ -141,7 +141,8 @@ while TOF <= MAXT:
 	TEMP3 = (XCG - XCP_BODY) / REF_DIAM
 	TEMP4 = (XCG - XCP_NOSE) / REF_DIAM
 	CNTRIM = MASS * COMMAND / (Q * REF_AREA)
-	Y1 = 2 + 8 * WNG_AREA / (BETA * REF_AREA) + 8 * TAIL_AREA / (BETA * REF_AREA)
+	Y1 = 2 + 8 * WNG_AREA / (BETA * REF_AREA) + 8 * TAIL_AREA / \
+		(BETA * REF_AREA)
 	Y2 = 1.5 * PLANFORM_AREA / REF_AREA
 	Y3 = 8 * TAIL_AREA / (BETA * REF_AREA)
 	Y4 = 2 * TEMP4 + 8 * WNG_AREA * TEMP1 / (BETA * REF_AREA) + \
@@ -205,7 +206,7 @@ while TOF <= MAXT:
 
 		# END CHECK
 		if BODY2TGT[0] < 5.0:
-			print(f"{TOF:.0f} {POS} MISS: {BODY2TGT}")
+			print(f"{TOF:.2f} {POS} MISS: {BODY2TGT}")
 			break
 
 		# STATE
@@ -242,6 +243,7 @@ while TOF <= MAXT:
 		E0 = None
 		EDOT0 = None
 
+# plot
 DF = pd.DataFrame(DATA)
 fig = plt.figure()
 startIndex = 0
@@ -276,7 +278,7 @@ trajectory.set_ylim([yMin - 1000, yMax + 1000])
 trajectory.set_zlim([zMin, zMax + 1000])
 trajectory.plot(
 	DF.iloc[startIndex:stopIndex]["X"],
-	np.linspace(0, 0.1, len(DF.iloc[startIndex:stopIndex]["X"])),
+	np.linspace(-0.5, 0.5, len(DF.iloc[startIndex:stopIndex]["X"])),
 	DF.iloc[startIndex:stopIndex]["Y"],
 	color="b"
 )

@@ -3,6 +3,11 @@ from numpy import array as npa
 import numpy.linalg as la
 import unitVector
 
+# Input: numpy arrays of float type and equivalent shape.
+def DISTANCE(a1, a2):
+    squared_dist = np.sum((a1 - a2) ** 2, axis=0)
+    return np.sqrt(squared_dist)
+
 # engagement plane
 # Input: must be numpy arrays, equivalent shapes, and of the float type.
 # Input format: numpy arrays -> [x, y, z, vx, vy, vz] (final states of an interceptor and a threat)

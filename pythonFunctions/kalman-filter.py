@@ -14,6 +14,8 @@ https://github.com/zziz/kalman-filter
 
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib
+matplotlib.use("WebAgg")
 
 class KalmanFilter(object):
 

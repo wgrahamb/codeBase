@@ -36,7 +36,7 @@ class sixDofSim:
           id,
           enuPos,
           enuAttitude,
-          pip
+          tgtPos
      ):
 
           ############################################################################
@@ -87,13 +87,9 @@ class sixDofSim:
           self.timeStep = 1.0 / 125.0 # SECONDS
           self.maxTime = 400 # SECONDS
 
-          # TARGET.
-          # 
-          
           # Input.
           self.id = id
-          self.pip = pip
-          self.tgtPos = pip
+          self.tgtPos = tgtPos
           self.tgtVel = np.zeros(3)
           self.mslPosEnu = enuPos
           mslAz = enuAttitude[2]
@@ -139,7 +135,7 @@ class sixDofSim:
           self.FLUgrav = np.zeros(3) # METERS PER SECOND^2
 
           # SEEKER >>> INITIALIZE BY POINTING THE SEEKER DIRECTLY AT THE TARGET
-          relPosU = unitvector(self.pip - self.mslPosEnu) # ND
+          relPosU = unitvector(self.tgtPos - self.mslPosEnu) # ND
           mslToInterceptU = self.mslFLUtoENU @ relPosU # ND
           mslToInterceptAz, mslToInterceptEl = returnAzAndElevation(mslToInterceptU) # RADIANS
           self.seekerPitch = mslToInterceptEl # RADIANS
@@ -283,9 +279,9 @@ class sixDofSim:
                "posE": self.mslPosEnu[0],
                "posN": self.mslPosEnu[1],
                "posU": self.mslPosEnu[2],
-               "tgtE": self.pip[0],
-               "tgtN": self.pip[1],
-               "tgtU": self.pip[2],
+               "tgtE": self.tgtPos[0],
+               "tgtN": self.tgtPos[1],
+               "tgtU": self.tgtPos[2],
                "normComm": self.normCommand / self.G,
                "normAch": self.mslSpecificForce[2] / self.G,
                "sideComm": self.sideCommand / self.G,
@@ -327,8 +323,6 @@ class sixDofSim:
           self.tgtVel += deltaVel
           deltaPos = self.tgtVel * self.timeStep
           self.tgtPos += deltaPos
-
-          self.pip = self.pip
 
      def atmosphere(self):
 
@@ -389,7 +383,7 @@ class sixDofSim:
           self.seekerPitch = self.wlq # RADIANS
 
           # TRANSFORM.
-          localRelPos = self.pip - self.mslPosEnu # METERS
+          localRelPos = self.tgtPos - self.mslPosEnu # METERS
           seekerAttitudeToLocalTM = \
           ATTITUDE_TO_LOCAL_TM(0, -self.seekerPitch, self.seekerYaw) # ND
           self.seekerLocalOrient = seekerAttitudeToLocalTM @ self.mslFLUtoENU # ND
@@ -927,7 +921,7 @@ if __name__ == "__main__":
           id="msl",
           enuPos=npa([100.0, 100.0, 1.0]),
           enuAttitude=npa([0.0, np.radians(45.0), np.radians(10)]),
-          pip=npa([3000.0, 3000.0, 3000.0])
+          tgtPos=npa([3000.0, 3000.0, 3000.0])
      )
 
      while True:
