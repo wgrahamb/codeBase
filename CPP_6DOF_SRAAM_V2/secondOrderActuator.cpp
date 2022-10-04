@@ -24,7 +24,7 @@ secondOrderActuator::secondOrderActuator(string logFilePath)
 	time = 0.0;
 
 	deflectionLimit = 28.0;
-	deflectionRateLimit = 300;
+	deflectionRateLimit = 250;
 	wn = 120;
 	zeta = 0.7;
 

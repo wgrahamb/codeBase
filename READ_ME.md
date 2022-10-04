@@ -51,7 +51,7 @@ Folder Structure: Add all debug configurations to vscode file.
      runs or multi process applications. Included are scripts to run the model.
 
 
-     CPP_6DOF_SRAAM_V2 - See main for to do list.
+     CPP_6DOF_SRAAM_V2
 
      This is a cleaned version of CPP_6DOF_SRAAM_V1, written to be
      easy to integrate into other environments. It has a different motion
@@ -119,7 +119,7 @@ Folder Structure: Add all debug configurations to vscode file.
      the pitch and yaw characteristics, but have not yet solved the roll.
 
 
-     pythonFunctions - clean zarchan ports
+     pythonFunctions
 
      Includes multiple python functions for modeling. Most of them are
      written by me, but some of it comes from elsewhere.

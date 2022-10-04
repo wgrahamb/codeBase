@@ -23,13 +23,6 @@
 using namespace std;
 auto wallClockStart = chrono::high_resolution_clock::now();
 
-/*
-
-TO DO:
-Integrate into pip selection algorithms from 3DOFS.
-
-*/
-
 /* Missile Model */
 /*
 #
@@ -1955,12 +1948,12 @@ int main()
 	missile.lethality = "FLYING";
 	missile.LAUNCHED = true;
 
-	// Six dof missile flight.
+	// six dof missile flight.
 	Missile missile1 = clone(missile);
 	missile1.INTEGRATION_METHOD = 0;
 	sixDofFly(missile1, "missile1", LogData, ConsoleReport, 400.0);
 
-	// Six dof missile flight.
+	// three dof missile flight.
 	Missile missile2 = clone(missile);
 	threeDofFly(missile2, "missile2", LogData, ConsoleReport, 400.0);
 

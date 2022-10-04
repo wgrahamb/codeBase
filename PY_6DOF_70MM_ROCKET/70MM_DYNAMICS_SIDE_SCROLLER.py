@@ -19,16 +19,23 @@ REF_AREA = np.pi * (REF_DIAM ** 2) / 4
 
 # AERODYNAMIC TABLES.
 # 70 MM ROCKET TABLES.
-MACHS = [0.0, 0.6, 0.9, 1.15, 1.3, 1.6, 2.48, 2.97, 100.0]
+MACHS_1 = [0.0, 0.6, 0.9, 1.15, 1.3, 1.6, 2.48, 2.97, 100.0]
 CMQS = [1060.0, 1060.0, 1460.0, 1385.0, 1193.0, 1069.0, 850.0, 800.0, 800.0]
 CNAS = [8.19, 8.19, 8.94, 9.34, 8.88, 8.14, 7.51, 7.22, 7.22]
 XCPS = [36.822500000000005, 36.575, 38.114999999999995, 39.875, 39.93, \
 	38.0875, 36.8775, 36.739999999999995, 36.739999999999995] # inches from nose
 
+MACHS_2 = [0.0, 0.78, 0.82, 0.9, 0.94, 1.0, 1.03, 1.06, 1.1, 1.15, 1.18, \
+	1.28, 1.34, 1.48, 1.58, 1.71, 1.94, 2.2, 2.4, 2.6, 3.0, 100.0]
+CD_ON = [0.55, 0.55, 0.576, 0.629, 0.65, 0.685, 0.699, 0.71, 0.727, 0.742, \
+	0.747, 0.76, 0.757, 0.753, 0.742, 0.724, 0.681, 0.65, 0.628, 0.612, 0.6, 0.6]
+CD_OFF = [0.7, 0.7, 0.73, 0.809, 0.863, 0.96, 0.977, 0.989, 1.0, 1.008, 1.01, \
+	1.012, 1.005, 0.97, 0.97, 0.94, 0.875, 0.8711, 0.765, 0.73, 0.7, 0.7]
+
 # AERODYNAMICS.
-CMQ = linearInterpolation(0.0, MACHS, CMQS)
-CNA = linearInterpolation(0.0, MACHS, CNAS)
-XCP = linearInterpolation(0.0, MACHS, XCPS)
+CMQ = linearInterpolation(0.0, MACHS_1, CMQS)
+CNA = linearInterpolation(0.0, MACHS_1, CNAS)
+XCP = linearInterpolation(0.0, MACHS_1, XCPS)
 
 # ATMOSPHERE.
 ATM = ATM_IMPERIAL()
@@ -121,10 +128,10 @@ while TOF <= MAXT:
 	A = ATM.a
 	MACH = ATM.mach
 
-	# CN AND CM LOOK UP.
-	CMQ = linearInterpolation(MACH, MACHS, CMQS)
-	CNA = linearInterpolation(MACH, MACHS, CNAS)
-	XCP = linearInterpolation(MACH, MACHS, XCPS)
+	# AERODYNAMICS
+	CMQ = linearInterpolation(MACH, MACHS_1, CMQS)
+	CNA = linearInterpolation(MACH, MACHS_1, CNAS)
+	XCP = linearInterpolation(MACH, MACHS_1, XCPS)
 	CN = CNA * ALPHA
 	CM = CN * (XCG - XCP) / REF_DIAM + \
 		(REF_DIAM / (2 * SPD)) * (CMQ) * RATE

@@ -12,3 +12,12 @@ def unitvector(a):
 def displacementUnitVec(a1, a2):
     rel = a2 - a1
     return unitvector(rel)
+
+def returnUnitVecFromAzAndEl(az, el):
+	return np.array(
+		[
+			np.cos(-el) * np.cos(az),
+			np.cos(-el) * np.sin(az),
+			-np.sin(-el)
+		]
+	)

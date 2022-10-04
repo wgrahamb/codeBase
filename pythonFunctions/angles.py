@@ -1,4 +1,5 @@
 import numpy as np
+from numpy import linalg as la
 
 EPS = 1.000000000000000036e-10
 
@@ -46,3 +47,8 @@ def returnAeroAngles(velB):
 		phiPrime = np.arctan2(velB[1], velB[2])
 
 	return alpha, beta, aoa, phiPrime
+
+def angleBetweenTwo3DVectors(arr1, arr2):
+	return np.arccos(
+		np.dot(arr1, arr2) / (la.norm(arr1) * la.norm(arr2))
+	)
