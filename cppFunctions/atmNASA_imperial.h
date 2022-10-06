@@ -35,14 +35,14 @@ namespace
 namespace atmNASA_imperial
 {
 
-	static inline atmNASA_output update(float altitude, float speed) // ft, ft/s
+	const static inline atmNASA_output update(float altitude, float speed) // ft, ft/s
 	{
 
 		const double RAD = 2.0856e7;
 
 		atmNASA_output ret;
 
-		float alt;
+		float     alt;
 		if        (altitude < 0.0) alt = 0.0;
 		else      alt = altitude;
 
@@ -66,7 +66,7 @@ namespace atmNASA_imperial
 		ret.q = 0.5 * ret.rho * speed * speed;
 		ret.g = 32.2 * pow((RAD / (RAD + alt)), 2);
 		float tK = (ret.tF + 459.7) * (5.0 / 9.0);
-		ret.a = (sqrt(tK * 1.4 * 286)) * 3.28084;
+		ret.a = sqrt(tK * 1.4 * 286) * 3.28084;
 		ret.mach = speed / ret.a;
 
 		return ret;

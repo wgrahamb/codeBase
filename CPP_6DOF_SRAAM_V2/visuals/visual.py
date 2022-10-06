@@ -26,12 +26,18 @@ trajectory.set_xlabel("East")
 trajectory.set_ylabel("North")
 trajectory.set_zlabel("Up")
 if scale:
-	xMin = min(list(df.iloc[startIndex:stopIndex]["posE"]) + list(df.iloc[startIndex:stopIndex]["tgtE"]))
-	xMax = max(list(df.iloc[startIndex:stopIndex]["posE"]) + list(df.iloc[startIndex:stopIndex]["tgtE"]))
-	yMin = min(list(df.iloc[startIndex:stopIndex]["posN"]) + list(df.iloc[startIndex:stopIndex]["tgtN"]))
-	yMax = max(list(df.iloc[startIndex:stopIndex]["posN"]) + list(df.iloc[startIndex:stopIndex]["tgtN"]))
-	zMin = min(list(df.iloc[startIndex:stopIndex]["posU"]) + list(df.iloc[startIndex:stopIndex]["tgtU"]))
-	zMax = max(list(df.iloc[startIndex:stopIndex]["posU"]) + list(df.iloc[startIndex:stopIndex]["tgtU"]))
+	xMin = min(list(df.iloc[startIndex:stopIndex]["posE"]) + \
+		list(df.iloc[startIndex:stopIndex]["tgtE"]))
+	xMax = max(list(df.iloc[startIndex:stopIndex]["posE"]) + \
+		list(df.iloc[startIndex:stopIndex]["tgtE"]))
+	yMin = min(list(df.iloc[startIndex:stopIndex]["posN"]) + \
+		list(df.iloc[startIndex:stopIndex]["tgtN"]))
+	yMax = max(list(df.iloc[startIndex:stopIndex]["posN"]) + \
+		list(df.iloc[startIndex:stopIndex]["tgtN"]))
+	zMin = min(list(df.iloc[startIndex:stopIndex]["posU"]) + \
+		list(df.iloc[startIndex:stopIndex]["tgtU"]))
+	zMax = max(list(df.iloc[startIndex:stopIndex]["posU"]) + \
+		list(df.iloc[startIndex:stopIndex]["tgtU"]))
 	trajectory.set_box_aspect(
 		(
 			np.ptp([xMin - 1000, xMax + 1000]), 
@@ -42,7 +48,9 @@ if scale:
 	trajectory.set_xlim([xMin - 1000, xMax + 1000])
 	trajectory.set_ylim([yMin - 1000, yMax + 1000])
 	trajectory.set_zlim([zMin, zMax + 1000])
-trajectory.plot(df.iloc[startIndex:stopIndex]["posE"], df.iloc[startIndex:stopIndex]["posN"], df.iloc[startIndex:stopIndex]["posU"], color="b")
+trajectory.plot(df.iloc[startIndex:stopIndex]["posE"], \
+	df.iloc[startIndex:stopIndex]["posN"], \
+		df.iloc[startIndex:stopIndex]["posU"], color="b")
 if scale:
 	trajectory.scatter(df.iloc[stopIndex]["tgtE"], df.iloc[stopIndex]["tgtN"], df.iloc[stopIndex]["tgtU"], color="r")
 
