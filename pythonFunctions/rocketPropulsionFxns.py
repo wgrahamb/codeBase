@@ -776,7 +776,7 @@ if __name__ == "__main__":
 	SP04A1() # has plot
 
 	### SP04-B ###
-	SP04_B() # has plot
+	# SP04_B() # has plot
 
 
 

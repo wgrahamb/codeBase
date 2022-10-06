@@ -94,6 +94,7 @@ def populateState():
 # lf.writeHeader(STATE, LOGFILE)
 # lf.writeData(STATE, LOGFILE)
 
+LASTT = None
 while TOF <= MAXT:
 
 	# ATMOSPHERE.
@@ -145,3 +146,7 @@ while TOF <= MAXT:
 	# # DATA.
 	# STATE = populateState()
 	# lf.writeData(STATE, LOGFILE)
+
+	# REPORT.
+	if round(TOF, 3).is_integer() and LASTT != TOF:
+		print(f"{TOF:.0f} POS {POS}")

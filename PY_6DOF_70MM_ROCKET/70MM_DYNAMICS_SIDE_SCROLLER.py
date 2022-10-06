@@ -6,16 +6,23 @@ import utility.loggingFxns as lf
 import utility.coordinateTransformations as ct
 from utility.ATM_IMPERIAL import ATM_IMPERIAL
 from utility.interpolationGivenTwoVectors import linearInterpolation
+import matplotlib.pyplot as plt
+import pandas as pd
+import data.matPlotLibColors as mc
+import matplotlib
+matplotlib.use('WebAgg')
 np.set_printoptions(precision=2, suppress=True)
 
 # INPUTS.
-ALT = 10000 # FEET
-SPD = 300 # FEET PER SEC
+ALT = 1000 # FEET
+SPD = 10 # FEET PER SEC
+EL = 45.0 # DEG
 
 # MISSILE CONSTANTS.
 REF_DIAM = 0.23 # FEET
 REF_LNGTH = 4.59 # FEET
-REF_AREA = np.pi * (REF_DIAM ** 2) / 4
+REF_AREA = np.pi * (REF_DIAM ** 2) / 4 # ft^2
+BURNOUT = 1.112 # seconds
 
 # AERODYNAMIC TABLES.
 # 70 MM ROCKET TABLES.
@@ -35,7 +42,8 @@ CD_OFF = [0.7, 0.7, 0.73, 0.809, 0.863, 0.96, 0.977, 0.989, 1.0, 1.008, 1.01, \
 # AERODYNAMICS.
 CMQ = linearInterpolation(0.0, MACHS_1, CMQS)
 CNA = linearInterpolation(0.0, MACHS_1, CNAS)
-XCP = linearInterpolation(0.0, MACHS_1, XCPS)
+XCP = linearInterpolation(0.0, MACHS_1, XCPS) / 12.0
+CD = linearInterpolation(0.0, MACHS_2, CD_ON)
 
 # ATMOSPHERE.
 ATM = ATM_IMPERIAL()
@@ -64,6 +72,9 @@ XCG = REF_LNGTH - (linearInterpolation(0.0, T1S, XCGS) / 12.0) # FT
 MASS = linearInterpolation(0.0, T1S, WEIGHTS) # LBM
 TMOI = (linearInterpolation(0.0, T1S, TMOIS)) / (144.0 * 32.2) # LBF - FT - S^2
 
+# ATTITUDE.
+LOCAL_TO_BODY_TM = ct.BODY_TO_RANGE_AND_ALTITUDE(-1.0 * np.radians(EL))
+
 # DERIVATIVES.
 SPECIFIC_FORCE = np.zeros(2)
 ACC = np.zeros(2)
@@ -73,8 +84,8 @@ WDOT = 0.0
 
 # STATE.
 POS = npa([0.0, ALT])
-VEL = npa([SPD, 0.0])
-THT = 0.0
+VEL = npa([SPD, 0.0]) @ LOCAL_TO_BODY_TM
+THT = np.radians(EL)
 RATE = 0.0
 ALPHA = 0.0
 
@@ -88,7 +99,7 @@ ALPHA0 = None
 # SIM CONTROL.
 TOF = 0.0
 DT = 1.0 / 1000.0
-MAXT = 10
+MAXT = 100
 
 # DATA
 def populateState():
@@ -113,8 +124,11 @@ lf.writeData(STATE, LOGFILE)
 LASTT = 0.0
 while TOF <= MAXT:
 
+	# ATTITUDE.
+	LOCAL_TO_BODY_TM = ct.BODY_TO_RANGE_AND_ALTITUDE(-1.0 * THT)
+
 	# MASS AND MOTOR. (NO MOTOR FOR NOW.)
-	THRUST = linearInterpolation(0.0, T2S, THRUSTS) # LBF
+	THRUST = linearInterpolation(TOF, T2S, THRUSTS) # LBF
 	XCG = REF_LNGTH - (linearInterpolation(TOF, T1S, XCGS) / 12.0) # FT
 	MASS = linearInterpolation(TOF, T1S, WEIGHTS) # LBM
 	TMOI = (linearInterpolation(TOF, T1S, TMOIS)) / (144.0 * 32.2) # LBF - FT - S^2
@@ -131,22 +145,40 @@ while TOF <= MAXT:
 	# AERODYNAMICS
 	CMQ = linearInterpolation(MACH, MACHS_1, CMQS)
 	CNA = linearInterpolation(MACH, MACHS_1, CNAS)
-	XCP = linearInterpolation(MACH, MACHS_1, XCPS)
+	XCP = linearInterpolation(MACH, MACHS_1, XCPS) / 12.0
 	CN = CNA * ALPHA
+
+	# I divided the damping by two to enable the missile
+	# to fly ballistically. I'm hoping that by adding
+	# the rolling moment it will have a similar affect.
 	CM = CN * (XCG - XCP) / REF_DIAM + \
-		(REF_DIAM / (2 * SPD)) * (CMQ) * RATE
+		(REF_DIAM / (2 * SPD)) * (CMQ / 2) * RATE 
+
+	CD = None
+	if TOF < BURNOUT:
+		CD = linearInterpolation(MACH, MACHS_2, CD_ON)
+	else:
+		CD = linearInterpolation(MACH, MACHS_2, CD_OFF)
+	DRAG_FORCE = CD * REF_AREA * Q # Newtons.
+	WIND_TO_BODY = ct.BODY_TO_RANGE_AND_ALTITUDE(ALPHA)
+	WIND_DRAG_FORCE = npa([-DRAG_FORCE, 0.0])
+	BODY_DRAG = ((WIND_TO_BODY @ WIND_DRAG_FORCE) / MASS) * 32.2
 
 	# DERIVATIVES.
 	ADOT = RATE - (SPECIFIC_FORCE[1] / SPD) # RADS PER S
 	QDOT = (Q * REF_AREA * REF_DIAM * CM) / TMOI # RADS PER S^2
 	WDOT = ((Q * REF_AREA * CN) * (G / MASS)) # FT PER S^2
 
-	SPECIFIC_FORCE = npa([0.0, WDOT])
+	ACC_THRUST = (THRUST / MASS) * 32.2
+	SPECIFIC_FORCE = npa([ACC_THRUST, WDOT])
 	LOCALG = npa([0.0, -1.0 * G])
-	LOCAL_TO_BODY_TM = ct.BODY_TO_RANGE_AND_ALTITUDE(-1.0 * THT)
 	BODYG = LOCAL_TO_BODY_TM @ LOCALG
 	SPECIFIC_FORCE += BODYG
+	SPECIFIC_FORCE += BODY_DRAG
 	ACC = (SPECIFIC_FORCE @ LOCAL_TO_BODY_TM)
+
+	if TOF > 1.0:
+		pause = None
 
 	# STATE.
 	if INT_PASS == 0:
@@ -157,8 +189,16 @@ while TOF <= MAXT:
 
 		# REPORT.
 		if round(TOF, 3).is_integer() and LASTT <= TOF:
-			print(f"{TOF:.0f} POS {POS}")
+			print(f"{TOF:.0f} POS {POS} MACH {MACH}")
 			LASTT = TOF
+
+		# END CHECK.
+		if POS[1] < 0.0:
+			print("GROUND")
+			break
+		if np.isnan(POS[1]):
+			print("NAN")
+			break
 
 		INT_PASS += 1
 		TOF += (DT / 2.0)
@@ -192,8 +232,45 @@ while TOF <= MAXT:
 		RATE0 = None
 		ALPHA0 = None
 
+# REPORT.
+if round(TOF, 3).is_integer() and LASTT <= TOF:
+	print(f"{TOF:.0f} POS {POS}")
+	LASTT = TOF
 
+f = open("PY_6DOF_70MM_ROCKET/data/log.txt", "r")
+df = pd.read_csv(f, delim_whitespace=True)
 
+fig = plt.figure()
+
+startIndex = 0
+stopIndex = -1
+
+colors = mc.matPlotLibColors()
+
+ax1 = fig.add_subplot(221)
+ax1.plot(df.iloc[startIndex:stopIndex]["RNG"], df.iloc[startIndex:stopIndex]["ALT"], \
+	color=colors.pop(0))
+ax1.set_title("TRAJECTORY, FEET")
+
+ax2 = fig.add_subplot(222)
+ax2.plot(df.iloc[startIndex:stopIndex]["TOF"], df.iloc[startIndex:stopIndex]["RATE"], \
+	color=colors.pop(0))
+ax2.set_xlabel("TOF")
+ax2.set_ylabel("RATE, RADS PER SEC")
+
+ax3 = fig.add_subplot(223)
+ax3.plot(df.iloc[startIndex:stopIndex]["TOF"], df.iloc[startIndex:stopIndex]["ALPHA"], \
+	color=colors.pop(0))
+ax3.set_xlabel("TOF")
+ax3.set_ylabel("ALPHA, RADS")
+
+ax4 = fig.add_subplot(224)
+ax4.plot(df.iloc[startIndex:stopIndex]["TOF"], df.iloc[startIndex:stopIndex]["WDOT"], \
+	color=colors.pop(0))
+ax4.set_xlabel("TOF")
+ax4.set_ylabel("WDOT, FT PER S^2")
+
+plt.show()
 
 
 

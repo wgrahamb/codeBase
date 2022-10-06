@@ -37,7 +37,7 @@ namespace
 namespace atm1976_metric
 {
 
-	static inline atm1976_output update(float altitude, float speed) // m, m/s
+	const static inline atm1976_output update(float altitude, float speed) // m, m/s
 	{
 
 		const float R = 287.053; // air constant
