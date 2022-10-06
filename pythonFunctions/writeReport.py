@@ -1,15 +1,38 @@
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 import pandas as pd
-import os
+import numpy as np
+import math
+import warnings
 
-def compareTwoFiles(reportPath, f1, f2, key):
+# to ignore runtime warnings about dividing
+# by zero. handled by the fxn.
+warnings.filterwarnings("ignore") 
 
-	print(reportPath)
+def compareTwoFiles(reportRelPath, refFileRelPath, newFileRelPath, xAxisKey):
 
-	pdfFile = PdfPages(reportPath)
+	# Console report.
+	print(reportRelPath)
+
+	# Open pdf to write to.
+	pdfFile = PdfPages(reportRelPath)
+
+	# Create matplotlib fig.
 	fig = plt.figure(figsize=(20,20))
 
+	# Fxn to calculate percent difference.
+	def percentDiff(a, b):
+		ret = None
+		t1 = np.abs(a - b)
+		t2 = (a + b) / 2.0
+		ret = (t1 / t2) * 100.0
+		# results from dividing by zero,
+		# and if dividing by zero, the diff iz zero
+		if math.isnan(ret) or math.isinf(ret): 
+			ret = 0.0
+		return ret
+
+	# Fxn to plot two lines on one subplot.
 	def plotAndWrite(xs, ys, labels, header):
 		ax = fig.add_subplot(111)
 		colors = ["r", "b", "g", "cyan"]
@@ -22,13 +45,27 @@ def compareTwoFiles(reportPath, f1, f2, key):
 		pdfFile.savefig(fig)
 		plt.clf()
 
+	# Fxn to calculate diffs between two y sets and plot histogram of diffs.
+	def plotHistAndWrite(ys, header):
+		diffs = []
+		for index, y in enumerate(ys[0]):
+			x = percentDiff(y, ys[1][index])
+			diffs.append(x)
+		ax = fig.add_subplot(111)
+		ax.hist(diffs, bins=5, color="b")
+		plt.title(f"{header} percent diffs histogram")
+		pdfFile.savefig(fig)
+		plt.clf()
+
+	# Read in input comparison files to data frames
 	dfs = []
-	files = [f1, f2]
+	files = [refFileRelPath, newFileRelPath]
 	for f in files:
 		df = pd.read_csv(open(r"{}".format(f)), delimiter= " ")
 		df.name = f
 		dfs.append(df)
 
+	# Get a list of the headers for the two files (should be identical)
 	headers = []
 	for dfIndex, df in enumerate(dfs):
 		if dfIndex == 0:
@@ -36,27 +73,31 @@ def compareTwoFiles(reportPath, f1, f2, key):
 				headers.append(header)
 			break
 
+	# Write report.
 	startIndex = 0
 	stopIndex = -1
-	for index, header in enumerate(headers):
-		print(index, header)
+	for headerIndex, header in enumerate(headers):
 		listOfStrings = header.split()
 		doIt = True
 		for index, string in enumerate(listOfStrings):
-			if string == "Unnamed:":
+			if string == "Unnamed:": # normally only at the end of the header
 				doIt = False
-				break
+				break # normally only at the end of the header
 		if doIt == True:
+			print(headerIndex, header)
 			xs = []
 			ys = []
 			labels = []
 			for dfIndex, df in enumerate(dfs):
-				xs.append(list(df.iloc[startIndex:stopIndex][f"{key}"]))
+				xs.append(list(df.iloc[startIndex:stopIndex][f"{xAxisKey}"]))
 				ys.append(list(df.iloc[startIndex:stopIndex][f"{header}"]))
 				labels.append(df.name)
 			plotAndWrite(xs, ys, labels, header)
+			plotHistAndWrite(ys, header)
+		# break
 	print("\n")
 
+	# Close pdf.
 	pdfFile.close()
 
 if __name__ == "__main__":
