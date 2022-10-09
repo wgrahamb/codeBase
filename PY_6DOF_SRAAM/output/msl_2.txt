@@ -1,2 +1,0 @@
-tof posE posN posU tgtE tgtN tgtU normComm normAch sideComm sideAch p q r phi alpha beta fin1c fin2c fin3c fin4c fin1d fin2d fin3d fin4d
-0.0 100.0 100.0 1.0 10000.0 10000.0 10000.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0

@@ -1,25 +1,27 @@
 import numpy as np
-import copy
 from numpy import array as npa
 from numpy import linalg as la
+import matplotlib
+import matplotlib.pyplot as plt
+import pandas as pd
+import copy
+
 import utility.loggingFxns as lf
 import utility.coordinateTransformations as ct
 from utility.ATM_IMPERIAL import ATM_IMPERIAL
 from utility.interpolationGivenTwoVectors import linearInterpolation
-import matplotlib.pyplot as plt
-import pandas as pd
 import data.matPlotLibColors as mc
-import matplotlib
+
 matplotlib.use('WebAgg')
 np.set_printoptions(precision=2, suppress=True)
 
 # INPUTS.
 ALT = 10000 # FEET
-SPD = 1 # FEET PER SEC
+SPD = 300 # FEET PER SEC
 EL = 1.0 # DEG
 AZ = 0.0 # DEG
 MAXT = 100 # SECONDS
-DT = 1.0 / 300.0 # SECONDS
+DT = 1.0 / 600.0 # SECONDS
 
 # MISSILE CONSTANTS.
 REF_DIAM = 0.23 # FEET
@@ -29,22 +31,24 @@ BURNOUT = 1.112 # SECONDS
 
 # AERODYNAMIC TABLES.
 MACHS_1 = [0.0, 0.6, 0.9, 1.15, 1.3, 1.6, 2.48, 2.97, 100.0] # ND
-CMQS = [1060.0, 1060.0, 1460.0, 1385.0, 1193.0, 1069.0, 850.0, 800.0, 800.0] # PER RAD
+CMQS = [1060.0, 1060.0, 1460.0, 1385.0,
+	1193.0, 1069.0, 850.0, 800.0, 800.0] # PER RAD
 CNAS = [8.19, 8.19, 8.94, 9.34, 8.88, 8.14, 7.51, 7.22, 7.22] # PER RAD
-XCPS = [36.822500000000005, 36.575, 38.114999999999995, 39.875, 39.93, \
+XCPS = [36.822500000000005, 36.575, 38.114999999999995, 39.875, 39.93,
 	38.0875, 36.8775, 36.739999999999995, 36.739999999999995] # INCHES FROM NOSE
 
-MACHS_2 = [0.0, 0.78, 0.82, 0.9, 0.94, 1.0, 1.03, 1.06, 1.1, 1.15, 1.18, \
+MACHS_2 = [0.0, 0.78, 0.82, 0.9, 0.94, 1.0, 1.03, 1.06, 1.1, 1.15, 1.18,
 	1.28, 1.34, 1.48, 1.58, 1.71, 1.94, 2.2, 2.4, 2.6, 3.0, 100.0] # ND
-CD_ON = [0.55, 0.55, 0.576, 0.629, 0.65, 0.685, 0.699, 0.71, 0.727, 0.742, \
-	0.747, 0.76, 0.757, 0.753, 0.742, 0.724, 0.681, 0.65, 0.628, 0.612, 0.6, 0.6] # ND
-CD_OFF = [0.7, 0.7, 0.73, 0.809, 0.863, 0.96, 0.977, 0.989, 1.0, 1.008, 1.01, \
+CD_ON = [0.55, 0.55, 0.576, 0.629, 0.65, 0.685, 0.699, 0.71, 0.727, 0.742,
+	0.747, 0.76, 0.757, 0.753, 0.742, 0.724,
+	0.681, 0.65, 0.628, 0.612, 0.6, 0.6] # ND
+CD_OFF = [0.7, 0.7, 0.73, 0.809, 0.863, 0.96, 0.977, 0.989, 1.0, 1.008, 1.01,
 	1.012, 1.005, 0.97, 0.97, 0.94, 0.875, 0.8711, 0.765, 0.73, 0.7, 0.7] # ND
 
 MACHS_3 = [0.0, 0.6, 0.9, 1.0, 1.1, 1.15, 1.3, 1.6, 1.9, 2.2, 2.5, 3.0] # ND
-CLS = [-0.12, -0.12, -0.12, -0.1, -0.08, -0.07, -0.02, -0.04, \
+CLS = [-0.12, -0.12, -0.12, -0.1, -0.08, -0.07, -0.02, -0.04,
 	-0.05, -0.06, -0.06, -0.07] # ND
-CLPS = [-5.60, -6.10, -6.40, -6.90, -7.80, -8.05, -8.15, \
+CLPS = [-5.60, -6.10, -6.40, -6.90, -7.80, -8.05, -8.15,
 	-8, -7.60, -7.10, -6.70, -6] # PER RAD
 
 # AERODYNAMICS.
@@ -71,14 +75,14 @@ TMOIS = [6248.0, 5008.0, 5008.0] # LBM - IN^2
 AMOIS = [26.2, 19.7, 19.7] # LBM - IN^2
 WEIGHTS = [22.95, 15.73, 15.73] # LBM
 
-T2S = [0.0, 0.012, 0.037, 0.062, 0.187, 0.412, 0.437, 0.462, 0.487, 0.512, 0.537, \
-	0.562, 0.862, 0.887, 0.912, 0.937, 0.962, \
+T2S = [0.0, 0.012, 0.037, 0.062, 0.187, 0.412, 0.437, 0.462, 0.487, 0.512, 0.537,
+	0.562, 0.862, 0.887, 0.912, 0.937, 0.962,
 	0.987, 1.037, 1.062, 1.087, 1.112, 1.113, 100.0] # SECONDS
-THRUSTS = [0.0, 1304.3, 1400.0, 1439.1, 1245.7, 1109.0, 1267.2, 1276.9, 1451.8, \
-	1457.7, 1267.2, 1234.0, 1522.2, 1485.0, 1611.1, \
+THRUSTS = [0.0, 1304.3, 1400.0, 1439.1, 1245.7, 1109.0, 1267.2, 1276.9, 1451.8,
+	1457.7, 1267.2, 1234.0, 1522.2, 1485.0, 1611.1,
 	1654.1, 1780.1, 1792.8, 1463.5, 1070.8, 491.4, 146.6, 0.0, 0.0] # LBF
-TORQUES = [0.0, 39.1, 42.0, 43.2, 37.4, 35.7, 38.0, 38.3, 43.6, 43.7, \
-	38.0, 37.0, 45.7, 44.6, 48.3, 49.6, 53.4, 53.8, \
+TORQUES = [0.0, 39.1, 42.0, 43.2, 37.4, 35.7, 38.0, 38.3, 43.6, 43.7,
+	38.0, 37.0, 45.7, 44.6, 48.3, 49.6, 53.4, 53.8,
 	43.9, 32.1, 14.3, 4.4, 0.0, 0.0] # LBF - IN
 
 XCG = REF_LNGTH - (linearInterpolation(0.0, T1S, XCGS) / 12.0) # FT
@@ -89,7 +93,8 @@ THRUST = linearInterpolation(0.0, T2S, THRUSTS) # LBF
 TORQUE = linearInterpolation(0.0, T2S, TORQUES) / 12.0 # LBF - FT
 
 # ATTITUDE.
-ENU2FLU = ct.ORIENTATION_TO_LOCAL_TM(0.0, -1.0 * np.radians(EL), np.radians(AZ)) # ND
+ENU2FLU = ct.ORIENTATION_TO_LOCAL_TM(0.0, \
+	-1.0 * np.radians(EL), np.radians(AZ)) # ND
 
 # DERIVATIVES.
 SPECIFIC_FORCE = np.zeros(3) # FT PER S^2
@@ -175,7 +180,8 @@ while True:
 	TORQUE = linearInterpolation(TOF, T2S, TORQUES) / 12.0 # LBF - FT
 
 	ACC_THRUST = (THRUST / MASS) * 32.2 # FT PER S^2
-	ANGACC_TORQUE = (2 * TORQUE / (MASS * (REF_DIAM / 2) * (REF_DIAM / 2))) * 32.2 # RADS PER S^2
+	ANGACC_TORQUE = (2 * TORQUE / (MASS * (REF_DIAM / 2) * \
+		(REF_DIAM / 2))) * 32.2 # RADS PER S^2
 
 	# ATMOSPHERE.
 	SPD = la.norm(VEL)
@@ -224,9 +230,11 @@ while True:
 	SPECIFIC_FORCE += BODY_GRAV # ADD GRAVITY
 	SPECIFIC_FORCE += BODY_DRAG # ADD DRAG
 	ACC = (SPECIFIC_FORCE @ ENU2FLU) # FT PER S^2
-	PHIDOT = ROLLRATE + (PITCHRATE * np.sin(PHI) + YAWRATE * np.cos(PHI)) * np.tan(THT) # RADS PER SEC
+	PHIDOT = ROLLRATE + (PITCHRATE * np.sin(PHI) + YAWRATE * np.cos(PHI))\
+		 * np.tan(THT) # RADS PER SEC
 	THTDOT = PITCHRATE * np.cos(PHI) - YAWRATE * np.sin(PHI) # RADS PER SEC
-	PSIDOT = (PITCHRATE * np.sin(PHI) + YAWRATE * np.cos(PHI)) / np.cos(THT) # RADS PER SEC
+	PSIDOT = (PITCHRATE * np.sin(PHI) + YAWRATE * np.cos(PHI)) \
+		/ np.cos(THT) # RADS PER SEC
 	PDOT = ((Q * REF_AREA * REF_DIAM * CLL) / AMOI) + ANGACC_TORQUE # RADS PER S^2
 	QDOT = (Q * REF_AREA * REF_DIAM * CM) / TMOI # RADS PER S^2
 	RDOT = (Q * REF_AREA * REF_DIAM * CN) / TMOI # RADS PER S^2

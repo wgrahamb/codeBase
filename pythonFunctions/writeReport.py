@@ -103,3 +103,24 @@ def compareTwoFiles(reportRelPath, refFileRelPath, newFileRelPath, xAxisKey):
 if __name__ == "__main__":
 
 	print("WRITING REPORTS")
+
+	compareTwoFiles(
+		reportRelPath="PY_6DOF_70MM_ROCKET/report.pdf",
+		refFileRelPath="PY_6DOF_70MM_ROCKET/data/log.txt",
+		newFileRelPath="PY_6DOF_70MM_ROCKET/data/log.txt",
+		xAxisKey="TOF"
+	)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
