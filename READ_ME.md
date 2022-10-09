@@ -11,7 +11,14 @@ Start with numpy, pandas, and matplotlib.
 - All CPP projects are configured by CMAKE and require a compiler.
 Build scripts written in python are included.
 
-Folder Structure: Add all debug configurations to vscode file.
+To Do:
+- Add all cpp debug configurations to vscode config file.
+- Convert the rest of the CADAC sims to cmake projects.
+- CPP_6DOF_SAM, work in progress.
+- PY_5DOF_MOCK_HELLFIRE, work in progress.
+- PY_6DOF_70MM_ROCKET, work in progress.
+
+Folder Structure:
 
      3DOFS
 
@@ -21,7 +28,7 @@ Folder Structure: Add all debug configurations to vscode file.
      prototype test beds.
 
 
-     CADAC_SIMULATIONS - Convert to CMake projects.
+     CADAC_SIMULATIONS
 
      REF: Modeling and Simulation of Aerospace Vehicle Dynamics,
      Second Edition, Peter H. Zipfel.
@@ -31,7 +38,7 @@ Folder Structure: Add all debug configurations to vscode file.
      help students such as myself, learn the complexities of modeling.
 
 
-     CPP_6DOF_SAM - In development.
+     CPP_6DOF_SAM
 
      This will be a partial port from CADAC_SIMULATIONS ADS6. This is
      a surface-to-air missile. It will start as a Dynamics engine, to
@@ -84,7 +91,7 @@ Folder Structure: Add all debug configurations to vscode file.
      Air-to-Air Missile. 
 
 
-     PY_5DOF_MOCK_HELLFIRE - In development.
+     PY_5DOF_MOCK_HELLFIRE
 
      REF: Tactical And Strategic Missile Guidance, Third Edition, Paul Zarchan.
 
@@ -107,7 +114,7 @@ Folder Structure: Add all debug configurations to vscode file.
      very easy to integrate into other environments.
 
 
-     PY_6DOF_70MM_ROCKET - In development.
+     PY_6DOF_70MM_ROCKET
 
      I found this paper early in my career. It was released by the
      Government for public use. It gives enough data of a 70MM HYDRA rocket
@@ -115,8 +122,7 @@ Folder Structure: Add all debug configurations to vscode file.
      It is a challenging model for a couple of reasons. First, the rocket
      is not ballistically stable and suffers wobble at the end of its flight.
      Second, the rocket motor and fins provide a rolling moment that changes
-     characteristics, depending on the speed of the rocket. I've figured out
-     the pitch and yaw characteristics, but have not yet solved the roll.
+     characteristics, depending on the speed of the rocket.
 
 
      pythonFunctions

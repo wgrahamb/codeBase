@@ -14,10 +14,9 @@ matplotlib.use('WebAgg')
 np.set_printoptions(precision=2, suppress=True)
 
 # INPUTS.
-ALT = 10 # FEET
+ALT = 1000 # FEET
 SPD = 10 # FEET PER SEC
 EL = 45.0 # DEG
-AZ = 0.0 # DEG
 
 # MISSILE CONSTANTS.
 REF_DIAM = 0.23 # FEET
@@ -68,46 +67,38 @@ THRUSTS = [0.0, 1304.3, 1400.0, 1439.1, 1245.7, 1109.0, 1267.2, 1276.9, 1451.8, 
 	1654.1, 1780.1, 1792.8, 1463.5, 1070.8, 491.4, 146.6, 0.0, 0.0]
 
 THRUST = linearInterpolation(0.0, T2S, THRUSTS)
+
 XCG = REF_LNGTH - (linearInterpolation(0.0, T1S, XCGS) / 12.0) # FT
 MASS = linearInterpolation(0.0, T1S, WEIGHTS) # LBM
 TMOI = (linearInterpolation(0.0, T1S, TMOIS)) / (144.0 * 32.2) # LBF - FT - S^2
 
 # ATTITUDE.
-ENU2FLU = ct.ORIENTATION_TO_LOCAL_TM(0.0, -1.0 * np.radians(EL), np.radians(AZ))
+LOCAL_TO_BODY_TM = ct.BODY_TO_RANGE_AND_ALTITUDE(-1.0 * np.radians(EL))
 
 # DERIVATIVES.
-SPECIFIC_FORCE = np.zeros(3) # feet/s^2
-ACC = np.zeros(3) # feet/s^2
-THTDOT = 0.0 # rads/s
-PSIDOT = 0.0 # rads/s
-QDOT = 0.0 # rads/s^2
-RDOT = 0.0 # rads/s^2
-ADOT = 0.0 # alpha dot, rads/s
-BDOT = 0.0 # beta dot, rads/s
+SPECIFIC_FORCE = np.zeros(2)
+ACC = np.zeros(2)
+ADOT = 0.0
+QDOT = 0.0
+WDOT = 0.0
 
 # STATE.
-POS = npa([0.0, 0.0, ALT]) # feet
-VEL = npa([SPD, 0.0, 0.0]) @ ENU2FLU # ft/s
-THT = np.radians(EL) # rads
-PSI = np.radians(AZ) # rads
-PITCHRATE = 0.0 # rads/s
-YAWRATE = 0.0 # rads/s
-ALPHA = 0.0 # radians
-BETA = 0.0 # radians
+POS = npa([0.0, ALT])
+VEL = npa([SPD, 0.0]) @ LOCAL_TO_BODY_TM
+THT = np.radians(EL)
+RATE = 0.0
+ALPHA = 0.0
 
 INT_PASS = 0
 POS0 = None
 VEL0 = None
 THT0 = None
-PSI0 = None
-PITCHRATE0 = None
-YAWRATE0 = None
+RATE0 = None
 ALPHA0 = None
-BETA0 = None
 
 # SIM CONTROL.
 TOF = 0.0
-DT = 1.0 / 600.0
+DT = 1.0 / 1000.0
 MAXT = 100
 
 # DATA
@@ -115,34 +106,26 @@ def populateState():
 	STATE = {
 		"TOF": TOF,
 		"RNG": POS[0],
-		"CROSSRNG": POS[1],
-		"ALT": POS[2],
+		"ALT": POS[1],
 		"THETA": THT,
-		"PSI": PSI,
-		"PITCHRATE": PITCHRATE,
-		"YAWRATE": YAWRATE,
+		"RATE": RATE,
 		"ALPHA": ALPHA,
-		"BETA": BETA,
 		"ALPHADOT": ADOT,
-		"BETADOT": BDOT,
-		"QDOT": QDOT,
-		"RDOT": RDOT,
-		"UDOT": SPECIFIC_FORCE[0],
-		"VDOT": SPECIFIC_FORCE[1],
-		"WDOT": SPECIFIC_FORCE[2]
+		"RATEDOT": QDOT,
+		"WDOT": WDOT
 	}
 	return STATE
 
 STATE = populateState()
-LOGFILE = open("PY_6DOF_70MM_ROCKET/data/log.txt", "w")
+LOGFILE = open("3DOFS/PY_3DOF_70MM_ROCKET_SIDE_SCROLLER/data/log.txt", "w")
 lf.writeHeader(STATE, LOGFILE)
 lf.writeData(STATE, LOGFILE)
 
 LASTT = 0.0
-while True:
+while TOF <= MAXT:
 
 	# ATTITUDE.
-	ENU2FLU = ct.ORIENTATION_TO_LOCAL_TM(0.0, -1.0 * THT, PSI)
+	LOCAL_TO_BODY_TM = ct.BODY_TO_RANGE_AND_ALTITUDE(-1.0 * THT)
 
 	# MASS AND MOTOR. (NO MOTOR FOR NOW.)
 	THRUST = linearInterpolation(TOF, T2S, THRUSTS) # LBF
@@ -152,7 +135,7 @@ while True:
 
 	# ATMOSPHERE.
 	SPD = la.norm(VEL)
-	ATM.update(POS[2], SPD)
+	ATM.update(POS[1], SPD)
 	RHO = ATM.rho
 	G = ATM.g
 	Q = ATM.q
@@ -163,12 +146,13 @@ while True:
 	CMQ = linearInterpolation(MACH, MACHS_1, CMQS)
 	CNA = linearInterpolation(MACH, MACHS_1, CNAS)
 	XCP = linearInterpolation(MACH, MACHS_1, XCPS) / 12.0
-	CZ = CNA * ALPHA
-	CM = CZ * (XCG - XCP) / REF_DIAM + \
-		(REF_DIAM / (2 * SPD)) * (CMQ / 2) * PITCHRATE # divided CMQ by 2.0
-	CY = CNA * BETA
-	CN = CY * (XCG - XCP) / REF_DIAM + \
-		(REF_DIAM / (2 * SPD)) * (CMQ / 2) * YAWRATE
+	CN = CNA * ALPHA
+
+	# I divided the damping by two to enable the missile
+	# to fly ballistically. I'm hoping that by adding
+	# the rolling moment it will have a similar affect.
+	CM = CN * (XCG - XCP) / REF_DIAM + \
+		(REF_DIAM / (2 * SPD)) * (CMQ / 2) * RATE 
 
 	CD = None
 	if TOF < BURNOUT:
@@ -176,27 +160,22 @@ while True:
 	else:
 		CD = linearInterpolation(MACH, MACHS_2, CD_OFF)
 	DRAG_FORCE = CD * REF_AREA * Q # Newtons.
-	WIND_TO_BODY = ct.FLIGHTPATH_TO_LOCAL_TM(BETA, ALPHA)
-	WIND_DRAG_FORCE = npa([-DRAG_FORCE, 0.0, 0.0])
+	WIND_TO_BODY = ct.BODY_TO_RANGE_AND_ALTITUDE(ALPHA)
+	WIND_DRAG_FORCE = npa([-DRAG_FORCE, 0.0])
 	BODY_DRAG = ((WIND_TO_BODY @ WIND_DRAG_FORCE) / MASS) * 32.2
 
 	# DERIVATIVES.
-	ADOT = PITCHRATE - (SPECIFIC_FORCE[2] / SPD) # RADS PER S
-	BDOT = YAWRATE - (SPECIFIC_FORCE[1] / SPD) # RADS PER S
-	THTDOT = PITCHRATE * np.cos(0.0) - YAWRATE * np.sin(0.0)
-	PSIDOT = (PITCHRATE * np.sin(0.0) + YAWRATE * np.cos(0.0)) / np.cos(THT)
+	ADOT = RATE - (SPECIFIC_FORCE[1] / SPD) # RADS PER S
 	QDOT = (Q * REF_AREA * REF_DIAM * CM) / TMOI # RADS PER S^2
-	RDOT = (Q * REF_AREA * REF_DIAM * CN) / TMOI # RADS PER S^2
-	WDOT = ((Q * REF_AREA * CZ) * (32.2 / MASS)) # FT PER S^2
-	VDOT = ((Q * REF_AREA * CY) * (32.2 / MASS)) # FT PER S^2
+	WDOT = ((Q * REF_AREA * CN) * (G / MASS)) # FT PER S^2
 
 	ACC_THRUST = (THRUST / MASS) * 32.2
-	SPECIFIC_FORCE = npa([ACC_THRUST, VDOT, WDOT])
-	LOCALG = npa([0.0, 0.0, -1.0 * G])
-	BODY_GRAV = ENU2FLU @ LOCALG
-	SPECIFIC_FORCE += BODY_GRAV
+	SPECIFIC_FORCE = npa([ACC_THRUST, WDOT])
+	LOCALG = npa([0.0, -1.0 * G])
+	BODYG = LOCAL_TO_BODY_TM @ LOCALG
+	SPECIFIC_FORCE += BODYG
 	SPECIFIC_FORCE += BODY_DRAG
-	ACC = (SPECIFIC_FORCE @ ENU2FLU)
+	ACC = (SPECIFIC_FORCE @ LOCAL_TO_BODY_TM)
 
 	if TOF > 1.0:
 		pause = None
@@ -210,20 +189,14 @@ while True:
 
 		# REPORT.
 		if round(TOF, 3).is_integer() and LASTT <= TOF:
-			print(f"{TOF:.0f} POS {POS} MACH {MACH:.2f}")
+			print(f"{TOF:.0f} POS {POS} MACH {MACH}")
 			LASTT = TOF
 
 		# END CHECK.
-		if TOF > MAXT:
-			print(f"{TOF:.3f} POS {POS} MACH {MACH:.2f}")
-			print("TIME")
-			break
-		if POS[2] < 0.0:
-			print(f"{TOF:.3f} POS {POS} MACH {MACH:.2f}")
+		if POS[1] < 0.0:
 			print("GROUND")
 			break
 		if np.isnan(POS[1]):
-			print(f"{TOF:.3f} POS {POS} MACH {MACH:.2f}")
 			print("NAN")
 			break
 
@@ -233,20 +206,14 @@ while True:
 		POS0 = copy.deepcopy(POS)
 		VEL0 = copy.deepcopy(VEL)
 		THT0 = copy.deepcopy(THT)
-		PSI0 = copy.deepcopy(PSI)
-		PITCHRATE0 = copy.deepcopy(PITCHRATE)
-		YAWRATE0 = copy.deepcopy(YAWRATE)
+		RATE0 = copy.deepcopy(RATE)
 		ALPHA0 = copy.deepcopy(ALPHA)
-		BETA0 = copy.deepcopy(BETA)
 
 		POS += VEL * (DT / 2.0)
 		VEL += ACC * (DT / 2.0)
-		THT += THTDOT * (DT / 2.0)
-		PSI += PSIDOT * (DT / 2.0)
-		PITCHRATE += QDOT * (DT / 2.0)
-		YAWRATE += RDOT * (DT / 2.0)
+		THT += RATE * (DT / 2.0)
+		RATE += QDOT * (DT / 2.0)
 		ALPHA += ADOT * (DT / 2.0)
-		BETA += BDOT * (DT / 2.0)
 
 	else:
 
@@ -255,72 +222,21 @@ while True:
 
 		POS = POS0 + VEL * DT
 		VEL = VEL0 + ACC * DT
-		THT = THT0 + THTDOT * DT
-		PSI = PSI0 + PSIDOT * DT
-		PITCHRATE = PITCHRATE0 + QDOT * DT
-		YAWRATE = YAWRATE0 + RDOT * DT
+		THT = THT0 + RATE * DT
+		RATE = RATE0 + QDOT * DT
 		ALPHA = ALPHA0 + ADOT * DT
-		BETA = BETA0 + BDOT * DT
 
 		POS0 = None
 		VEL0 = None
 		THT0 = None
-		PSI0 = None
-		PITCHRATE0 = None
-		YAWRATE0 = None
+		RATE0 = None
 		ALPHA0 = None
-		BETA0 = None
 
-# plot
-f = open("PY_6DOF_70MM_ROCKET/data/log.txt", "r")
-df = pd.read_csv(f, delim_whitespace=True)
-fig = plt.figure()
-startIndex = 0
-stopIndex = -1
-colors = mc.matPlotLibColors()
-trajectory = fig.add_subplot(221, projection="3d")
-trajectory.set_title("Trajectory")
-trajectory.set_xlabel("East")
-trajectory.set_ylabel("North")
-trajectory.set_zlabel("Up")
-xMin = min(list(df.iloc[startIndex:stopIndex]["RNG"]))
-xMax = max(list(df.iloc[startIndex:stopIndex]["RNG"]))
-yMin = min(list(df.iloc[startIndex:stopIndex]["CROSSRNG"]))
-yMax = max(list(df.iloc[startIndex:stopIndex]["CROSSRNG"]))
-zMin = min(list(df.iloc[startIndex:stopIndex]["ALT"]))
-zMax = max(list(df.iloc[startIndex:stopIndex]["ALT"]))
-trajectory.set_box_aspect(
-	(
-		np.ptp([xMin - 1000, xMax + 1000]), 
-		np.ptp([yMin - 1000, yMax + 1000]), 
-		np.ptp([zMin, zMax + 1000]),
-	)
-)
-trajectory.set_xlim([xMin - 1000, xMax + 1000])
-trajectory.set_ylim([yMin - 1000, yMax + 1000])
-trajectory.set_zlim([zMin, zMax + 1000])
-trajectory.plot(df.iloc[startIndex:stopIndex]["RNG"], \
-	df.iloc[startIndex:stopIndex]["CROSSRNG"], \
-	df.iloc[startIndex:stopIndex]["ALT"], color="b")
-ax2 = fig.add_subplot(222)
-ax2.plot(df.iloc[startIndex:stopIndex]["TOF"], \
-	df.iloc[startIndex:stopIndex]["PITCHRATE"], \
-	color=colors.pop(0))
-ax2.set_xlabel("TOF")
-ax2.set_ylabel("PITCHRATE, RADS PER SEC")
-ax3 = fig.add_subplot(223)
-ax3.plot(df.iloc[startIndex:stopIndex]["TOF"], \
-	df.iloc[startIndex:stopIndex]["ALPHA"], \
-	color=colors.pop(0))
-ax3.set_xlabel("TOF")
-ax3.set_ylabel("ALPHA, RADS")
-ax4 = fig.add_subplot(224)
-ax4.plot(df.iloc[startIndex:stopIndex]["TOF"], \
-	df.iloc[startIndex:stopIndex]["WDOT"], \
-	color=colors.pop(0))
-ax4.set_xlabel("TOF")
-ax4.set_ylabel("WDOT, FT PER S^2")
-plt.show()
+# REPORT.
+if round(TOF, 3).is_integer() and LASTT <= TOF:
+	print(f"{TOF:.0f} POS {POS}")
+	LASTT = TOF
+
 
 
 
