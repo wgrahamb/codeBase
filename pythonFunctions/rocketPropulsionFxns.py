@@ -722,41 +722,41 @@ def SP04_B():
 
 if __name__ == "__main__":
 
-	### TEXTBOOK 2.11 ###
-	print("\n")
-	ORBIT_ALT_1 = 85 # Miles
-	ORBIT_LAT_1 = np.radians(0.0)
-	ORBIT_ALT_2 = 90 # Miles
-	ORBIT_LAT_2 = np.radians(35.0)
-	Textbook_2_11(ORBIT_ALT_1, ORBIT_LAT_1)
-	Textbook_2_11(ORBIT_ALT_2, ORBIT_LAT_2)
+	# ### TEXTBOOK 2.11 ###
+	# print("\n")
+	# ORBIT_ALT_1 = 85 # Miles
+	# ORBIT_LAT_1 = np.radians(0.0)
+	# ORBIT_ALT_2 = 90 # Miles
+	# ORBIT_LAT_2 = np.radians(35.0)
+	# Textbook_2_11(ORBIT_ALT_1, ORBIT_LAT_1)
+	# Textbook_2_11(ORBIT_ALT_2, ORBIT_LAT_2)
 	
-	### TEXTBOOK 3.3 ###
-	# Stage 2.
-	propMass, inertMass = Textbook_3_3(
-		iPropMassFraction=0.8,
-		iPayloadMass=500,
-		iDeltaVIdeal=5000,
-		iSpecificImpulse=350
-	)
-	# Stage 1.
-	Textbook_3_3(
-		iPropMassFraction=0.9,
-		iPayloadMass=500 + 200 + propMass + inertMass,
-		iDeltaVIdeal=5000,
-		iSpecificImpulse=270
-	)
+	# ### TEXTBOOK 3.3 ###
+	# # Stage 2.
+	# propMass, inertMass = Textbook_3_3(
+	# 	iPropMassFraction=0.8,
+	# 	iPayloadMass=500,
+	# 	iDeltaVIdeal=5000,
+	# 	iSpecificImpulse=350
+	# )
+	# # Stage 1.
+	# Textbook_3_3(
+	# 	iPropMassFraction=0.9,
+	# 	iPayloadMass=500 + 200 + propMass + inertMass,
+	# 	iDeltaVIdeal=5000,
+	# 	iSpecificImpulse=270
+	# )
 
-	### TEXTBOOK 3.4 ###
-	print("\n")
-	x = Textbook_3_4(
-		finalAltitude=20000,
-		gravity=9.81,
-		ISP=150,
-		M0=100,
-		MF=50
-	)
-	print(f"TEXTBOOK 3.4 : BURN TIME IS {x} SECONDS.\n")
+	# ### TEXTBOOK 3.4 ###
+	# print("\n")
+	# x = Textbook_3_4(
+	# 	finalAltitude=20000,
+	# 	gravity=9.81,
+	# 	ISP=150,
+	# 	M0=100,
+	# 	MF=50
+	# )
+	# print(f"TEXTBOOK 3.4 : BURN TIME IS {x} SECONDS.\n")
 
 	### TEXTBOOK 4.1 ###
 	psl = 101325 # pascals
@@ -772,11 +772,11 @@ if __name__ == "__main__":
 	y = x.main()
 	printValuesInADictionary(y)
 
-	### SP04-A1 ###
-	SP04A1() # has plot
+	# ### SP04-A1 ###
+	# SP04A1() # has plot
 
-	### SP04-B ###
-	# SP04_B() # has plot
+	# ### SP04-B ###
+	# # SP04_B() # has plot
 
 
 

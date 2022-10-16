@@ -83,7 +83,7 @@ void Missile::init_ins()
 	Matrix VBEL=flat6[233].vec();
 	//-------------------------------------------------------------------------
 	//with INS errors
-		if(mins==1){
+	if(mins==1){
 		//alpha-specs laser ring gyros low accuracy
 		missile[308].init("EUNBG",0,0,0,"Gyro unbalance - (rad/s)/m/s^2)","ins","data","");
 		missile[309].init("EMISG",gauss(0,1.1e-4),gauss(0,1.1e-4),gauss(0,1.1e-4),"Gyro cluster misalignmt vector - rad","ins","data","");
@@ -206,6 +206,7 @@ void Missile::init_ins()
 
 void Missile::ins(double int_step)
 {
+
 	//local variables
 	Matrix EWBEL(3,1);
 	Matrix RECED_NEW(3,1);
@@ -216,7 +217,6 @@ void Missile::ins(double int_step)
 	double psivlc(0);
 	double cthtblc(0);
 
-	
 	//local module-variables
 	Matrix EFSPB(3,1);
 	Matrix EWBEB(3,1);
@@ -349,8 +349,7 @@ void Missile::ins(double int_step)
 	double tblc23=TBLC.get_loc(1,2);
 	double tblc33=TBLC.get_loc(2,2);
 	double cphic=tblc33/cthtblc;
-	if(fabs(cphic)>=1)
-		cphic=(1-EPS)*sign(cphic);
+	if(fabs(cphic)>=1) cphic=(1-EPS)*sign(cphic);
 	double phiblc=acos(cphic)*sign(tblc23);
 
 	phiblcx=phiblc*DEG;
@@ -499,8 +498,8 @@ void Missile::ins_alt()
 	//input from other modules
 	double alt=flat6[239].real();
 	//-------------------------------------------------------------------------
-    ehbe=biasal+randal;
-    hbem=alt+ehbe;	
+	ehbe=biasal+randal;
+	hbem=alt+ehbe;
 	//-------------------------------------------------------------------------
 	//loading module-variables
 	//output to other modules

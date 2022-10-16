@@ -13,9 +13,10 @@ tgtN = 5000 # Meters.
 tgtU = 5000 # Meters.
 LogData = 1 # Boolean.
 ConsoleReport = 1 # Boolean.
+ID = "missileRk4"
 
 InputString = f"{ballistic} {INTEGRATION_METHOD} {phi} {theta} \
-{psi} {posE} {posN} {posU} {tgtE} {tgtN} {tgtU} {LogData} {ConsoleReport}\n"
+{psi} {posE} {posN} {posU} {tgtE} {tgtN} {tgtU} {LogData} {ConsoleReport} {ID}\n"
 InputFile = r"CPP_6DOF_SRAAM_V2/input/input.txt"
 with open(InputFile, "w") as f:
 	f.writelines(InputString)

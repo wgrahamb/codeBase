@@ -254,12 +254,14 @@ void Hyper::ins(double int_step)
 	//input from other modules
 	double time=round6[0].real();
 	Matrix GRAVG=round6[62].vec();
+
 	Matrix TBI=round6[121].mat();
 	Matrix WBIB=round6[164].vec();
 	Matrix WBII=round6[166].vec();
 	Matrix SBII=round6[235].vec();
 	Matrix VBII=round6[236].vec();
 	Matrix FSPB=round6[239].vec();
+
 	int mgps=hyper[700].integer();
 	Matrix SXH=hyper[764].vec();
 	Matrix VXH=hyper[765].vec();
@@ -380,7 +382,7 @@ void Hyper::ins(double int_step)
 	phipcx=phipc*DEG;
 
 	//getting long,lat,alt from INS
-	cad_geo84_in(lonc,latc,altc, SBIIC,time);			  
+	cad_geo84_in(lonc,latc,altc, SBIIC,time);
 
 	//getting T.M. of geodetic wrt inertial coord
 	TDCI=cad_tdi84(lonc,latc,altc,time);

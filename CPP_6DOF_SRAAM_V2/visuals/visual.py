@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import matplotlib
 matplotlib.use('WebAgg')
 
-f1 = r"CPP_6DOF_SRAAM_V2/output/missile1_6DOF.txt"
+f1 = r"CPP_6DOF_SRAAM_V2/output/missileRk4_6DOF.txt"
 
 viewFile = f1
 
@@ -48,9 +48,12 @@ if scale:
 	trajectory.set_xlim([xMin - 1000, xMax + 1000])
 	trajectory.set_ylim([yMin - 1000, yMax + 1000])
 	trajectory.set_zlim([zMin, zMax + 1000])
-trajectory.plot(df.iloc[startIndex:stopIndex]["posE"], \
-	df.iloc[startIndex:stopIndex]["posN"], \
-		df.iloc[startIndex:stopIndex]["posU"], color="b")
+trajectory.plot(
+	df.iloc[startIndex:stopIndex]["posE"],
+	df.iloc[startIndex:stopIndex]["posN"],
+	df.iloc[startIndex:stopIndex]["posU"],
+	color="b"
+)
 if scale:
 	trajectory.scatter(df.iloc[stopIndex]["tgtE"], df.iloc[stopIndex]["tgtN"], df.iloc[stopIndex]["tgtU"], color="r")
 
@@ -117,9 +120,9 @@ performance = fig.add_subplot(247)
 performance.set_title("Performance")
 performance.set_xlabel("Time of Flight")
 performance.plot(df.iloc[startIndex:stopIndex]["tof"], df.iloc[startIndex:stopIndex]["mach"], color="b", label="Mach Speed")
-performance.plot(df.iloc[startIndex:stopIndex]["tof"], df.iloc[startIndex:stopIndex]["CX"], color="g", label="Axial Drag Coefficient")
+# performance.plot(df.iloc[startIndex:stopIndex]["tof"], df.iloc[startIndex:stopIndex]["CX"], color="g", label="Axial Drag Coefficient")
 performance.plot(df.iloc[startIndex:stopIndex]["tof"], 0.01 * df.iloc[startIndex:stopIndex]["accelerationLimit"], color="r", label="1% Maneuvering Limit M/S^2")
-performance.plot(df.iloc[startIndex:stopIndex]["tof"], 0.01 * df.iloc[startIndex:stopIndex]["udot"], color="orange", label="Thrust Acceleration")
+# performance.plot(df.iloc[startIndex:stopIndex]["tof"], 0.01 * df.iloc[startIndex:stopIndex]["udot"], color="orange", label="Thrust Acceleration")
 performance.plot(df.iloc[startIndex:stopIndex]["tof"], df.iloc[startIndex:stopIndex]["staticMargin"], color="cyan", label="Static Margin")
 performance.plot(df.iloc[startIndex:stopIndex]["tof"], df.iloc[startIndex:stopIndex]["alphaPrimeDegrees"], color="fuchsia", label="Angle of Attack Degrees")
 performance.legend(fontsize="xx-small")

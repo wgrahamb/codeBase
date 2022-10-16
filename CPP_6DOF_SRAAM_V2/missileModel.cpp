@@ -21,7 +21,6 @@
 
 // Namespace.
 using namespace std;
-auto wallClockStart = chrono::high_resolution_clock::now();
 
 /* Missile Model */
 /*
@@ -1882,86 +1881,4 @@ void threeDofFly(Missile &missile, string flyOutID, bool writeData, bool console
 
 }
 
-int main()
-{
 
-	// Instantiate inputs.
-	int ballistic;
-	int INTEGRATION_METHOD;
-	double phiRads;
-	double thetaRads;
-	double psiRads;
-	double posE;
-	double posN;
-	double posU;
-	double tgtE;
-	double tgtN;
-	double tgtU;
-	int LogData;
-	int ConsoleReport;
-
-	// Instantiate input file.
-	ifstream InputFile;
-
-	// Open input file.
-	InputFile.open("CPP_6DOF_SRAAM_V2/input/input.txt");
-
-	// Populate input.
-	InputFile
-	>> ballistic
-	>> INTEGRATION_METHOD
-	>> phiRads
-	>> thetaRads
-	>> psiRads
-	>> posE
-	>> posN
-	>> posU
-	>> tgtE
-	>> tgtN
-	>> tgtU
-	>> LogData
-	>> ConsoleReport;
-
-	// Instantiate missile.
-	Missile missile;
-
-	// Format data tables. Only happens once.
-	formatTables(missile, "CPP_6DOF_SRAAM_V2/input/tables.txt");
-
-	// Trajectory and integration type.
-	missile.BALLISTIC = ballistic;
-	missile.INTEGRATION_METHOD = INTEGRATION_METHOD;
-	
-	// Emplacement.
-	phiRads *= degToRad;
-	thetaRads *= degToRad;
-	psiRads *= degToRad;
-	double launchPosition[3] = {posE, posN, posU};
-	emplace(missile, phiRads, thetaRads, psiRads, launchPosition);
-	
-	// Waypoint.
-	double pip[3] = {tgtE, tgtN, tgtU};
-	setArrayEquivalentToReference(missile.pip, pip);
-	seekerOn(missile);
-
-	// Set lethality to flying. Missile will not fly unless.
-	missile.lethality = "FLYING";
-	missile.LAUNCHED = true;
-
-	// six dof missile flight.
-	Missile missile1 = clone(missile);
-	missile1.INTEGRATION_METHOD = 0;
-	sixDofFly(missile1, "missile1", LogData, ConsoleReport, 400.0);
-
-	// three dof missile flight.
-	Missile missile2 = clone(missile);
-	threeDofFly(missile2, "missile2", LogData, ConsoleReport, 400.0);
-
-	// Console report and terminate.
-	auto wallClockEnd = chrono::high_resolution_clock::now();
-	auto simRealRunTime = chrono::duration_cast<chrono::milliseconds>(wallClockEnd - wallClockStart);
-	cout << "SIMULATION RUN TIME :" << simRealRunTime.count() << " MILLISECONDS" << endl;
-	cout << "\n";
-	return 0;
-
-}
