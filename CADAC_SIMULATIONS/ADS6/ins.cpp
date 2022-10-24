@@ -195,7 +195,7 @@ void Missile::init_ins()
 	missile[346].gets_vec(EVBE);
 	missile[348].gets_vec(ESTTC);
 	missile[304].gets_vec(SBELC);
-}	
+}
 ///////////////////////////////////////////////////////////////////////////////
 //INS module
 //Member function of class 'Missile'

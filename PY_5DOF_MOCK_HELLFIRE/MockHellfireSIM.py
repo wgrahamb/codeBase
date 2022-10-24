@@ -11,16 +11,6 @@ from classes.SecondOrderActuator import SecondOrderActuator
 # Dynamics.
 import MockHellfireDYNAMICS5DOF as DYN
 
-"""
-
-TO DO:
-ROTATING ELLIPTICAL EARTH.
-CORIOLOS AND CENTRIFUGAL FORCE.
-GUIDANCE AND CONTROL.
-INS. FROM ZIPFEL.
-
-"""
-
 # MATH CONSTANTS
 MM_TO_M = 1.0 / 1000.0
 RAD_TO_DEG = 57.2957795130823

@@ -8,15 +8,27 @@ will need to be modified.
 - Anything that can run is designed to run from the parent directory.
 - All PY scripts require a python interpreter and a few pip installs.
 Start with numpy, pandas, and matplotlib.
-- All CPP projects are configured by CMAKE and require a compiler.
+- All CPP projects are configured by CMake and require a compiler.
 Build scripts written in python are included.
 
 To Do:
 - Add all cpp debug configurations to vscode config file.
 - Convert the rest of the CADAC sims to cmake projects.
+- CPP_6DOF_SRAAM_V2
+     - Add guidance modes to CPP_6DOF_SRAAM_V2. Initial turn, midcourse, terminal.
+     - Using Zarchan method, write a rate controller.
 - CPP_6DOF_SAM, work in progress.
+     - Start project. Reuse as much Zipfel code as possible.
 - PY_5DOF_MOCK_HELLFIRE, work in progress.
+     - Directly integrating rates into euler angles, switch to quaternions.
+     - Rotating elliptical earth.
+     - Coriolos and centrifugal force.
+     - Guidance and control (linear airframe should be simple).
+     - INS from Zipfel CADAC_ADS6 project.
+     - Design a real rocket motor.
 - PY_6DOF_70MM_ROCKET, work in progress.
+     - The pitch and yaw aerodynamics do not yet line up with the flight data.
+     - Check alpha and beta calculations.
 
 Folder Structure:
 

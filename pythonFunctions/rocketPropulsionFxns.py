@@ -167,7 +167,7 @@ class Textbook_4_1:
 
 	# uses newton raphson method for function with more than one root
 	@staticmethod
-	def RobertFrederick_findMach(initialMachGuess, gamma, sigma):
+	def DrRobertFrederick_findMach(initialMachGuess, gamma, sigma):
 		StopCriteria = 0.000001
 		EA = StopCriteria * 1.1
 		AM2 = copy.deepcopy(initialMachGuess)
@@ -319,7 +319,7 @@ class Textbook_4_1:
 		exitVelocity = Textbook_4_1.exitVelocity(thrust, cStar, pc, throatAreaM2)
 		chamberArea = Textbook_4_1.areaCircle(chamberDiam)
 		sigmaChamber = chamberArea / throatArea
-		chamberMach = Textbook_4_1.RobertFrederick_findMach(0.2, gamma, sigmaChamber)
+		chamberMach = Textbook_4_1.DrRobertFrederick_findMach(0.2, gamma, sigmaChamber)
 		a = Textbook_4_1.speedOfSound(gamma, Tc, molarMass)
 		v1 = a * chamberMach
 		tempRatio = Textbook_4_1.isentropicTemperatureRatio(gamma, exitMach)
@@ -758,25 +758,25 @@ if __name__ == "__main__":
 	# )
 	# print(f"TEXTBOOK 3.4 : BURN TIME IS {x} SECONDS.\n")
 
-	### TEXTBOOK 4.1 ###
-	psl = 101325 # pascals
-	pc = 5000000 # pascals
-	Tc = 3000 # kelvin
-	molarMass = 15 # kg / kg * molK
-	gamma = 1.2 # nd
-	exitDiam = 26.46 # cm
-	throatDiam = 10 # cm
-	chamberDiam = 15 # cm
-	x = Textbook_4_1(psl, pc, Tc, molarMass, gamma,
-	exitDiam, throatDiam, chamberDiam)
-	y = x.main()
-	printValuesInADictionary(y)
+	# ### TEXTBOOK 4.1 ###
+	# psl = 101325 # pascals
+	# pc = 5000000 # pascals
+	# Tc = 3000 # kelvin
+	# molarMass = 15 # kg / kg * molK
+	# gamma = 1.2 # nd
+	# exitDiam = 26.46 # cm
+	# throatDiam = 10 # cm
+	# chamberDiam = 15 # cm
+	# x = Textbook_4_1(psl, pc, Tc, molarMass, gamma,
+	# exitDiam, throatDiam, chamberDiam)
+	# y = x.main()
+	# printValuesInADictionary(y)
 
 	# ### SP04-A1 ###
 	# SP04A1() # has plot
 
 	# ### SP04-B ###
-	# # SP04_B() # has plot
+	SP04_B() # has plot
 
 
 

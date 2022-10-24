@@ -18,7 +18,7 @@ RAD2DEG = 57.3
 
 # INPUTS
 ALT = 1000 # FEET
-INPUT_VEL = npa([1400.0, 200.0])
+INPUT_VEL = npa([100.0, 2000.0])
 TGT_POS = npa([18000.0, 18000.0])
 TGT_VEL = npa([-350.0, -500.0])
 

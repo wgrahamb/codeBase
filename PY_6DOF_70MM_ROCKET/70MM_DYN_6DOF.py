@@ -20,7 +20,7 @@ ALT = 10000 # FEET
 SPD = 300 # FEET PER SEC
 EL = 1.0 # DEG
 AZ = 0.0 # DEG
-MAXT = 100 # SECONDS
+MAXT = 15 # SECONDS
 DT = 1.0 / 600.0 # SECONDS
 
 # MISSILE CONSTANTS.
@@ -292,6 +292,8 @@ while True:
 		YAWRATE += RDOT * (DT / 2.0)
 		ALPHA += ADOT * (DT / 2.0)
 		BETA += BDOT * (DT / 2.0)
+
+		print(ALPHA, BETA)
 
 		if PHI > (2 * np.pi):
 			TEMP = PHI - (2 * np.pi)

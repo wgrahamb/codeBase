@@ -1673,7 +1673,7 @@ void sixDofFly(Missile &missile, string flyOutID, bool writeData, bool consoleRe
 				}
 
 			}
-			
+
 		}
 
 	}
