@@ -26,8 +26,10 @@ To Do:
      - Guidance and control (linear airframe should be simple).
      - INS from Zipfel CADAC_ADS6 project.
      - Design a real rocket motor.
+     - Model the moment due to drag.
 - PY_6DOF_70MM_ROCKET, work in progress.
      - The pitch and yaw aerodynamics do not yet line up with the flight data.
+     - Model the moment due to drag.
      - Check alpha and beta calculations.
 
 Folder Structure:
