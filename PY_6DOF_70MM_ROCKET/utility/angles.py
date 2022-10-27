@@ -44,9 +44,7 @@ def returnAeroAngles(velB):
 		if velB[2] < 0:
 			phiPrime = np.pi
 	else:
-		phiPrime = np.arctan(
-			np.tan(beta) / np.sin(alpha)
-		)
+		phiPrime = np.arctan2(velB[1], velB[2])
 
 	return alpha, beta, aoa, phiPrime
 

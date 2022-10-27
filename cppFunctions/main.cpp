@@ -31,8 +31,9 @@ using namespace std;
 int main()
 {
 
-     auto data = atm1976_metric::update(1000.0, 100.0);
-     auto x = atmNASA_imperial::update(1000.0, 100.0);
+     // auto data = atm1976_metric::update(1000.0, 100.0);
+     auto x = atmNASA_imperial::update(14000.0, 0.0);
+     cout << x.rho << endl;
      cout << "HOWDY\n";
 
 }

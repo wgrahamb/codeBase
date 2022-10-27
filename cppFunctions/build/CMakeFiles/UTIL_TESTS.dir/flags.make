@@ -6,5 +6,5 @@ CXX_FLAGS = -g   -w
 
 CXX_DEFINES = 
 
-CXX_INCLUDES = -I/home/graham/codeBase/cppFunctions/. 
+CXX_INCLUDES = -I/home/graham/grahamDocs/codeBase/cppFunctions/. 
 

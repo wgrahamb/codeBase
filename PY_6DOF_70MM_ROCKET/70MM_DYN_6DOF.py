@@ -7,6 +7,7 @@ import pandas as pd
 import copy
 
 import utility.loggingFxns as lf
+import utility.angles as ang
 import utility.coordinateTransformations as ct
 from utility.ATM_IMPERIAL import ATM_IMPERIAL
 from utility.interpolationGivenTwoVectors import linearInterpolation
@@ -170,6 +171,8 @@ while True:
 
 	# ATTITUDE.
 	ENU2FLU = ct.ORIENTATION_TO_LOCAL_TM(PHI, -1.0 * THT, PSI) # ND
+	VELB = ENU2FLU @ VEL
+	AERO_ANG = ang.returnAeroAngles(VELB)
 
 	# MASS AND MOTOR.
 	XCG = REF_LNGTH - (linearInterpolation(TOF, T1S, XCGS) / 12.0) # FT FROM NOSE
@@ -292,8 +295,6 @@ while True:
 		YAWRATE += RDOT * (DT / 2.0)
 		ALPHA += ADOT * (DT / 2.0)
 		BETA += BDOT * (DT / 2.0)
-
-		print(ALPHA, BETA)
 
 		if PHI > (2 * np.pi):
 			TEMP = PHI - (2 * np.pi)
