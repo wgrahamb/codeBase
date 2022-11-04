@@ -14,6 +14,7 @@ Build scripts written in python are included.
 To Do:
 - Add all cpp debug configurations to vscode config file.
 - Convert the rest of the CADAC sims to cmake projects.
+- Add cmake files and a README paragraph for the CADAC fortran simulations
 - CPP_6DOF_SRAAM_V2
      - Add guidance modes to CPP_6DOF_SRAAM_V2. Initial turn, midcourse, terminal.
      - Using Zarchan method, write a rate controller.
