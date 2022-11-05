@@ -1,5 +1,5 @@
 import numpy as np
-from utility.interpolationGivenTwoVectors import linearInterpolation
+from interpolation import interpTwoLists
 
 class MockHellfireMassAndMotor:
 
@@ -38,9 +38,9 @@ class MockHellfireMassAndMotor:
 			fuelUsed = self.MDOT * timeOfFlight
 			self.MASS = (self.INITIAL_TOTAL_MASS - fuelUsed)
 		if self.MASS > self.FINAL_TOTAL_MASS:
-			thrust = linearInterpolation(timeOfFlight, self.THRUST_TIME_VALUES, self.THRUST_VALUES)
+			thrust = interpTwoLists(timeOfFlight, self.THRUST_TIME_VALUES, self.THRUST_VALUES)
 			self.THRUST = thrust + (pressure - self.SEA_LEVEL_PRESSURE) * self.NOZZLE_EXIT_AREA
-			self.XCG = linearInterpolation(timeOfFlight, self.CG_TIME_VALUES, self.CG_VALUES)
+			self.XCG = interpTwoLists(timeOfFlight, self.CG_TIME_VALUES, self.CG_VALUES)
 			self.TRANSVERSE_MOI = (self.MASS * (3 * ((0.5 * self.REFERENCE_DIAMETER) ** 2) + self.REFERENCE_LENGTH ** 2)) / (12) # Kilograms times meters squared.
 		else:
 			if self.FLAG == 0:
