@@ -31,6 +31,8 @@ To Do:
      - The pitch and yaw aerodynamics do not yet line up with the flight data.
      - Model the moment due to drag.
      - Check alpha and beta calculations.
+- pythonFunctions
+     - rocketPropulsionFxns.py needs to be cleaned
 
 Folder Structure:
 

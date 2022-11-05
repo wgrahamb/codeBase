@@ -42,7 +42,7 @@ if __name__ == "__main__":
 	MANEUVER2 = 50 # Seconds.
 	PITCH_FIN_COMMAND = None
 	YAW_FIN_COMMAND = None
-	PITCHCOMMAND1 = -5 # Degrees.
+	PITCHCOMMAND1 = -8 # Degrees.
 	YAWCOMMAND1 = 0 # Degrees.
 	PITCHCOMMAND2 = 0 # Degrees.
 	YAWCOMMAND2 = 0 # Degrees.
