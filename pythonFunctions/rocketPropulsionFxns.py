@@ -24,28 +24,28 @@ Mu_E = 1.4076e16 # Feet cubed per second squared.
 SecondsInADay = 86400 # Seconds.
 
 def linearInterpolation(x, xx, yy):
-          lowIndex = None
-          highIndex = None
-          index = -1
-          for number in xx:
-                    index += 1
-                    if number > x:
-                              if highIndex == None:
-                                        highIndex = index
-                              elif number < xx[highIndex]:
-                                        highIndex = index
-                    if number < x:
-                              if lowIndex == None:
-                                        lowIndex = index
-                              elif number > xx[lowIndex]:
-                                        lowIndex = index
-          if lowIndex == None:
-                    lowIndex = 0
-          if highIndex == None:
-                    highIndex = -1
-          # print(x, xx[lowIndex], xx[highIndex], yy[lowIndex], yy[highIndex])
-          y = yy[lowIndex] + ((x - xx[lowIndex]) * ((yy[highIndex] - yy[lowIndex]) / (xx[highIndex] - xx[lowIndex])))
-          return y
+	lowIndex = None
+	highIndex = None
+	index = -1
+	for number in xx:
+		index += 1
+		if number > x:
+			if highIndex == None:
+				highIndex = index
+			elif number < xx[highIndex]:
+				highIndex = index
+		if number < x:
+			if lowIndex == None:
+				lowIndex = index
+			elif number > xx[lowIndex]:
+				lowIndex = index
+	if lowIndex == None:
+		lowIndex = 0
+	if highIndex == None:
+		highIndex = -1
+	# print(x, xx[lowIndex], xx[highIndex], yy[lowIndex], yy[highIndex])
+	y = yy[lowIndex] + ((x - xx[lowIndex]) * ((yy[highIndex] - yy[lowIndex]) / (xx[highIndex] - xx[lowIndex])))
+	return y
 
 # Rocket Propulsion Textbook 2.11
 def Textbook_2_11(ALTITUDE, ORBIT_LATITUDE):
@@ -231,29 +231,6 @@ class Textbook_4_1:
 		t3 = (-1.0 * (gamma + 1)) / (2 * (gamma - 1))
 		ret = np.sqrt(t1) * (t2 ** t3)
 		return ret
-
-	@staticmethod
-	# pascals, m^2, Kelvin, kg / kg-mol, ND
-	def mDot(Pc, At, Tc, M, gamma):
-		Ru = 8317 # N * m / kg * mol * Kelvin
-		t1 = Pc * At # pascals * m^2 = N
-		t2 = np.sqrt( Ru * Tc / (gamma * M) )
-		t3 = 2 / (gamma + 1)
-		t4 = (-1.0 * (gamma + 1)) / (2.0 * (gamma - 1))
-		ret = t1 / (t2 * (t3 ** t4))
-		return ret
-
-	@staticmethod
-	# psi, in^2, Farenheit, lbm/lbm-mole
-	def mDotImperial(Pc, At, Tc, M, gamma):
-		Ru = 1543 # ft * lbf / lbm-mole * Rankine
-		t1 = Pc * At # psi * in^2 = lbf
-		TcR = Tc + 459.7 # Rankine
-		t2 = np.sqrt(Ru * TcR * 32.2 / (gamma * M))
-		t3 = 2 / (gamma + 1)
-		t4 = (-1.0 * (gamma + 1)) / (2.0 * (gamma - 1))
-		ret = t1 / (t2 * (t3 ** t4))
-		return ret * 32.2
 
 	@staticmethod
 	def calcIsp(cf, cstar, g):
@@ -720,6 +697,45 @@ def SP04_B():
 	ax.legend(fontsize="xx-small")
 	plt.show()
 
+def momentumThrust(gamma, sigma, Pc, diamThroat): # nd, nd, psi, inches
+	machExit = Textbook_4_1.findMach(0, 20, gamma, sigma)
+	pCOverPe = Textbook_4_1.isentropicPressureRatio(gamma, machExit)
+	t1 = Pc * np.pi * diamThroat * diamThroat / 4
+	t2 = 2 * gamma * gamma / (gamma - 1)
+	t3 = (2 / (1 + gamma)) ** ((gamma + 1) / (gamma - 1))
+	t4 = 1 - (1 / pCOverPe) ** ((gamma - 1) / gamma)
+	t5 = np.sqrt(t2 * t3 * t4)
+	t6 = t1 * t5
+	return t6
+
+def exhaustVelocity(gamma, Tc, MM, pCOverPe): # nd, F, lbm / lbm-mole, nd
+	Ru = 1543 # ft * lbf / lbm-mole * Rankine
+	t1 = 32.2 * 2 * gamma * Ru * (Tc + 459.67) / (MM * (gamma - 1))
+	t2 = (1 - (1 / pCOverPe) ** ((gamma - 1) / gamma))
+	t3 = np.sqrt(t1 * t2)
+	return t3
+
+# pascals, m^2, Kelvin, kg / kg-mol, ND
+def mDot(Pc, At, Tc, M, gamma):
+	Ru = 8317 # N * m / kg * mol * Kelvin
+	t1 = Pc * At # pascals * m^2 = N
+	t2 = np.sqrt( Ru * Tc / (gamma * M) )
+	t3 = 2 / (gamma + 1)
+	t4 = (-1.0 * (gamma + 1)) / (2.0 * (gamma - 1))
+	ret = t1 / (t2 * (t3 ** t4))
+	return ret
+
+# psi, in^2, Farenheit, lbm/lbm-mole, nd
+def mDotImperial(Pc, At, Tc, M, gamma):
+	Ru = 1543 # ft * lbf / lbm-mole * Rankine
+	t1 = Pc * At # psi * in^2 = lbf
+	TcR = Tc + 459.7 # Rankine
+	t2 = np.sqrt(Ru * TcR * 32.2 / (gamma * M))
+	t3 = 2 / (gamma + 1)
+	t4 = (-1.0 * (gamma + 1)) / (2.0 * (gamma - 1))
+	ret = t1 / (t2 * (t3 ** t4))
+	return ret * 32.2
+
 if __name__ == "__main__":
 
 	# ### TEXTBOOK 2.11 ###
@@ -777,6 +793,30 @@ if __name__ == "__main__":
 
 	# ### SP04-B ###
 	SP04_B() # has plot
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
