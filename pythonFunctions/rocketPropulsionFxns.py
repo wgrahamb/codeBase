@@ -792,22 +792,9 @@ if __name__ == "__main__":
 	# SP04A1() # has plot
 
 	# ### SP04-B ###
-	# SP04_B() # has plot
+	SP04_B() # has plot
 
-	# T = momentumThrust(1.23, 16, 982, 36)
-	# print(T)
 
-	# Vc = exhaustVelocity(1.23, 5640, 22, 160.2)
-	# print(Vc)
-
-	# mdot = mDotImperial(982, 1017.9, 5640, 22, 1.23)
-	# print(mdot)
-
-	# cStar = Textbook_4_1.charVelocityImperial((5640 + 459.7), 22, 1.23)
-	# print(cStar)
-
-	mdot = mDotImperial(1100, 7.5, (5040 - 459.7), 21.34, 1.2)
-	print(mdot)
 
 
 

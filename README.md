@@ -12,28 +12,38 @@ Start with numpy, pandas, and matplotlib.
 Build scripts written in python are included.
 
 To Do:
+- dunk this repository and start a new one. this one has become too large and
+my git practices have improved. Will not be including CADAC fortran in the new
+repo, my experience and expertise in Fortran is little to none. Good reference
+to have laying around.
 - Add all cpp debug configurations to vscode config file.
 - Convert the rest of the CADAC sims to cmake projects.
-- Add cmake files and a README paragraph for the CADAC fortran simulations
 - CPP_6DOF_SRAAM_V2
      - Add guidance modes to CPP_6DOF_SRAAM_V2. Initial turn, midcourse, terminal.
      - Using Zarchan method, write a rate controller.
-- CPP_6DOF_SAM, work in progress.
+- CPP_6DOF_SAM
      - Start project. Reuse as much Zipfel code as possible.
-- PY_5DOF_MOCK_HELLFIRE, work in progress.
+- PY_5DOF_MOCK_HELLFIRE
      - Directly integrating rates into euler angles, switch to quaternions.
      - Rotating elliptical earth.
      - Coriolos and centrifugal force.
-     - Guidance and control (linear airframe should be simple).
-     - INS from Zipfel CADAC_ADS6 project.
-     - Design a real rocket motor.
+     - GNC
+          - Navigation:
+               - INS from Zipfel CADAC_ADS6 project.
+               - Kalman Filter to pair with it after finished working through examples
+          - Guidance:
+               - Line of attack into pronav.
+          - Control:
+               - Maybe just a proportional controller?
+               - Could also do a rate controller.
+     - Using final project from MAE540, design a real rocket motor.
      - Model the moment due to drag.
-- PY_6DOF_70MM_ROCKET, work in progress.
+- PY_6DOF_70MM_ROCKET
      - The pitch and yaw aerodynamics do not yet line up with the flight data.
      - Model the moment due to drag.
      - Check alpha and beta calculations.
 - pythonFunctions
-     - rocketPropulsionFxns.py needs to be cleaned
+     - rocketPropulsionFxns.py needs to be cleaned after the class is over
 
 Folder Structure:
 
