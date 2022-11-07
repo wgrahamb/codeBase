@@ -24,7 +24,7 @@ def compareTwoFiles(reportRelPath, refFileRelPath, newFileRelPath, xAxisKey):
 	def percentDiff(a, b):
 		ret = None
 		t1 = np.abs(a - b)
-		t2 = (a + b) / 2.0
+		t2 = (np.abs(a) + np.abs(b)) / 2.0
 		ret = (t1 / t2) * 100.0
 		# results from dividing by zero,
 		# and if dividing by zero, the diff iz zero
