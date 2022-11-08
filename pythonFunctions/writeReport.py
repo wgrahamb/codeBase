@@ -7,7 +7,7 @@ import warnings
 
 # to ignore runtime warnings about dividing
 # by zero. handled by the fxn.
-warnings.filterwarnings("ignore") 
+warnings.filterwarnings("ignore")
 
 def compareTwoFiles(reportRelPath, refFileRelPath, newFileRelPath, xAxisKey):
 
@@ -89,7 +89,12 @@ def compareTwoFiles(reportRelPath, refFileRelPath, newFileRelPath, xAxisKey):
 			ys = []
 			labels = []
 			for dfIndex, df in enumerate(dfs):
-				xs.append(list(df.iloc[startIndex:stopIndex][f"{xAxisKey}"]))
+				if xAxisKey == "INDEX":
+					temp = list(df.index)
+					temp.pop(-1)
+					xs.append(temp)
+				else:
+					xs.append(list(df.iloc[startIndex:stopIndex][f"{xAxisKey}"]))
 				ys.append(list(df.iloc[startIndex:stopIndex][f"{header}"]))
 				labels.append(df.name)
 			plotAndWrite(xs, ys, labels, header)
