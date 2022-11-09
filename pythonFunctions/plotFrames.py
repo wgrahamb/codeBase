@@ -1,5 +1,3 @@
-import enum
-from matplotlib import projections
 import numpy as np
 from numpy import array as npa
 import matplotlib.pyplot as plt

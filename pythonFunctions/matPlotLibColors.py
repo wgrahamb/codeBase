@@ -6,7 +6,6 @@ def matPlotLibColors():
 		"seagreen","blue","cyan","limegreen","y",
 		"darkorange","mediumspringgreen","darkcyan","aliceblue","plum",
 
-		
 		"lightseagreen",
 		"paleturquoise",
 		"darkturquoise",

@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-from distance import DISTANCE
+from arrayFxns import DISTANCE
 import random
 import matplotlib
 matplotlib.use('WebAgg')

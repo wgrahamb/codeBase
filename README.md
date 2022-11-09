@@ -19,6 +19,8 @@ to have laying around.
 - Add all cpp debug configurations to vscode config file.
 - Convert the rest of the CADAC sims to cmake projects.
 - CPP_6DOF_SRAAM_V2
+     - Clean code and set privacy.
+     - Add global position.
      - Add guidance modes to CPP_6DOF_SRAAM_V2. Initial turn, midcourse, terminal.
      - Using Zarchan method, write a rate controller.
 - CPP_6DOF_SAM
