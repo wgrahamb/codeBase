@@ -236,6 +236,10 @@ Missile clone(const Missile &missile)
 
 	Missile ret;
 	ret = missile;
+	ret.FIN1 = nullptr;
+	ret.FIN2 = nullptr;
+	ret.FIN3 = nullptr;
+	ret.FIN4 = nullptr;
 	ret.FIN1 = make_shared<secondOrderActuator>(*missile.FIN1);
 	ret.FIN2 = make_shared<secondOrderActuator>(*missile.FIN2);
 	ret.FIN3 = make_shared<secondOrderActuator>(*missile.FIN3);

@@ -14,8 +14,8 @@ int main()
 {
 
 	// Instantiate inputs.
-	int ballistic;
-	int INTEGRATION_METHOD;
+	int    ballistic;
+	int    INTEGRATION_METHOD;
 	double phiRads;
 	double thetaRads;
 	double psiRads;
@@ -25,8 +25,8 @@ int main()
 	double tgtE;
 	double tgtN;
 	double tgtU;
-	int LogData;
-	int ConsoleReport;
+	int    LogData;
+	int    ConsoleReport;
 	string ID;
 
 	// Instantiate input file.

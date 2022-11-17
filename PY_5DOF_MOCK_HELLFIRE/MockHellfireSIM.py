@@ -39,7 +39,7 @@ if __name__ == "__main__":
 
 	# Simple Guidance and Control.
 	MANEUVER1         = 3 # Seconds.
-	MANEUVER2         = 50 # Seconds.
+	MANEUVER2         = 30 # Seconds.
 	PITCH_FIN_COMMAND = None
 	YAW_FIN_COMMAND   = None
 	PITCHCOMMAND1     = -8 # Degrees.

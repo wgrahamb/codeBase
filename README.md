@@ -12,15 +12,23 @@ Start with numpy, pandas, and matplotlib.
 Build scripts written in python are included.
 
 To Do:
-- dunk this repository and start a new one. this one has become too large and
+- Move the build scripts to the actual directory.
+- Dunk this repository and start a new one. this one has become too large and
 my git practices have improved. Will not be including CADAC fortran in the new
 repo, my experience and expertise in Fortran is little to none. Good reference
 to have laying around.
 - Add all cpp debug configurations to vscode config file.
-- Convert the rest of the CADAC sims to cmake projects.
+- Convert the rest of the CADAC sims to CMake projects.
 - CPP_6DOF_SRAAM_V2
+     - Enum modes.
+     - Split up look up function into aerodynamics, mass properties, and propulsion.
      - Clean code and set privacy.
+     - Make variable naming uniform.
+     - Walk through the code and clean it. Update the readme to point out how
+     my programming skills have changed from V1 to V2.
+     - Three dof could use some work.
      - Add global position.
+     - Add a getState method.
      - Add guidance modes to CPP_6DOF_SRAAM_V2. Initial turn, midcourse, terminal.
      - Using Zarchan method, write a rate controller.
 - CPP_6DOF_SAM
@@ -29,15 +37,10 @@ to have laying around.
      - Directly integrating rates into euler angles, switch to quaternions.
      - Rotating elliptical earth.
      - Coriolos and centrifugal force.
-     - GNC
-          - Navigation:
-               - INS from Zipfel CADAC_ADS6 project.
-               - Kalman Filter to pair with it after finished working through examples
-          - Guidance:
-               - Line of attack into pronav.
-          - Control:
-               - Maybe just a proportional controller?
-               - Could also do a rate controller.
+     - INS from Zipfel CADAC_ADS6 project.
+     - Kalman Filter to pair with it after finished working through examples.
+     - Line of attack into pronav.
+     - Proportional controller, if not working well, rate controller.
      - Using final project from MAE540, design a real rocket motor.
      - Model the moment due to drag.
 - PY_6DOF_70MM_ROCKET
@@ -45,7 +48,10 @@ to have laying around.
      - Model the moment due to drag.
      - Check alpha and beta calculations.
 - pythonFunctions
-     - rocketPropulsionFxns.py needs to be cleaned after the class is over
+     - Finish working through filters.py.
+     - I have multiple rocket propulsion functions in this folder. They need to 
+     be cleaned and organized at some point. May end up just putting the final
+     class project here.
 
 Folder Structure:
 

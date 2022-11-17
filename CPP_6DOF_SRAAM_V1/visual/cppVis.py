@@ -4,7 +4,7 @@ import numpy as np
 import matplotlib
 matplotlib.use('WebAgg')
 
-f1 = "CPP_6DOF_SRAAM_V1/output/30.0_-30.0_1000.0_1000.0.txt"
+f1 = "CPP_6DOF_SRAAM_V1/output/log.txt"
 
 df = pd.read_csv(open(f"{f1}"), delimiter=" ", skipfooter=3, engine="python")
 

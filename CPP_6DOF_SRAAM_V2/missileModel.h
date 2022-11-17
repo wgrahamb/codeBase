@@ -20,22 +20,22 @@ using namespace std;
 #define MISSILEMODEL_H
 
 /* Missile constants. */
-const double REFERENCE_AREA = 0.01824; // Meters^2.
-const double REFERENCE_DIAMETER = 0.1524; // Meters.
-const double THRUST_EXIT_AREA = 0.0125; // Meters^2.
-const double ROCKET_BURN_OUT_TIME = 2.421; // Seconds.
-const double SEEKER_KF_G = 10.0; // Seeker Kalman filter gain. Per second.
-const double SEEKER_KF_ZETA = 0.9; // Seeker Kalman filter damping. Non dimensional.
-const double SEEKER_KF_WN = 60.0; // Seeker Kalman filter natural frequency. Radians per second.
-const double PROPORTIONAL_GUIDANCE_GAIN = 2.75; // Guidance homing gain. Non dimensional.
-const double MAXIMUM_ACCELERATION = 450.0; // Roughly 45 Gs. Meters per s^2.
-const double RATE_CONTROL_ZETA = 0.6; // Damping of constant rate control. Non dimensional.
-const double ROLL_CONTROL_WN = 20.0; // Natural frequency of roll closed loop complex pole. Radians per second.
-const double ROLL_CONTROL_ZETA = 0.9; // Damping of roll closed loop complex pole. Non dimensional.
-const double FIN_RATE_LIMIT_RADIANS = 10.472; // Radians per second.
-const double ROLL_ANGLE_COMMAND = 0.0; // Radians.
-const double ALPHA_PRIME_MAX = 40.0; // Degrees.
-const double SEA_LEVEL_PRESSURE = 101325; // Pascals.
+const double REFERENCE_AREA                     = 0.01824; // Meters^2.
+const double REFERENCE_DIAMETER                 = 0.1524; // Meters.
+const double THRUST_EXIT_AREA                   = 0.0125; // Meters^2.
+const double ROCKET_BURN_OUT_TIME               = 2.421; // Seconds.
+const double SEEKER_KF_G                        = 10.0; // Seeker Kalman filter gain. Per second.
+const double SEEKER_KF_ZETA                     = 0.9; // Seeker Kalman filter damping. Non dimensional.
+const double SEEKER_KF_WN                       = 60.0; // Seeker Kalman filter natural frequency. Radians per second.
+const double PROPORTIONAL_GUIDANCE_GAIN         = 2.75; // Guidance homing gain. Non dimensional.
+const double MAXIMUM_ACCELERATION               = 450.0; // Roughly 45 Gs. Meters per s^2.
+const double RATE_CONTROL_ZETA                  = 0.6; // Damping of constant rate control. Non dimensional.
+const double ROLL_CONTROL_WN                    = 20.0; // Natural frequency of roll closed loop complex pole. Radians per second.
+const double ROLL_CONTROL_ZETA                  = 0.9; // Damping of roll closed loop complex pole. Non dimensional.
+const double FIN_RATE_LIMIT_RADIANS             = 10.472; // Radians per second.
+const double ROLL_ANGLE_COMMAND                 = 0.0; // Radians.
+const double ALPHA_PRIME_MAX                    = 40.0; // Degrees.
+const double SEA_LEVEL_PRESSURE                 = 101325; // Pascals.
 const double LAUNCH_CENTER_OF_GRAVITY_FROM_NOSE = 1.5357; // Meters.
 
 /* This struct fully represents a missile. */
@@ -205,12 +205,12 @@ struct Missile
 	string lethality;
 
 	// Integration states.
-	// P = ENUPosition
-	// V = ENUVelocity
-	// A = ENUAcceleration
-	// E = ENUEulerAngles
+	// P  = ENUPosition
+	// V  = ENUVelocity
+	// A  = ENUAcceleration
+	// E  = ENUEulerAngles
 	// ED = ENUEulerDot
-	// W = BodyRate
+	// W  = BodyRate
 	// WD = BodyRateDot.
 	int INTEGRATION_METHOD = 2;
 	int INTEGRATION_PASS = 0;
@@ -254,7 +254,7 @@ struct Missile
 
 };
 
-// Functions.
+// Public Functions.
 void formatTables (Missile &missile, string dataFile);
 Missile clone(const Missile &missile);
 void emplace(Missile &missile, double phi, double theta, double psi, double ENUPosition[3]);
