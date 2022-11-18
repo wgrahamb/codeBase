@@ -59,7 +59,7 @@ int main()
 	formatTables(missile, "CPP_6DOF_SRAAM_V2/input/tables.txt");
 
 	// Trajectory and integration type.
-	missile.BALLISTIC = ballistic;
+	missile.isBallistic = ballistic;
 	missile.INTEGRATION_METHOD = INTEGRATION_METHOD;
 	
 	// Emplacement.
@@ -71,12 +71,12 @@ int main()
 	
 	// Waypoint.
 	double pip[3] = {tgtE, tgtN, tgtU};
-	setArrayEquivalentToReference(missile.pip, pip);
+	setArrayEquivalentToReference(missile.waypoint, pip);
 	seekerOn(missile);
 
 	// Set lethality to flying. Missile will not fly unless.
 	missile.lethality = "FLYING";
-	missile.LAUNCHED = true;
+	missile.isLaunched = true;
 
 	// six dof missile flight.
 	Missile missile1 = clone(missile);

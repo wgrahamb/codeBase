@@ -29,6 +29,7 @@ to have laying around.
      - Three dof could use some work.
      - Add global position.
      - Add a getState method.
+     - Reduce the verbosity of the logging. Should increase speed.
      - Add guidance modes to CPP_6DOF_SRAAM_V2. Initial turn, midcourse, terminal.
      - Using Zarchan method, write a rate controller.
 - CPP_6DOF_SAM

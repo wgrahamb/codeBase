@@ -45,81 +45,81 @@ struct Missile
 	/* Variables */
 
 	// Target.
-	double pip[3]; // Predicted Intercept Point. Meters.
+	double waypoint[3]; // guidance east, north, up target in meters (INIT)
 
-	// Missile overhead.
-	bool BALLISTIC = false;
-	bool LAUNCHED = false;
-	double TIME_STEP = (1.0 / 600.0);
-	double HALF_TIME_STEP = TIME_STEP * 0.5;
+	// Status.
+	bool isBallistic    = false; // flag to indicate whether or not the missile is flying ballistically or guided
+	bool isLaunched     = false; // flag to indicate whether or not the missile is free to launch
+	double timeStep     = (1.0 / 600.0); // missile integration time step
+	double halfTimeStep = timeStep * 0.5; // missile half integration time step for runge kutta methods
 
-	// Missile state.
-	double timeOfFlight = 0.0; // Seconds.
-	double missileENUToFLUMatrix[3][3]; // Non dimensional.
-	double ENUPosition[3]; // Meters.
-	double range = 0.0; // Meters.
-	double ENUVelocity[3]; // Meters per second.
-	double FLUVelocity[3]; // Meters per second.
-	double speed; // Meters per second.
-	double ENUAcceleration[3]; // Meters per second^2.
-	double FLUAcceleration[3]; // Meters per second^2.
-	double alphaRadians = 0.0; // Radians.
-	double betaRadians = 0.0; // Radians.
-	double alphaDegrees = 0.0; // Degrees.
-	double betaDegrees = 0.0; // Degrees.
-	double ENUEulerAngles[3]; // Radians.
-	double ENUEulerDot[3] = {0.0, 0.0, 0.0}; // Radians per second.
-	double bodyRate[3] = {0.0, 0.0, 0.0}; // Radians per second.
-	double bodyRateDot[3] = {0.0, 0.0, 0.0}; // Radians per second^2.
+	// Body.
+	double fluVel[3];    // missile velocity in the body frame in m/s (INIT)
+	double spcfForce[3]; // missile acceleration in the body frame in m/s^2 (INIT)
+	double spd;          // missile speed in m/s (INIT)
+	double rate[3]      = {0.0, 0.0, 0.0}; // missile angular velocity in rads/s
+	double rateDot[3]   = {0.0, 0.0, 0.0}; // missile angular acceleration in rads/s^2
+	double tof          = 0.0; // missile time of flight in seconds
+	double rng          = 0.0; // total missile range in meters
+	double alphaRadians = 0.0; // vertical angle of attack in rads
+	double betaRadians  = 0.0; // horizontal angle of attack in rads
+	double alphaDegrees = 0.0; // vertical angle of attack in degrees
+	double betaDegrees  = 0.0; // horizontal angle of attack in degrees
+
+	// Local Frame.
+	double enuPos[3];      // missile east, north, up position in meters (INIT)
+	double enuVel[3];      // missile east, north, up velocity in m/s (INIT)
+	double enuAcc[3];      // missile east, north, up acceleration in m/s^2 (INIT)
+	double enuToFlu[3][3]; // missile east, north, up to forward, left, up transformation matrix (INIT)
+	double enuAttitude[3]; // missile east, north, up attitude in radians (INIT)
+	double enuAttitudeDot[3] = {0.0, 0.0, 0.0}; // missile east, north, up attitude rate in rads/s
 
 	// Atmosphere.
-	double grav = 0.0; // Meters per second^2.
-	double FLUGravity[3] = {0.0, 0.0, 0.0}; // Meters per second^2.
-	double pressure = 0.0; // Pascals.
-	double dynamicPressure = 0.0; // Pascals.
-	double machSpeed = 0.0; // Non dimensional.
+	double grav       = 0.0; // gravity magnitude in m/s^2
+	double fluGrav[3] = {0.0, 0.0, 0.0}; // gravity in the body frame in m/s^2
+	double p          = 0.0; // air pressure in pascals
+	double q          = 0.0; // dynamic pressure in pascals
+	double mach       = 0.0; // mach speed
 
 	// Seeker.
-	double seekerPitch; // Radians.
-	double seekerYaw; // Radians.
-	double seekerENUToFLUMatrix[3][3]; // Non dimensional.
-	double seekerPitchError; // Seeker boresight vertical offset from target. Radians.
-	double seekerYawError; // Seeker boresight horizontal offset from target. Radians.
-	double seekerWLR; // Pointing yaw rate. Radians per second.
-	double seekerWLRD = 0.0; // Derivative of pointing yaw rate. Radians per second^2.
-	double seekerWLR1 = 0.0; // Yaw sight line spin rate. Radians per second.
-	double seekerWLR1D = 0.0; // Derivative of yaw sight line spin rate. Radians per second^2.
-	double seekerWLR2 = 0.0; // Second state variable in yawing kalman filter. Radians per second^2.
-	double seekerWLR2D = 0.0; // Derivative of second state variable in yawing kalman filter. Radians per second^3.
-	double seekerWLQ; // Pointing pitch rate. Radians per second.
-	double seekerWLQD = 0.0; // Derivative of pointing pitch rate. Radians per second^2.
-	double seekerWLQ1 = 0.0; // Pitch sight line spin rate. Radians per second.
-	double seekerWLQ1D = 0.0; // Derivative of pitch sight line spin rate. Radians per second^2.
-	double seekerWLQ2 = 0.0; // Second state variable in pitching kalman filter. Radians per second^2.
-	double seekerWLQ2D = 0.0; // Derivative of second state variable in pitching kalman filter. Radians per second^3.
+	double skrTht;            // seeker pitch angle relative to bore in radians (INIT)
+	double skrPsi;            // seeker yaw angle relative to bore in radians (INIT)
+	double skrEnuToFlu[3][3]; // seeker east, north, up to forward, left, up transformation matrix (INIT)
+	double skrThtErr;         // seeker boresight vertical offset from target in radians (INIT)
+	double skrPsiErr;         // seeker boresight horizontal offset from target in radians (INIT)
+	double skrWlr;            // pointing yaw rate in rads/s (INIT)
+	double skrWlq;            // Pointing pitch rate. Radians per second. (INIT)
+	double skrWlrDot  = 0.0; // derivative of pointing yaw rate in rads/s^2
+	double skrWlr1    = 0.0; // yaw sight line spin rate in rads/s
+	double skrWlr1Dot = 0.0; // derivative of yaw sight line spin rate in rads/s^2
+	double skrWlr2    = 0.0; // second state variable in yawing kalman filter in rads/s^2
+	double skrWlr2Dot = 0.0; // derivative of second state variable in yawing kalman filter in rads/s^3
+	double skrWlqDot  = 0.0; // derivative of pointing pitch rate in rads/s^2
+	double skrWlq1    = 0.0; // pitch sight line spin rate in rads/s
+	double skrWlq1Dot = 0.0; // derivative of pitch sight line spin rate in rads/s^2
+	double skrWlq2    = 0.0; // second state variable in pitching kalman filter in rads/s^2
+	double skrWlq2Dot = 0.0; // derivative of second state variable in pitching kalman filter in rads/s^3
 
 	// Guidance.
-	bool homing = false;
-	double timeToGo = 0.0;
-	double FLUMissileToPipRelativePosition[3] = {0.0, 0.0, 0.0}; // Meters.
-	double guidanceNormalCommand = 0.0; // Meters per second^2.
-	double guidanceSideCommand = 0.0; // Meters per second^2.
-	double maneuveringLimit = MAXIMUM_ACCELERATION; // Meters per second^2.
+	bool isHoming           = false; // flag to indicate whether or not the missile has entered the homing phase
+	double timeToGo         = 0.0; // time to reach waypoint in seconds
+	double mslToWaypoint[3] = {0.0, 0.0, 0.0}; // waypoint position relative to missile body in meters
+	double normComm         = 0.0; // body normal guidance command in m/s^2
+	double sideComm         = 0.0; // body lateral guidance command in m/s^2
+	double commLimit        = MAXIMUM_ACCELERATION; // guidance command limit in m/s^2
 
 	// Control
-	double pitchError = 0.0;
-	double pitchErrorDerivative = 0.0;
-	double lastYawProportionalError = 0.0; // Radians per second.
-	double yawIntegralError = 0.0; // Something.
-	double yawProportionalError = 0.0; // Radians per second.
-	double yawFinCommand = 0.0; // Radians.
-	double lastPitchProportionalError = 0.0; // Radians per second.
-	double pitchIntegralError = 0.0; // Something.
-	double pitchProportionalError = 0.0; // Radians per second.
-	double pitchFinCommand = 0.0; // Radians.
-	double lastRollProportionalError = 0.0; // Radians per second.
-	double rollProportionalError = 0.0; // Radians per second.
-	double rollFinCommand = 0.0; // Radians.
+	double yawIntErr        = 0.0; // Something.
+	double lastYawPropErr   = 0.0; // Radians per second.
+	double yawPropErr       = 0.0; // Radians per second.
+	double yawFinComm       = 0.0; // Radians.
+	double pitchIntErr      = 0.0; // Something.
+	double lastPitchPropErr = 0.0; // Radians per second.
+	double pitchPropErr     = 0.0; // Radians per second.
+	double pitchFinComm     = 0.0; // Radians.
+	double lastRollPropErr  = 0.0; // Radians per second.
+	double rollPropErr      = 0.0; // Radians per second.
+	double rollFinComm      = 0.0; // Radians.
 
 	// Actuators.
 	shared_ptr<secondOrderActuator> FIN1 = make_shared<secondOrderActuator>("output/FIN1.txt");

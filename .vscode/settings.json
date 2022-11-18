@@ -1,7 +1,15 @@
 {
 	"files.associations": {
 		"chrono": "cpp",
-		"*.tcc": "cpp"
+		"*.tcc": "cpp",
+		"algorithm": "cpp",
+		"memory": "cpp",
+		"random": "cpp",
+		"limits": "cpp",
+		"numeric": "cpp",
+		"ratio": "cpp",
+		"stdexcept": "cpp",
+		"tuple": "cpp"
 	},
 	"fortran.fortls.disabled": true
 }
