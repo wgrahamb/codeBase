@@ -18,7 +18,7 @@ using namespace std;
 // Header.
 #include "secondOrderActuator.h"
 
-secondOrderActuator::secondOrderActuator(string logFilePath)
+secondOrderActuator::secondOrderActuator()
 {
 
 	time = 0.0;

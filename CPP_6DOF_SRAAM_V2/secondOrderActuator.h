@@ -24,7 +24,7 @@ class secondOrderActuator
 	public:
 
 	// Methods.
-	secondOrderActuator(string logFilePath);
+	secondOrderActuator();
 	double update(double finCommand, double timeStep);
 
 	// Base variables.

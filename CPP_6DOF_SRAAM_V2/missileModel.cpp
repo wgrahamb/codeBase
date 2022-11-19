@@ -236,14 +236,14 @@ Missile clone(const Missile &missile)
 
 	Missile ret;
 	ret = missile;
-	ret.FIN1 = nullptr;
-	ret.FIN2 = nullptr;
-	ret.FIN3 = nullptr;
-	ret.FIN4 = nullptr;
-	ret.FIN1 = make_shared<secondOrderActuator>(*missile.FIN1);
-	ret.FIN2 = make_shared<secondOrderActuator>(*missile.FIN2);
-	ret.FIN3 = make_shared<secondOrderActuator>(*missile.FIN3);
-	ret.FIN4 = make_shared<secondOrderActuator>(*missile.FIN4);
+	ret.actOne = nullptr;
+	ret.actTwo = nullptr;
+	ret.actThree = nullptr;
+	ret.actFour = nullptr;
+	ret.actOne = make_shared<secondOrderActuator>(*missile.actOne);
+	ret.actTwo = make_shared<secondOrderActuator>(*missile.actTwo);
+	ret.actThree = make_shared<secondOrderActuator>(*missile.actThree);
+	ret.actFour = make_shared<secondOrderActuator>(*missile.actFour);
 	return ret;
 
 }
@@ -566,22 +566,22 @@ void actuators(Missile &missile)
 		double DEL3C = missile.rollFinComm + missile.pitchFinComm - missile.yawFinComm;
 		double DEL4C = missile.rollFinComm + missile.pitchFinComm + missile.yawFinComm;
 
-		missile.FIN1DEFL = missile.FIN1->update(DEL1C * radToDeg, missile.timeStep);
-		missile.FIN2DEFL = missile.FIN2->update(DEL2C * radToDeg, missile.timeStep);
-		missile.FIN3DEFL = missile.FIN3->update(DEL3C * radToDeg, missile.timeStep);
-		missile.FIN4DEFL = missile.FIN4->update(DEL4C * radToDeg, missile.timeStep);
+		missile.finOneDefl = missile.actOne->update(DEL1C * radToDeg, missile.timeStep);
+		missile.finTwoDefl = missile.actTwo->update(DEL2C * radToDeg, missile.timeStep);
+		missile.finThreeDefl = missile.actThree->update(DEL3C * radToDeg, missile.timeStep);
+		missile.finFourDefl = missile.actFour->update(DEL4C * radToDeg, missile.timeStep);
 
 		// Attitude fin deflections.
-		missile.rollFinDeflection = ((-missile.FIN1DEFL - missile.FIN2DEFL + missile.FIN3DEFL + missile.FIN4DEFL) / 4) * degToRad;
-		missile.pitchFinDeflection = ((missile.FIN1DEFL + missile.FIN2DEFL + missile.FIN3DEFL + missile.FIN4DEFL) / 4) * degToRad;
-		missile.yawFinDeflection = ((-missile.FIN1DEFL + missile.FIN2DEFL - missile.FIN3DEFL + missile.FIN4DEFL) / 4) * degToRad;
+		missile.rollFinDefl = ((-missile.finOneDefl - missile.finTwoDefl + missile.finThreeDefl + missile.finFourDefl) / 4) * degToRad;
+		missile.pitchFinDefl = ((missile.finOneDefl + missile.finTwoDefl + missile.finThreeDefl + missile.finFourDefl) / 4) * degToRad;
+		missile.yawFinDefl = ((-missile.finOneDefl + missile.finTwoDefl - missile.finThreeDefl + missile.finFourDefl) / 4) * degToRad;
 
 	}
 	else
 	{
-		missile.rollFinDeflection = 0.0;
-		missile.pitchFinDeflection = 0.0;
-		missile.yawFinDeflection = 0.0;
+		missile.rollFinDefl = 0.0;
+		missile.pitchFinDefl = 0.0;
+		missile.yawFinDefl = 0.0;
 	}
 	
 
@@ -599,11 +599,11 @@ void aerodynamicAnglesAndConversions(Missile &missile)
 	double phiPrime = atan2(tan(missile.betaRadians), sin(missile.alphaRadians));
 	missile.sinPhiPrime = sin(phiPrime);
 	missile.cosPhiPrime = cos(phiPrime);
-	double pitchDeflAeroFrame = missile.pitchFinDeflection * missile.cosPhiPrime - missile.yawFinDeflection * missile.sinPhiPrime;
+	double pitchDeflAeroFrame = missile.pitchFinDefl * missile.cosPhiPrime - missile.yawFinDefl * missile.sinPhiPrime;
 	missile.pitchAeroBallisticFinDeflectionDegrees = radToDeg * pitchDeflAeroFrame;
-	double yawDeflAeroFrame = missile.pitchFinDeflection * missile.sinPhiPrime + missile.yawFinDeflection * missile.cosPhiPrime;
+	double yawDeflAeroFrame = missile.pitchFinDefl * missile.sinPhiPrime + missile.yawFinDefl * missile.cosPhiPrime;
 	missile.yawAeroBallisticFinDeflectionDegrees = radToDeg * yawDeflAeroFrame;
-	missile.rollFinDeflectionDegrees = radToDeg * missile.rollFinDeflection;
+	missile.rollFinDeflectionDegrees = radToDeg * missile.rollFinDefl;
 	missile.totalFinDeflectionDegrees = (abs(missile.pitchAeroBallisticFinDeflectionDegrees) + abs(missile.yawAeroBallisticFinDeflectionDegrees)) / 2;
 	double pitchRateAeroFrame = missile.rate[1] * missile.cosPhiPrime - missile.rate[2] * missile.sinPhiPrime;
 	missile.pitchAeroBallisticBodyRateDegrees = radToDeg * pitchRateAeroFrame;
@@ -1539,13 +1539,13 @@ void logData(Missile &missile, ofstream &logFile)
 	missile.lastYawPropErr << " " <<
 	missile.yawPropErr << " " <<
 	missile.yawFinComm << " " <<
-	missile.rollFinDeflection << " " <<
-	missile.pitchFinDeflection << " " <<
-	missile.yawFinDeflection << " " <<
-	missile.FIN1DEFL << " " <<
-	missile.FIN2DEFL << " " <<
-	missile.FIN3DEFL << " " <<
-	missile.FIN4DEFL << " " <<
+	missile.rollFinDefl << " " <<
+	missile.pitchFinDefl << " " <<
+	missile.yawFinDefl << " " <<
+	missile.finOneDefl << " " <<
+	missile.finTwoDefl << " " <<
+	missile.finThreeDefl << " " <<
+	missile.finFourDefl << " " <<
 	missile.alphaPrimeRadians << " " <<
 	missile.alphaPrimeDegrees << " " <<
 	missile.sinPhiPrime << " " <<

@@ -122,17 +122,21 @@ struct Missile
 	double rollFinComm      = 0.0; // Radians.
 
 	// Actuators.
-	shared_ptr<secondOrderActuator> FIN1 = make_shared<secondOrderActuator>("output/FIN1.txt");
-	shared_ptr<secondOrderActuator> FIN2 = make_shared<secondOrderActuator>("output/FIN2.txt");
-	shared_ptr<secondOrderActuator> FIN3 = make_shared<secondOrderActuator>("output/FIN3.txt");
-	shared_ptr<secondOrderActuator> FIN4 = make_shared<secondOrderActuator>("output/FIN4.txt");
-	double FIN1DEFL = 0.0; // Fin deflection. Radians.
-	double FIN2DEFL = 0.0; // Fin deflection. Radians.
-	double FIN3DEFL = 0.0; // Fin deflection. Radians.
-	double FIN4DEFL = 0.0; // Fin deflection. Radians.
-	double pitchFinDeflection = 0.0; // Radians.
-	double yawFinDeflection = 0.0; // Radians.
-	double rollFinDeflection = 0.0; // Radians.
+	shared_ptr<secondOrderActuator> actOne   =
+		make_shared<secondOrderActuator>(); // pointer to actuator one
+	shared_ptr<secondOrderActuator> actTwo   =
+		make_shared<secondOrderActuator>(); // pointer to actuator two
+	shared_ptr<secondOrderActuator> actThree =
+		make_shared<secondOrderActuator>(); // pointer to actuator three
+	shared_ptr<secondOrderActuator> actFour  =
+		make_shared<secondOrderActuator>(); // pointer to actuator four
+	double finOneDefl                        = 0.0; // Fin deflection. Radians.
+	double finTwoDefl                        = 0.0; // Fin deflection. Radians.
+	double finThreeDefl                      = 0.0; // Fin deflection. Radians.
+	double finFourDefl                       = 0.0; // Fin deflection. Radians.
+	double pitchFinDefl                      = 0.0; // Radians.
+	double yawFinDefl                        = 0.0; // Radians.
+	double rollFinDefl                       = 0.0; // Radians.
 
 	// Aerodynamic angles and conversions.
 	double alphaPrimeRadians = 0.0; // Radians.
